@@ -15,6 +15,7 @@ classifiers = [
 ]
 requires-python = ">=3.9"
 dependencies = [
+    "pre-commit",
     "pyspark >= 3.2",
 ]
 dynamic = ["version"]
