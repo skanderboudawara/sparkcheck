@@ -1,0 +1,151 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sparkcheck"
+description = "Run Data Validation on a Spark DataFrame"
+readme = "README.rst"
+authors = [{name = "Skander Boudawara"}]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "pyspark >= 3.2",
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+test = [
+    "pytest-cov",
+    "pytest >= 7",
+    "tox",
+    "ruff",
+    "mypy >= 1.2.0; python_implementation != 'PyPy'",
+]
+doc = [
+    "packaging",
+    "Sphinx >= 7",
+    "sphinx-autodoc-typehints >= 1.2.0",
+    "sphinx-rtd-theme >= 1.3.0",
+]
+
+[tool.tox]
+min_version = "3.10.0"
+env_list = ["py310", "mypy", "ruff", "docs"]
+isolated_build = true
+
+[tool.tox.envs.py310]
+commands = [["coverage", "run", "-m", "pytest", "{posargs}"]]
+package = "editable"
+extras = ["test"]
+
+[tool.tox.envs.ruff]
+base_python = "python3.10"
+commands = ["ruff check --fix --unsafe-fixes"]
+
+[tool.tox.envs.mypy]
+base_python = "python3.10"
+commands = ["mypy --explicit-package-bases src"]
+
+[tool.tox.gh-actions]
+python = { "3.10" = ["py310", "mypy", "ruff", "docs"] }
+
+[tool.tox.env.docs]
+depends = []
+extras = ["doc"]
+commands = [["sphinx-build", "-W", "-n", "docs", "build/sphinx"]]
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/__init__.py",
+    "*/test_*",
+]
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+]
+
+[tool.pytest.ini_options]
+addopts = [
+    "--doctest-modules",
+    "-vv",
+    "-p",
+    "no:warnings",
+    "--cov-fail-under=100",
+    "--tb=short",
+]
+pythonpath = ["src"]
+testpaths = ["tests"]
+xfail_strict = true
+filterwarnings = ["error"]
+python_files = "test_*.py"
+log_cli = true
+log_cli_level = "INFO"
+log_level = "INFO"
+log_format = "%(asctime)s %(levelname)s %(message)s"
+log_date_format = "%Y-%m-%d %H:%M:%S"
+
+[tool.ruff]
+select = [
+    "F", "E", "W", "C90", "I", "N", "B", "Q", "D", "UP", "ANN", "S", "B", "A", "COM",
+    "C4", "DTZ", "FA", "ISC", "ICN", "LOG", "G", "INP", "T20", "PYI", "PT", "RSE",
+    "RET", "SLF", "SLOT", "SIM", "INT", "ARG", "TD", "FIX", "ERA", "PL", "PERF", "RUF"
+]
+ignore = [
+    "A002", "N812", "FA100", "E203", "E202", "D200", "D404", "D104", "D212", "D415",
+    "PLR0913", "D107", "B023", "RET504", "E271", "PLR0917", "PLR6301", "PLR0904",
+    "E241", "PLR0915", "PLR0914", "C901", "PLR0912", "PLR0911", "PLC0206", "PLC2701", "ANN401"
+]
+
+fixable = ["ALL"]
+exclude = ["*setup.py", "*validator*", "*tests*"]
+output-format = "grouped"
+preview = true
+fix = true
+show-fixes = true
+line-length = 100
+
+[tool.ruff.format]
+indent-style = "space"
+quote-style = "double"
+line-ending = "auto"
+
+[tool.ruff.lint.flake8-quotes]
+docstring-quotes = "double"
+inline-quotes = "double"
+multiline-quotes = "double"
+
+[tool.ruff.lint.isort]
+split-on-trailing-comma = true
+default-section = "third-party"
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+from-first = false
+lines-between-types = 0
+known-third-party = ["pyspark"]
+known-local-folder = ["src"]
+
+[tool.mypy]
+mypy_path = "src"
+strict = false
+exclude = [
+    "(^|/)(test.*)$",
+    ".*sandbox.*",
+    "(^|/)(__init__/.*py)$",
+    ".*jobs.*",
+]
+pretty = true
+error_summary = false
+disallow_any_generics = false
+
+[[tool.mypy.overrides]]
+module = "pyspark.*"
+ignore_missing_imports = true
