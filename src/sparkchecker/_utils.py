@@ -1,7 +1,10 @@
+import re
 from typing import Union
 
+import yaml
 from pyspark.sql import Column
 from pyspark.sql.functions import col, lit
+from pyspark.sql.types import DecimalType
 
 from sparkchecker._constants import OPERATOR_MAP
 
@@ -61,7 +64,49 @@ def _args_to_list_cols(
 
 
 def _check_operator(operator: str) -> None:
+    """
+    This function checks if the operator is valid.
+
+    :param operator: (str), the operator to check
+
+    :return: None
+    """
     if operator not in OPERATOR_MAP:
         raise ValueError(
             f"Invalid operator: {operator}. Must be one of {list(OPERATOR_MAP.keys())}",
         )
+
+
+def read_yaml_file(file_path: str) -> dict:
+    """
+    Reads a YAML file and returns the parsed data.
+
+    :param file_path: Path to the YAML file.
+
+    :return: (dict) Parsed data as a Python dictionary.
+    """
+    with open(file_path, encoding="utf-8") as file:
+        data = yaml.safe_load(file)
+    return data
+
+
+def parse_decimal_type(decimal_string):
+    """
+    Parses a string like 'decimal(10,2)' and converts it to a DecimalType object.
+
+    :param decimal_string: (str), string like 'decimal(10,2)'.
+
+    :return: (DecimalType), a DecimalType object.
+    """
+    # Regular expression to match 'decimal(precision,scale)'
+    match = re.fullmatch(
+        r"^decimal\((\d+),\s*?(\d+)\)$",
+        decimal_string.strip().lower(),
+    )
+
+    if match:
+        precision, scale = map(int, match.groups())
+        return DecimalType(precision=precision, scale=scale)
+    raise ValueError(
+        f"Invalid decimal type string: {decimal_string}, it should be writtend `decimal(1, 2)`",
+    )
