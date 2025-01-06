@@ -39,3 +39,10 @@ COLUMN_TYPES = {
     "bytes": ByteType(),
     "decimal": DecimalType(),
 }
+
+COLUMN_OPERATIONS = [
+    "pattern",
+    "is_null",
+    "is_not_null",
+    "in",
+]

@@ -16,6 +16,9 @@ classifiers = [
 requires-python = ">=3.9"
 dependencies = [
     "pre-commit",
+    "types-PyYAML",
+    "PyYaml",
+    "jsonpath-ng",
     "pyspark >= 3.2",
 ]
 dynamic = ["version"]
@@ -24,6 +27,7 @@ dynamic = ["version"]
 test = [
     "pytest-cov",
     "pytest >= 7",
+    "black",
     "tox",
     "ruff",
     "mypy >= 1.2.0; python_implementation != 'PyPy'",
@@ -103,7 +107,7 @@ lint.select = [
 ]
 lint.ignore = [
     "A002", "D401", "N812", "FA100", "E203", "E202", "D200", "D404", "D104", "D212", "D415",
-    "PLR0913", "D107", "B023", "RET504", "E271", "PLR0917", "PLR6301", "PLR0904",
+    "PLR0913", "D107", "B023", "RET504", "E271", "PLR0917", "PLR6301", "PLR0904", "N818", "D203",
     "E241", "PLR0915", "PLR0914", "C901", "PLR0912", "PLR0911", "PLC0206", "PLC2701", "ANN401"
 ]
 
@@ -134,6 +138,8 @@ lines-between-types = 0
 known-third-party = ["pyspark"]
 known-local-folder = ["src"]
 
+[tool.ruff.lint.per-file-ignores]
+"*bin*" = ["INP001"]
 [tool.mypy]
 mypy_path = "src"
 strict = false
