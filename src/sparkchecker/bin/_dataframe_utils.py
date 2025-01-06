@@ -3,8 +3,8 @@ from typing import Literal
 
 from pyspark.sql import DataFrame
 
-from sparkchecker._constants import OPERATOR_MAP
-from sparkchecker._utils import _check_operator
+from sparkchecker.bin._constants import OPERATOR_MAP
+from sparkchecker.bin._utils import _check_operator
 
 
 class _DataFrameExpectation(ABC):
@@ -28,7 +28,7 @@ class _IsEmpty(_DataFrameExpectation):
         super().__init__(df)
 
     @property
-    def predicate(self) -> Literal["isEmpty"]:
+    def predicate(self) -> bool:
         """
         This method returns the predicate.
 

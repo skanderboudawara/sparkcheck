@@ -6,7 +6,7 @@ from pyspark.sql import Column
 from pyspark.sql.functions import col, lit
 from pyspark.sql.types import DecimalType
 
-from sparkchecker._constants import OPERATOR_MAP
+from sparkchecker.bin._constants import OPERATOR_MAP
 
 
 def _str_to_col(column_name: Union[str, Column], is_lit: bool = False) -> Column:
@@ -41,8 +41,8 @@ def _args_to_list_cols(
     """
     Convert a `list_args` to a list[Columns].
 
-    :param list_args: (Union[str, Column, list[Column], list[str], tuple[str, ...], tuple[Column, ...]]),
-        a list of arguments
+    :param list_args: (Union[str, Column, list[Column], list[str], tuple[str, ...],
+        tuple[Column, ...]]), a list of arguments
 
     :returns: (list[Column]), a list of Column
     """
@@ -90,7 +90,7 @@ def read_yaml_file(file_path: str) -> dict:
     return data
 
 
-def parse_decimal_type(decimal_string):
+def parse_decimal_type(decimal_string: str) -> DecimalType:
     """
     Parses a string like 'decimal(10,2)' and converts it to a DecimalType object.
 

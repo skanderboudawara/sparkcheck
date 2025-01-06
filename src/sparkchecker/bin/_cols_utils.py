@@ -4,8 +4,12 @@ from typing import Union
 from pyspark.sql import Column
 from pyspark.sql.functions import lit
 
-from sparkchecker._cols_utils import _args_to_list_cols, _check_operator, _str_to_col
-from sparkchecker._constants import OPERATOR_MAP
+from sparkchecker.bin._utils import (
+    _args_to_list_cols,
+    _check_operator,
+    _str_to_col,
+)
+from sparkchecker.bin._constants import OPERATOR_MAP
 
 
 class _ColumnsExpectations(ABC):
@@ -14,7 +18,7 @@ class _ColumnsExpectations(ABC):
 
     @property
     @abstractmethod
-    def predicate(self) -> bool: ...
+    def predicate(self) -> Column: ...
 
 
 class _NonNullColumn(_ColumnsExpectations):
@@ -29,13 +33,13 @@ class _NonNullColumn(_ColumnsExpectations):
         super().__init__(_str_to_col(column))
 
     @property
-    def predicate(self) -> bool:
+    def predicate(self) -> Column:
         """
         This method returns the predicate.
 
         :param None:
 
-        :return: (bool), the predicate
+        :return: (Column), the predicate
         """
         return self.column.isNotNull()
 
@@ -52,13 +56,13 @@ class _NullColumn(_ColumnsExpectations):
         super().__init__(_str_to_col(column))
 
     @property
-    def predicate(self) -> bool:
+    def predicate(self) -> Column:
         """
         This method returns the predicate.
 
         :param None:
 
-        :return: (bool), the predicate
+        :return: (Column), the predicate
         """
         return self.column.isNull()
 
@@ -78,15 +82,15 @@ class _RlikeColumn(_ColumnsExpectations):
         self.pattern = pattern
 
     @property
-    def predicate(self) -> bool:
+    def predicate(self) -> Column:
         """
         This method returns the predicate.
 
         :param None:
 
-        :return: (bool), the predicate
+        :return: (Column), the predicate
         """
-        self.column.rlike(self.pattern)
+        return self.column.rlike(self.pattern)
 
 
 class _IsInColumn(_ColumnsExpectations):
@@ -108,15 +112,15 @@ class _IsInColumn(_ColumnsExpectations):
         self.array = _args_to_list_cols(array, is_lit=True)
 
     @property
-    def predicate(self) -> bool:
+    def predicate(self) -> Column:
         """
         This method returns the predicate.
 
         :param None:
 
-        :return: (bool), the predicate
+        :return: (Column), the predicate
         """
-        self.column.isin(*self.array)
+        return self.column.isin(*self.array)
 
 
 class _ColumnCompare:
@@ -141,13 +145,13 @@ class _ColumnCompare:
         super().__init__(_str_to_col(column))
 
     @property
-    def predicate(self) -> bool:
+    def predicate(self) -> Column:
         """
         This method returns the predicate.
 
         :param None:
 
-        :return: (bool), the predicate
+        :return: (Column), the predicate
         """
         # Convert the threshold to a literal value and apply the operator
         return OPERATOR_MAP[self.operator](self.column, lit(self.threshold))

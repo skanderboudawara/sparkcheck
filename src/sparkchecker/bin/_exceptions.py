@@ -1,4 +1,9 @@
-from sparkchecker._constants import COLUMN_TYPES, CONSTRAINT_CONSTRUCTOR, OPERATOR_MAP
+from sparkchecker.bin._constants import (
+    COLUMN_OPERATIONS,
+    COLUMN_TYPES,
+    CONSTRAINT_CONSTRUCTOR,
+    OPERATOR_MAP,
+)
 
 
 class InternalError(Exception):
@@ -28,7 +33,7 @@ class IllegalConstraintConstructor(Exception):
         :return: None
         """
         message = f"Each constraint in `{constraint}` must have keys in \
-                        {', '.join(CONSTRAINT_CONSTRUCTOR.keys())} \ngot: {exception}"
+                        {', '.join(CONSTRAINT_CONSTRUCTOR)} \ngot: {exception}"
         super().__init__(message)
 
 
@@ -88,5 +93,24 @@ class IllegalColumnType(Exception):
         message = (
             f"`has_column` checks on `{constraint}` only takes these values as types \
                     {', '.join(COLUMN_TYPES.keys())} \ngot: {exception}",
+        )
+        super().__init__(message)
+
+
+class IllegalColumnCheck(Exception):
+    def __init__(self, constraint: str, exception: str) -> None:
+        """
+        This class raises an exception when an illegal threshold math operator is used.
+
+        :param constraint: (str), the constraint
+
+        :param exception: (str), the exception
+
+        :return: None
+        """
+        list_of_authorized_values = [*OPERATOR_MAP, *COLUMN_OPERATIONS]
+        message = (
+            f"`{constraint}` only takes these values as constraints \
+                    {', '.join(list_of_authorized_values)} \ngot: {exception}",
         )
         super().__init__(message)
