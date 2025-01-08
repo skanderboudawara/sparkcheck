@@ -1,3 +1,4 @@
+import os
 import re
 from typing import Union
 
@@ -22,6 +23,24 @@ def _str_to_col(column_name: Union[str, Column], is_lit: bool = False) -> Column
     if isinstance(column_name, Column):
         return column_name
     return lit(column_name)
+
+
+def _col_to_name(column: Union[str, Column]) -> str:
+    """
+    Convert a `column` to a column name.
+
+    :param column: (Column), a spark Column
+
+    :returns: (str) a column name
+    """
+    if isinstance(column, str):
+        return column
+    if isinstance(column, Column):
+        return column._jc.toString()
+    raise TypeError(
+        "Argument `column` must be of type Union[str, Column] but got: ",
+        type(column),
+    )
 
 
 def _args_to_list_cols(
@@ -107,3 +126,39 @@ def parse_decimal_type(decimal_string: str) -> DecimalType:
     raise ValueError(
         f"Invalid decimal type string: {decimal_string}, it should be writtend `decimal(1, 2)`",
     )
+
+
+def extract_base_path_and_filename(file_path):
+    """
+    Extracts the base path and the filename from a given file path.
+
+    """
+    base_path = os.path.dirname(file_path)
+    filename = os.path.splitext(os.path.basename(file_path))[
+        0
+    ]  # Extract filename without extension
+    new_filename = f"{filename}_expectations_result.log"  # Append .log extension
+    return filename, os.path.join(base_path, new_filename)
+
+
+def _placeholder(
+    input_string: str, condition: bool, placeholder: str, replacements: tuple[str, str],
+) -> str:
+    """
+    Replaces the specified placeholder in a string based on a boolean condition.
+
+    :param input_string (str): The string containing the placeholder.
+    :param condition (bool): The condition to determine the replacement value.
+    :param placeholder (str): The placeholder to replace (e.g., "<$is_or_not>").
+    :param replacements (tuple[str, str]): A tuple containing the replacements for True and False conditions.
+
+    :returns: (str) The modified string with the placeholder replaced.
+    """
+    replacement = replacements[0] if condition else replacements[1]
+    return input_string.replace(placeholder, replacement)
+
+
+def _overrid_msg(default, msg):
+    msg = default if msg else msg
+
+    return msg

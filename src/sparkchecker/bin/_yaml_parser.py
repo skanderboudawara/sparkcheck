@@ -3,7 +3,9 @@ This module contains the ConstraintYamlParser class.
 
 This class is used to construct constraints.
 """
-from typing import Union
+
+from typing import Optional, Union
+
 from jsonpath_ng import parse
 
 from sparkchecker.bin._constants import (
@@ -38,7 +40,7 @@ class ConstraintYamlParser:
         :return: None
         """
         self.data = yaml_data
-        self.stack : list[dict] = []
+        self.stack: list[dict] = []
         self._constraint: Union[str, None] = None
         self._constraint_obj: Union[dict, str, None] = None
 
@@ -219,7 +221,12 @@ class ConstraintYamlParser:
         self._check_has_columns()
         self._column_checks()
 
-    def append(self, chk: Union[str, None], constraint: Union[dict, str, None], operator: str = None) -> None:
+    def append(
+        self,
+        chk: Union[str, None],
+        constraint: Union[dict, str, None],
+        operator: Optional[str] = None,
+    ) -> None:
         """
         This method appends the constraint.
 

@@ -1,15 +1,16 @@
 from abc import ABC, abstractmethod
-from typing import Union
+from typing import Any, Union
 
 from pyspark.sql import Column
-from pyspark.sql.functions import lit
 
+from sparkchecker.bin._decorators import validate_predicate
+from sparkchecker.bin._constants import OPERATOR_MAP
 from sparkchecker.bin._utils import (
     _args_to_list_cols,
     _check_operator,
+    _col_to_name,
     _str_to_col,
 )
-from sparkchecker.bin._constants import OPERATOR_MAP
 
 
 class _ColumnsExpectations(ABC):
@@ -22,18 +23,31 @@ class _ColumnsExpectations(ABC):
 
 
 class _NonNullColumn(_ColumnsExpectations):
-    def __init__(self, column: Union[str, Column], constraint,  *args, **kwargs) -> None:
+    def __init__(
+        self,
+        column: Union[str, Column],
+        constraint: bool,
+        **kwargs: Any,
+    ) -> None:
         """
         This class checks if a column is not null.
 
         :param column: (Union[str, Column]), the column to check
 
+        :param constraint: (bool), the constraint to check
+
         :return: None
         """
+        if not isinstance(constraint, bool):
+            raise TypeError(
+                "Argument is not_null `constraint` must be of type bool but got: ",
+                type(constraint),
+            )
         self.constraint = constraint
         super().__init__(cname=column)
 
     @property
+    @validate_predicate
     def predicate(self) -> Column:
         """
         This method returns the predicate.
@@ -49,18 +63,31 @@ class _NonNullColumn(_ColumnsExpectations):
 
 
 class _NullColumn(_ColumnsExpectations):
-    def __init__(self, column: Union[str, Column], constraint,  *args, **kwargs) -> None:
+    def __init__(
+        self,
+        column: Union[str, Column],
+        constraint: bool,
+        **kwargs: Any,
+    ) -> None:
         """
         This class checks if a column is null.
 
         :param column: (Union[str, Column]), the column to check
 
+        :param constraint: (bool), the constraint to check
+
         :return: None
         """
+        if not isinstance(constraint, bool):
+            raise TypeError(
+                "Argument for is_null `constraint` must be of type bool but got: ",
+                type(constraint),
+            )
         self.constraint = constraint
         super().__init__(cname=column)
 
     @property
+    @validate_predicate
     def predicate(self) -> Column:
         """
         This method returns the predicate.
@@ -76,7 +103,12 @@ class _NullColumn(_ColumnsExpectations):
 
 
 class _RlikeColumn(_ColumnsExpectations):
-    def __init__(self, column: Union[str, Column], constraint: str,  *args, **kwargs) -> None:
+    def __init__(
+        self,
+        column: Union[str, Column],
+        constraint: str,
+        **kwargs: Any,
+    ) -> None:
         """
         This class checks if a column matches a pattern.
 
@@ -87,9 +119,15 @@ class _RlikeColumn(_ColumnsExpectations):
         :return: None
         """
         super().__init__(cname=column)
+        if not isinstance(constraint, str):
+            raise TypeError(
+                "Argument pattern `constraint` must be of type bool but got: ",
+                type(constraint),
+            )
         self.constraint = constraint
 
     @property
+    @validate_predicate
     def predicate(self) -> Column:
         """
         This method returns the predicate.
@@ -107,7 +145,8 @@ class _IsInColumn(_ColumnsExpectations):
         self,
         column: Union[str, Column],
         constraint: Union[Column, str, list[Column], list[str]],
-         *args, **kwargs
+        message: Union[str, None] = None,
+        **kwargs: Any,
     ) -> None:
         """
         This class checks if a column is in an array.
@@ -119,9 +158,16 @@ class _IsInColumn(_ColumnsExpectations):
         :return: None
         """
         super().__init__(cname=column)
+        if not isinstance(constraint, (str, Column, list)):
+            raise TypeError(
+                "Argument for in `constraint` must be of type \
+                    Union[Column, str, list[Column], list[str]] but got: ",
+                type(constraint),
+            )
         self.constraint = constraint
 
     @property
+    @validate_predicate
     def predicate(self) -> Column:
         """
         This method returns the predicate.
@@ -130,6 +176,11 @@ class _IsInColumn(_ColumnsExpectations):
 
         :return: (Column), the predicate
         """
+        self.message = (
+            f"Column {_col_to_name(self.column)} <$is_or_not> in the array: {', '.join(self.constraint)}"
+            if self.message
+            else self.message
+        )
         self.constraint = _args_to_list_cols(self.constraint, is_lit=True)
         self.column = _str_to_col(self.column)
         return self.column.isin(*self.constraint)
@@ -141,7 +192,7 @@ class _ColumnCompare(_ColumnsExpectations):
         column: Union[str, Column],
         constraint: Union[str, float],
         operator: str,
-         *args, **kwargs
+        **kwargs: Any,
     ) -> None:
         """
         This class compares a column to a constraint.
@@ -154,10 +205,17 @@ class _ColumnCompare(_ColumnsExpectations):
         """
         _check_operator(operator)
         self.operator = operator
-        self.constraint= constraint
+        if not isinstance(constraint, (str, float, int)):
+            raise TypeError(
+                "Argument for column comparison `constraint` must be of type \
+                    Union[str, float] but got: ",
+                type(constraint),
+            )
+        self.constraint = constraint
         super().__init__(cname=column)
 
     @property
+    @validate_predicate
     def predicate(self) -> Column:
         """
         This method returns the predicate.
