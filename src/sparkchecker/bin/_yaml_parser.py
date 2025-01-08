@@ -124,7 +124,7 @@ class ConstraintYamlParser:
             self.constraint = count
             self._verify_constructor_parsing()
             self._verify_threshold_parsing()
-            self.append("count", self.constraint_obj)
+            self.append("count", self.constraint_obj, self.constraint)
 
     def _check_partitions(self) -> None:
         """
@@ -140,7 +140,7 @@ class ConstraintYamlParser:
             self.constraint = partitions
             self._verify_constructor_parsing()
             self._verify_threshold_parsing()
-            self.append("partitions", self.constraint_obj)
+            self.append("partitions", self.constraint_obj, self.constraint)
 
     def _check_is_empty(self) -> None:
         """
@@ -179,11 +179,11 @@ class ConstraintYamlParser:
                     else COLUMN_TYPES[self._constraint_obj]
                 )
                 constraint = {
-                    "column_name": self._constraint,
+                    "column": self._constraint,
                     "constraint": self._constraint_obj,
                 }
             else:
-                constraint = {"column_name": self._constraint}
+                constraint = {"column": self._constraint}
             self.append("exist", constraint)
 
     def _column_checks(self) -> None:
@@ -202,8 +202,8 @@ class ConstraintYamlParser:
                 self.constraint = check
                 self._verify_column_checks_parsing()
                 self._verify_constructor_parsing()
-                self._constraint_obj.update({"column_name": column_name})
-                self.append(self.constraint, self.constraint_obj)
+                self._constraint_obj.update({"column": column_name})
+                self.append("column", self.constraint_obj, self.constraint)
 
     def run(self) -> None:
         """
@@ -219,7 +219,7 @@ class ConstraintYamlParser:
         self._check_has_columns()
         self._column_checks()
 
-    def append(self, chk: Union[str, None], constraint: Union[dict, str, None]) -> None:
+    def append(self, chk: Union[str, None], constraint: Union[dict, str, None], operator: str = None) -> None:
         """
         This method appends the constraint.
 
@@ -234,6 +234,8 @@ class ConstraintYamlParser:
         if constraint is None:
             raise ValueError("Constraint cannot be None")
         constraint["check"] = chk
+        if operator:
+            constraint["operator"] = operator
         self.stack.append(constraint)
 
     @property
