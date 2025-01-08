@@ -93,17 +93,7 @@ def _check_operator(operator: str) -> None:
         )
 
 
-def read_yaml_file(file_path: str) -> dict:
-    """
-    Reads a YAML file and returns the parsed data.
 
-    :param file_path: Path to the YAML file.
-
-    :return: (dict) Parsed data as a Python dictionary.
-    """
-    with open(file_path, encoding="utf-8") as file:
-        data = yaml.safe_load(file)
-    return data
 
 
 def parse_decimal_type(decimal_string: str) -> DecimalType:

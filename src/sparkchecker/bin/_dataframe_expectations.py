@@ -102,27 +102,27 @@ class CountThreshold(DataFrameExpectation):
     @check_message
     def __init__(
         self,
-        constraint: int,
+        value: int,
         operator: str,
         message: Union[str, None] = None,
         **kargs,
     ) -> None:
         """
-        This class compares the count of a DataFrame to a constraint.
+        This class compares the count of a DataFrame to a value.
 
         :param df: (DataFrame), the DataFrame to check
 
-        :param constraint: (int), the constraint to check
+        :param value: (int), the value to check
 
         :return: None
         """
         _check_operator(operator)
-        if not isinstance(constraint, int):
+        if not isinstance(value, int):
             raise TypeError(
                 "Argument for DataFrame count must be of type int but got: ",
-                type(constraint),
+                type(value),
             )
-        self.constraint = constraint
+        self.value = value
         self.operator = operator
         super().__init__(message)
 
@@ -137,10 +137,10 @@ class CountThreshold(DataFrameExpectation):
         """
         count = df.count()
         # Convert the threshold to a literal value and apply the operator
-        check = OPERATOR_MAP[self.operator](count, self.constraint)
+        check = OPERATOR_MAP[self.operator](count, self.value)
         self.message = _placeholder(
             _overrid_msg(
-                f"The DataFrame has {count} rows, which <$is_or_not> {self.operator} than {self.constraint}",
+                f"The DataFrame has {count} rows, which <$is_or_not> {self.operator} than {self.value}",
                 self.message,
             ),
             check,
@@ -154,27 +154,27 @@ class PartitionsCount(DataFrameExpectation):
     @check_message
     def __init__(
         self,
-        constraint: int,
+        value: int,
         operator: str,
         message: Union[str, None] = None,
         **kargs,
     ) -> None:
         """
-        This class compares the number of partitions of a DataFrame to a constraint.
+        This class compares the number of partitions of a DataFrame to a value.
 
         :param df: (DataFrame), the DataFrame to check
 
-        :param constraint: (int), the constraint to check
+        :param value: (int), the value to check
 
         :return: None
         """
         _check_operator(operator)
-        if not isinstance(constraint, int):
+        if not isinstance(value, int):
             raise TypeError(
                 "Argument for DataFrame Partitions must be of type int but got: ",
-                type(constraint),
+                type(value),
             )
-        self.constraint = constraint
+        self.value = value
         self.operator = operator
         super().__init__(message)
 
@@ -189,10 +189,10 @@ class PartitionsCount(DataFrameExpectation):
         """
         rdd_count = df.rdd.getNumPartitions()
         # Convert the threshold to a literal value and apply the operator
-        check_count = OPERATOR_MAP[self.operator](rdd_count, self.constraint)
+        check_count = OPERATOR_MAP[self.operator](rdd_count, self.value)
         self.message = _placeholder(
             _overrid_msg(
-                f"The DataFrame has {rdd_count} partitions, which <$is_or_not> {self.operator} than {self.constraint}",
+                f"The DataFrame has {rdd_count} partitions, which <$is_or_not> {self.operator} than {self.value}",
                 self.message,
             ),
             check_count,
@@ -208,7 +208,7 @@ class Exist(DataFrameExpectation):
         self,
         column: str,
         message: Union[str, None] = None,
-        constraint: Union[DataType, None] = None,
+        value: Union[DataType, None] = None,
         **kargs,
     ) -> None:
         """
@@ -218,16 +218,16 @@ class Exist(DataFrameExpectation):
 
         :param column: (str), the column to check
 
-        :param constraint: (DataType), the constraint to check
+        :param value: (DataType), the value to check
 
         :return: None
         """
-        if constraint and not isinstance(constraint, DataType):
+        if value and not isinstance(value, DataType):
             raise TypeError(
                 "Argument for DataFrame Partitions must be of type int but got: ",
-                type(constraint),
+                type(value),
             )
-        self.constraint = constraint
+        self.value = value
         self.column = column
         super().__init__(message)
 
@@ -258,12 +258,12 @@ class Exist(DataFrameExpectation):
                 "message": self.message,
             }
 
-        if self.constraint:
+        if self.value:
             data_type = df.schema[self.column].dataType
-            check_type = data_type == self.constraint
+            check_type = data_type == self.value
             self.message = _placeholder(
                 _overrid_msg(
-                    f"Column {self.column} exists in the DataFrame and <$is_or_not> of type: {self.constraint}",
+                    f"Column {self.column} exists in the DataFrame and <$is_or_not> of type: {self.value}",
                     self.message,
                 ),
                 check_type,

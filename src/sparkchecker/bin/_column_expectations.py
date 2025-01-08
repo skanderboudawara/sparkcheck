@@ -47,7 +47,7 @@ class ColumnsExpectations(ABC):
 
     @property
     @abstractmethod
-    def value(self) -> Column: ...
+    def constraint(self) -> Column: ...
 
     @abstractmethod
     def expectation(self, df: DataFrame) -> Column: ...
@@ -59,7 +59,7 @@ class NonNullColumn(ColumnsExpectations):
     def __init__(
         self,
         column: Union[str, Column],
-        constraint: bool,
+        value: bool,
         message: Union[str, None] = None,
         **kargs,
     ) -> None:
@@ -68,22 +68,22 @@ class NonNullColumn(ColumnsExpectations):
 
         :param column: (Union[str, Column]), the column to check
 
-        :param constraint: (bool), the constraint to check
+        :param value: (bool), the value to check
 
         :return: None
         """
         super().__init__(column, message)
-        if not isinstance(constraint, bool):
+        if not isinstance(value, bool):
             raise TypeError(
-                "Argument is not_null `constraint` must be of type bool but got: ",
-                type(constraint),
+                "Argument is not_null `value` must be of type bool but got: ",
+                type(value),
             )
-        self.constraint = constraint
+        self.value = value
 
     @property
-    def value(self) -> Column:
+    def constraint(self) -> Column:
         self.column = str_to_col(self.column)
-        if self.constraint:
+        if self.value:
             return self.column.isNotNull()
         return self.column.isNull()
 
@@ -105,7 +105,7 @@ class NullColumn(ColumnsExpectations):
     def __init__(
         self,
         column: Union[str, Column],
-        constraint: bool,
+        value: bool,
         message: Union[str, None] = None,
         **kargs,
     ) -> None:
@@ -114,22 +114,22 @@ class NullColumn(ColumnsExpectations):
 
         :param column: (Union[str, Column]), the column to check
 
-        :param constraint: (bool), the constraint to check
+        :param value: (bool), the value to check
 
         :return: None
         """
         super().__init__(column, message)
-        if not isinstance(constraint, bool):
+        if not isinstance(value, bool):
             raise TypeError(
-                "Argument for is_null `constraint` must be of type bool but got: ",
-                type(constraint),
+                "Argument for is_null `value` must be of type bool but got: ",
+                type(value),
             )
-        self.constraint = constraint
+        self.value = value
 
     @property
-    def value(self) -> Column:
+    def constraint(self) -> Column:
         self.column = str_to_col(self.column)
-        if self.constraint:
+        if self.value:
             return self.column.isNull()
         return self.column.isNotNull()
 
@@ -151,7 +151,7 @@ class RlikeColumn(ColumnsExpectations):
     def __init__(
         self,
         column: Union[str, Column],
-        constraint: str,
+        value: str,
         message: Union[str, None] = None,
         **kargs,
     ) -> None:
@@ -160,22 +160,22 @@ class RlikeColumn(ColumnsExpectations):
 
         :param column: (Union[str, Column]), the column to check
 
-        :param constraint: (str), the constraint to match
+        :param value: (str), the value to match
 
         :return: None
         """
         super().__init__(column, message)
-        if not isinstance(constraint, str):
+        if not isinstance(value, str):
             raise TypeError(
-                "Argument pattern `constraint` must be of type bool but got: ",
-                type(constraint),
+                "Argument pattern `value` must be of type bool but got: ",
+                type(value),
             )
-        self.constraint = constraint
+        self.value = value
 
     @property
-    def value(self) -> Column:
+    def constraint(self) -> Column:
         self.column = str_to_col(self.column)
-        return self.column.rlike(self.constraint)
+        return self.column.rlike(self.value)
 
     @validate_expectation
     @check_column_exist
@@ -195,7 +195,7 @@ class IsInColumn(ColumnsExpectations):
     def __init__(
         self,
         column: Union[str, Column],
-        constraint: Union[Column, str, list[Column], list[str]],
+        value: Union[Column, str, list[Column], list[str]],
         message: Union[str, None] = None,
         **kargs,
     ) -> None:
@@ -209,19 +209,19 @@ class IsInColumn(ColumnsExpectations):
         :return: None
         """
         super().__init__(column, message)
-        if not isinstance(constraint, (str, Column, list)):
+        if not isinstance(value, (str, Column, list)):
             raise TypeError(
-                "Argument for in `constraint` must be of type \
+                "Argument for in `value` must be of type \
                     Union[Column, str, list[Column], list[str]] but got: ",
-                type(constraint),
+                type(value),
             )
-        self.constraint = constraint
+        self.value = value
 
     @property
-    def value(self) -> Column:
-        self.constraint = args_to_list_cols(self.constraint, is_col=False)
+    def constraint(self) -> Column:
+        self.value = args_to_list_cols(self.value, is_col=False)
         self.column = str_to_col(self.column)
-        return self.column.isin(*self.constraint)
+        return self.column.isin(*self.value)
 
     @validate_expectation
     @check_column_exist
@@ -241,35 +241,35 @@ class ColumnCompare(ColumnsExpectations):
     def __init__(
         self,
         column: Union[str, Column],
-        constraint: Union[str, float],
+        value: Union[str, float],
         operator: str,
         message: Union[str, None] = None,
         **kargs,
     ) -> None:
         """
-        This class compares a column to a constraint.
+        This class compares a column to a value.
 
         :param column: (Union[str, Column]), the column to compare
 
-        :param constraint: (Union[str, float]), the constraint to compare
+        :param value: (Union[str, float]), the value to compare
 
         :param operator: (str), the operator to use
         """
         super().__init__(column, message)
         _check_operator(operator)
         self.operator = operator
-        if not isinstance(constraint, (str, float, int)):
+        if not isinstance(value, (str, float, int)):
             raise TypeError(
-                "Argument for column comparison `constraint` must be of type \
+                "Argument for column comparison `value` must be of type \
                     Union[str, float] but got: ",
-                type(constraint),
+                type(value),
             )
-        self.constraint = constraint
+        self.value = value
 
     @property
-    def value(self) -> Column:
+    def constraint(self) -> Column:
         self.column = str_to_col(self.column)
-        return OPERATOR_MAP[self.operator](self.column, self.constraint)
+        return OPERATOR_MAP[self.operator](self.column, self.value)
 
     @validate_expectation
     @check_column_exist
@@ -281,6 +281,6 @@ class ColumnCompare(ColumnsExpectations):
 
         :return: (Column), the expectation
         """
-        is_col = col_to_name(str(self.constraint))
-        self.constraint = str_to_col(self.constraint, is_col in df.columns)
+        is_col = col_to_name(str(self.value))
+        self.value = str_to_col(self.value, is_col in df.columns)
         return evaluate_expectation(df, self.value)
