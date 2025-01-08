@@ -45,16 +45,15 @@ CONSTRAINT_CONSTRUCTOR = [
     "message",
 ]
 
-DATAFRAME_OPEARATIONS = [
-    "is_empty",
-    "count",
-    "has_column",
-]
-
-
 COLUMN_OPERATIONS = [
-    "pattern",
+    "not_null",
     "is_null",
-    "is_not_null",
+    "pattern",
     "in",
+    "lower",
+    "lower_or_equal",
+    "equal",
+    "different",
+    "higher",
+    "higher_or_equal",
 ]

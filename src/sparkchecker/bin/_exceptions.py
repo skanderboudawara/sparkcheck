@@ -114,3 +114,22 @@ class IllegalColumnCheck(Exception):
                     {', '.join(list_of_authorized_values)} \ngot: {exception}",
         )
         super().__init__(message)
+
+
+class IllegalCheckStrategy(Exception):
+    def __init__(self, check: dict) -> None:
+        """
+        This class raises an exception when an illegal threshold math operator is used.
+
+        :param constraint: (str), the constraint
+
+        :param exception: (str), the exception
+
+        :return: None
+        """
+        chk = check["check"]
+        strategy = check["strategy"]
+        message = (
+            f"for check {chk} the strategy must be one of 'fail' or 'warn', got: {strategy}",
+        )
+        super().__init__(message)
