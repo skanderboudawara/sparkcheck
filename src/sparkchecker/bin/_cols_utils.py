@@ -13,8 +13,8 @@ from sparkchecker.bin._constants import OPERATOR_MAP
 
 
 class _ColumnsExpectations(ABC):
-    def __init__(self, column: Union[str, Column]) -> None:
-        self.column: Column = column
+    def __init__(self, cname: Union[str, Column]) -> None:
+        self.column: Column = cname
 
     @property
     @abstractmethod
@@ -22,7 +22,7 @@ class _ColumnsExpectations(ABC):
 
 
 class _NonNullColumn(_ColumnsExpectations):
-    def __init__(self, column: Union[str, Column]) -> None:
+    def __init__(self, column: Union[str, Column], constraint,  *args, **kwargs) -> None:
         """
         This class checks if a column is not null.
 
@@ -30,7 +30,8 @@ class _NonNullColumn(_ColumnsExpectations):
 
         :return: None
         """
-        super().__init__(_str_to_col(column))
+        self.constraint = constraint
+        super().__init__(cname=column)
 
     @property
     def predicate(self) -> Column:
@@ -41,11 +42,14 @@ class _NonNullColumn(_ColumnsExpectations):
 
         :return: (Column), the predicate
         """
-        return self.column.isNotNull()
+        self.column = _str_to_col(self.column)
+        if self.constraint:
+            return self.column.isNotNull()
+        return self.column.isNull()
 
 
 class _NullColumn(_ColumnsExpectations):
-    def __init__(self, column: Union[str, Column]) -> None:
+    def __init__(self, column: Union[str, Column], constraint,  *args, **kwargs) -> None:
         """
         This class checks if a column is null.
 
@@ -53,7 +57,8 @@ class _NullColumn(_ColumnsExpectations):
 
         :return: None
         """
-        super().__init__(_str_to_col(column))
+        self.constraint = constraint
+        super().__init__(cname=column)
 
     @property
     def predicate(self) -> Column:
@@ -64,22 +69,25 @@ class _NullColumn(_ColumnsExpectations):
 
         :return: (Column), the predicate
         """
-        return self.column.isNull()
+        self.column = _str_to_col(self.column)
+        if self.constraint:
+            return self.column.isNull()
+        return self.column.isNotNull()
 
 
 class _RlikeColumn(_ColumnsExpectations):
-    def __init__(self, column: Union[str, Column], pattern: str) -> None:
+    def __init__(self, column: Union[str, Column], constraint: str,  *args, **kwargs) -> None:
         """
         This class checks if a column matches a pattern.
 
         :param column: (Union[str, Column]), the column to check
 
-        :param pattern: (str), the pattern to match
+        :param constraint: (str), the constraint to match
 
         :return: None
         """
-        super().__init__(_str_to_col(column))
-        self.pattern = pattern
+        super().__init__(cname=column)
+        self.constraint = constraint
 
     @property
     def predicate(self) -> Column:
@@ -90,14 +98,16 @@ class _RlikeColumn(_ColumnsExpectations):
 
         :return: (Column), the predicate
         """
-        return self.column.rlike(self.pattern)
+        self.column = _str_to_col(self.column)
+        return self.column.rlike(self.constraint)
 
 
 class _IsInColumn(_ColumnsExpectations):
     def __init__(
         self,
         column: Union[str, Column],
-        array: Union[Column, str, list[Column], list[str]],
+        constraint: Union[Column, str, list[Column], list[str]],
+         *args, **kwargs
     ) -> None:
         """
         This class checks if a column is in an array.
@@ -108,8 +118,8 @@ class _IsInColumn(_ColumnsExpectations):
 
         :return: None
         """
-        super().__init__(_str_to_col(column))
-        self.array = _args_to_list_cols(array, is_lit=True)
+        super().__init__(cname=column)
+        self.constraint = constraint
 
     @property
     def predicate(self) -> Column:
@@ -120,29 +130,32 @@ class _IsInColumn(_ColumnsExpectations):
 
         :return: (Column), the predicate
         """
-        return self.column.isin(*self.array)
+        self.constraint = _args_to_list_cols(self.constraint, is_lit=True)
+        self.column = _str_to_col(self.column)
+        return self.column.isin(*self.constraint)
 
 
-class _ColumnCompare:
+class _ColumnCompare(_ColumnsExpectations):
     def __init__(
         self,
         column: Union[str, Column],
-        threshold: Union[str, float],
+        constraint: Union[str, float],
         operator: str,
+         *args, **kwargs
     ) -> None:
         """
-        This class compares a column to a threshold.
+        This class compares a column to a constraint.
 
         :param column: (Union[str, Column]), the column to compare
 
-        :param threshold: (Union[str, float]), the threshold to compare
+        :param constraint: (Union[str, float]), the constraint to compare
 
         :param operator: (str), the operator to use
         """
         _check_operator(operator)
-        self.threshold = _str_to_col(threshold, is_lit=True)
         self.operator = operator
-        super().__init__(_str_to_col(column))
+        self.constraint= constraint
+        super().__init__(cname=column)
 
     @property
     def predicate(self) -> Column:
@@ -153,5 +166,8 @@ class _ColumnCompare:
 
         :return: (Column), the predicate
         """
-        # Convert the threshold to a literal value and apply the operator
-        return OPERATOR_MAP[self.operator](self.column, lit(self.threshold))
+        self.column = _str_to_col(self.column)
+        self.constraint = _str_to_col(self.constraint, is_lit=True)
+
+        # Convert the constraint to a literal value and apply the operator
+        return OPERATOR_MAP[self.operator](self.column, self.constraint)

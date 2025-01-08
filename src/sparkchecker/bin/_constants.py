@@ -23,7 +23,6 @@ OPERATOR_MAP = {
     "higher_or_equal": ge,
 }
 
-CONSTRAINT_CONSTRUCTOR = ["constraint", "strategy", "message"]
 COLUMN_TYPES = {
     "string": StringType(),
     "str": StringType(),
@@ -39,6 +38,19 @@ COLUMN_TYPES = {
     "bytes": ByteType(),
     "decimal": DecimalType(),
 }
+
+CONSTRAINT_CONSTRUCTOR = [
+    "constraint",
+    "strategy",
+    "message",
+]
+
+DATAFRAME_OPEARATIONS = [
+    "is_empty",
+    "count",
+    "has_column",
+]
+
 
 COLUMN_OPERATIONS = [
     "pattern",

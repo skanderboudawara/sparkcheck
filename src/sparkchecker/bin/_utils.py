@@ -21,10 +21,7 @@ def _str_to_col(column_name: Union[str, Column], is_lit: bool = False) -> Column
         return lit(column_name) if is_lit else col(column_name)
     if isinstance(column_name, Column):
         return column_name
-    raise TypeError(
-        "Argument `column_name` must be a string or a Column but got: ",
-        type(column_name),
-    )
+    return lit(column_name)
 
 
 def _args_to_list_cols(
