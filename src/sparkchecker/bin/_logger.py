@@ -9,7 +9,10 @@ def setup_logger(name: str, log_file: str, level: int = logging.INFO) -> logging
 
     # Create handlers
     file_handler = TimedRotatingFileHandler(
-        filename=log_file, when="D", interval=1, backupCount=2,
+        filename=log_file,
+        when="D",
+        interval=1,
+        backupCount=2,
     )
     console_handler = logging.StreamHandler()
 

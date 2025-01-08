@@ -1,22 +1,21 @@
 from abc import ABC, abstractmethod
-from typing import Any, Union
+from typing import Union
 
 from pyspark.sql import DataFrame
 from pyspark.sql.types import DataType
 
 from sparkchecker.bin._constants import OPERATOR_MAP
-from sparkchecker.bin._decorators import validate_predicate
+from sparkchecker.bin._decorators import check_message, validate_expectation
 from sparkchecker.bin._utils import _check_operator, _overrid_msg, _placeholder
 
 
-class _DataFrameExpectation(ABC):
+class DataFrameExpectation(ABC):
+    @check_message
     def __init__(
         self,
-        df: Union[DataFrame, None] = None,
         message: Union[str, None] = None,
-        **kwargs: Any,
+        **kargs,
     ) -> None:
-        self.df: Union[DataFrame, None] = df
         if message and not isinstance(message, str):
             raise TypeError(
                 "Argument message must be of type str but got: ",
@@ -25,17 +24,16 @@ class _DataFrameExpectation(ABC):
             )
         self.message = message
 
-    @property
     @abstractmethod
-    def predicate(self) -> bool: ...
+    def expectation(self, df: DataFrame) -> bool: ...
 
 
-class _IsEmpty(_DataFrameExpectation):
+class IsEmpty(DataFrameExpectation):
+    @check_message
     def __init__(
         self,
-        df: Union[DataFrame, None] = None,
         message: Union[str, None] = None,
-        **kwargs: Any,
+        **kargs,
     ) -> None:
         """
         This class checks if a DataFrame is empty.
@@ -44,34 +42,33 @@ class _IsEmpty(_DataFrameExpectation):
 
         :return: None
         """
-        super().__init__(df, message)
+        super().__init__(message)
 
-    @property
-    @validate_predicate
-    def predicate(self) -> bool:
+    @validate_expectation
+    def expectation(self, df: DataFrame) -> bool:
         """
-        This method returns the predicate.
+        This method returns the expectation.
 
         :param None:
 
-        :return: (bool), the predicate
+        :return: (bool), the expectation
         """
-        check = self.df.isEmpty()
+        check = df.isEmpty()
         self.message = _placeholder(
             _overrid_msg("The DataFrame  <$is_or_not> empty", self.message),
             check,
             "<$is_or_not>",
             ("is", "isn't"),
         )
-        return {"predicate": check, "got": check, "message": self.message}
+        return {"expectation": check, "got": check, "message": self.message}
 
 
-class _IsNotEmpty(_DataFrameExpectation):
+class IsNotEmpty(DataFrameExpectation):
+    @check_message
     def __init__(
         self,
-        df: Union[DataFrame, None] = None,
         message: Union[str, None] = None,
-        **kwargs: Any,
+        **kargs,
     ) -> None:
         """
         This class checks if a DataFrame is empty.
@@ -80,36 +77,35 @@ class _IsNotEmpty(_DataFrameExpectation):
 
         :return: None
         """
-        super().__init__(df, message)
+        super().__init__(message)
 
-    @property
-    @validate_predicate
-    def predicate(self) -> bool:
+    @validate_expectation
+    def expectation(self, df: DataFrame) -> bool:
         """
-        This method returns the predicate.
+        This method returns the expectation.
 
         :param None:
 
-        :return: (bool), the predicate
+        :return: (bool), the expectation
         """
-        check = not (self.df.isEmpty())
+        check = not (df.isEmpty())
         self.message = _placeholder(
             _overrid_msg("The DataFrame  <$is_or_not> empty", self.message),
             check,
             "<$is_or_not>",
             ("isn't", "is"),
         )
-        return {"predicate": check, "got": check, "message": self.message}
+        return {"expectation": check, "got": check, "message": self.message}
 
 
-class _CountThreshold(_DataFrameExpectation):
+class CountThreshold(DataFrameExpectation):
+    @check_message
     def __init__(
         self,
         constraint: int,
         operator: str,
-        df: Union[DataFrame, None] = None,
         message: Union[str, None] = None,
-        **kwargs: Any,
+        **kargs,
     ) -> None:
         """
         This class compares the count of a DataFrame to a constraint.
@@ -128,19 +124,18 @@ class _CountThreshold(_DataFrameExpectation):
             )
         self.constraint = constraint
         self.operator = operator
-        super().__init__(df, message)
+        super().__init__(message)
 
-    @property
-    @validate_predicate
-    def predicate(self) -> bool:
+    @validate_expectation
+    def expectation(self, df: DataFrame) -> bool:
         """
-        This method returns the predicate.
+        This method returns the expectation.
 
         :param None:
 
-        :return: (bool), the predicate
+        :return: (bool), the expectation
         """
-        count = self.df.count()
+        count = df.count()
         # Convert the threshold to a literal value and apply the operator
         check = OPERATOR_MAP[self.operator](count, self.constraint)
         self.message = _placeholder(
@@ -152,17 +147,17 @@ class _CountThreshold(_DataFrameExpectation):
             "<$is_or_not>",
             ("is", "isn't"),
         )
-        return {"predicate": check, "got": count, "message": self.message}
+        return {"expectation": check, "got": count, "message": self.message}
 
 
-class _PartitionsCount(_DataFrameExpectation):
+class PartitionsCount(DataFrameExpectation):
+    @check_message
     def __init__(
         self,
         constraint: int,
         operator: str,
         message: Union[str, None] = None,
-        df: Union[DataFrame, None] = None,
-        **kwargs: Any,
+        **kargs,
     ) -> None:
         """
         This class compares the number of partitions of a DataFrame to a constraint.
@@ -181,19 +176,18 @@ class _PartitionsCount(_DataFrameExpectation):
             )
         self.constraint = constraint
         self.operator = operator
-        super().__init__(df, message)
+        super().__init__(message)
 
-    @property
-    @validate_predicate
-    def predicate(self) -> bool:
+    @validate_expectation
+    def expectation(self, df: DataFrame) -> bool:
         """
-        This method returns the predicate.
+        This method returns the expectation.
 
         :param None:
 
-        :return: (bool), the predicate
+        :return: (bool), the expectation
         """
-        rdd_count = self.df.rdd.getNumPartitions()
+        rdd_count = df.rdd.getNumPartitions()
         # Convert the threshold to a literal value and apply the operator
         check_count = OPERATOR_MAP[self.operator](rdd_count, self.constraint)
         self.message = _placeholder(
@@ -205,17 +199,17 @@ class _PartitionsCount(_DataFrameExpectation):
             "<$is_or_not>",
             ("is", "isn't"),
         )
-        return {"predicate": check_count, "got": rdd_count, "message": self.message}
+        return {"expectation": check_count, "got": rdd_count, "message": self.message}
 
 
-class _Exist(_DataFrameExpectation):
+class Exist(DataFrameExpectation):
+    @check_message
     def __init__(
         self,
         column: str,
         message: Union[str, None] = None,
-        df: Union[DataFrame, None] = None,
         constraint: Union[DataType, None] = None,
-        **kwargs: Any,
+        **kargs,
     ) -> None:
         """
         This class checks if a column exists in a DataFrame.
@@ -235,40 +229,37 @@ class _Exist(_DataFrameExpectation):
             )
         self.constraint = constraint
         self.column = column
-        super().__init__(df, message)
+        super().__init__(message)
 
-    @property
-    @validate_predicate
-    def predicate(self) -> bool:
+    @validate_expectation
+    def expectation(self, df: DataFrame) -> bool:
         """
-        This method returns the predicate.
+        This method returns the expectation.
 
         :param None:
 
-        :return: (bool), the predicate
+        :return: (bool), the expectation
         """
-        check_exist = self.column in self.df.columns
+        check_exist = self.column in df.columns
         self.message = _placeholder(
             _overrid_msg(
-                f"Column {self.column} <$does_or_not> exists in the DataFrame",
+                f"Column {self.column} <$does_or_not> exist in the DataFrame",
                 self.message,
             ),
             check_exist,
             "<$does_or_not>",
             ("does", "does not"),
         )
-        if self.column in self.df.columns:
+
+        if not check_exist:
             return {
-                "predicate": check_exist,
-                "got": " ,".join(list(self.df.columns)),
+                "expectation": check_exist,
+                "got": ", ".join(df.columns),
                 "message": self.message,
             }
+
         if self.constraint:
-            data_type = next(
-                field.dataType
-                for field in self.df.schema.fields
-                if field.name == self.column
-            )
+            data_type = df.schema[self.column].dataType
             check_type = data_type == self.constraint
             self.message = _placeholder(
                 _overrid_msg(
@@ -280,12 +271,13 @@ class _Exist(_DataFrameExpectation):
                 ("is", "isn't"),
             )
             return {
-                "predicate": check_type,
+                "expectation": check_type,
                 "got": data_type,
                 "message": self.message,
             }
+
         return {
-            "predicate": check_exist,
-            "got": " ,".join(list(self.df.columns)),
+            "expectation": check_exist,
+            "got": self.column,
             "message": self.message,
         }

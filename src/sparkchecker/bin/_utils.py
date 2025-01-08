@@ -10,7 +10,7 @@ from pyspark.sql.types import DecimalType
 from sparkchecker.bin._constants import OPERATOR_MAP
 
 
-def _str_to_col(column_name: Union[str, Column], is_lit: bool = False) -> Column:
+def str_to_col(column_name: Union[str, Column], is_col: bool = True) -> Column:
     """
     Convert a `column_name` string to a column.
 
@@ -19,13 +19,13 @@ def _str_to_col(column_name: Union[str, Column], is_lit: bool = False) -> Column
     :returns: (Column) a spark Column
     """
     if isinstance(column_name, str):
-        return lit(column_name) if is_lit else col(column_name)
+        return col(column_name) if is_col else lit(column_name)
     if isinstance(column_name, Column):
         return column_name
     return lit(column_name)
 
 
-def _col_to_name(column: Union[str, Column]) -> str:
+def col_to_name(column: Union[str, Column]) -> str:
     """
     Convert a `column` to a column name.
 
@@ -43,7 +43,7 @@ def _col_to_name(column: Union[str, Column]) -> str:
     )
 
 
-def _args_to_list_cols(
+def args_to_list_cols(
     list_args: Union[
         str,
         Column,
@@ -52,7 +52,7 @@ def _args_to_list_cols(
         tuple[str, ...],
         tuple[Column, ...],
     ],
-    is_lit: bool = False,
+    is_col: bool = True,
 ) -> list[Column]:
     """
     Convert a `list_args` to a list[Columns].
@@ -63,7 +63,7 @@ def _args_to_list_cols(
     :returns: (list[Column]), a list of Column
     """
     if isinstance(list_args, (str, Column)):
-        return list(_str_to_col(list_args, is_lit))
+        return list(str_to_col(list_args, is_col))
     if not isinstance(list_args, (list, tuple)):
         raise TypeError(
             "Argument `list_args` must be of type \
@@ -76,7 +76,7 @@ def _args_to_list_cols(
             "All elements of `list_args` must be of type Union[str, Column] but got: ",
             [type(arg) for arg in list_args],
         )
-    return [_str_to_col(arg, is_lit) for arg in list_args]
+    return [str_to_col(arg, is_col) for arg in list_args]
 
 
 def _check_operator(operator: str) -> None:
@@ -142,7 +142,10 @@ def extract_base_path_and_filename(file_path):
 
 
 def _placeholder(
-    input_string: str, condition: bool, placeholder: str, replacements: tuple[str, str],
+    input_string: str,
+    condition: bool,
+    placeholder: str,
+    replacements: tuple[str, str],
 ) -> str:
     """
     Replaces the specified placeholder in a string based on a boolean condition.
@@ -159,6 +162,4 @@ def _placeholder(
 
 
 def _overrid_msg(default, msg):
-    msg = default if msg else msg
-
-    return msg
+    return default if not msg else msg

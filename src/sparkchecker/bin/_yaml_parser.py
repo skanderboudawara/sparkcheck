@@ -1,5 +1,5 @@
 """
-This module contains the ConstraintYamlParser class.
+This module contains the ExpectationsYamlParser class.
 
 This class is used to construct constraints.
 """
@@ -26,7 +26,7 @@ from sparkchecker.bin._utils import (
 )
 
 
-class ConstraintYamlParser:
+class ExpectationsYamlParser:
     """
     Class used to construct constraints.
     """
@@ -93,9 +93,9 @@ class ConstraintYamlParser:
         """
         if self._constraint_obj is None:
             raise IllegalConstraintConstructor(self.constraint, self._constraint_obj)
-        for predicate in self._constraint_obj:
-            if predicate not in CONSTRAINT_CONSTRUCTOR:
-                raise IllegalConstraintConstructor(self.constraint, predicate)
+        for expectation in self._constraint_obj:
+            if expectation not in CONSTRAINT_CONSTRUCTOR:
+                raise IllegalConstraintConstructor(self.constraint, expectation)
 
     def _verify_threshold_parsing(self) -> None:
         """
@@ -207,7 +207,7 @@ class ConstraintYamlParser:
                 self._constraint_obj.update({"column": column_name})
                 self.append("column", self.constraint_obj, self.constraint)
 
-    def run(self) -> None:
+    def parse(self) -> None:
         """
         This method runs the checks.
 

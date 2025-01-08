@@ -1,9 +1,9 @@
 from pyspark.sql import DataFrame
 
-from .bin._constraint_compiler import ConstraintCompiler
+from .bin._expectations_factory import ExpectationsFactory
 from .bin._logger import setup_logger
 from .bin._utils import extract_base_path_and_filename, read_yaml_file
-from .bin._yaml_parser import ConstraintYamlParser
+from .bin._yaml_parser import ExpectationsYamlParser
 
 
 def sparkChecker(
@@ -21,11 +21,11 @@ def sparkChecker(
     """
     yaml_checks = read_yaml_file(path)
 
-    stack = ConstraintYamlParser(yaml_checks)
+    stack = ExpectationsYamlParser(yaml_checks)
 
-    stack.run()
+    stack.parse()
 
-    compile_stack = ConstraintCompiler(self, stack.stacks)
+    compile_stack = ExpectationsFactory(self, stack.stacks)
 
     compile_stack.compile()
 
