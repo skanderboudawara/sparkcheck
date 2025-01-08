@@ -1,44 +1,44 @@
 """
-This module contains the ConstraintCompiler class.
+This module contains the ExpectationsFactory class.
 """
 
 from pyspark.sql import DataFrame
 
-from sparkchecker.bin._cols_utils import (
-    _ColumnCompare,
-    _IsInColumn,
-    _NonNullColumn,
-    _NullColumn,
-    _RlikeColumn,
+from sparkchecker.bin._column_expectations import (
+    ColumnCompare,
+    IsInColumn,
+    NonNullColumn,
+    NullColumn,
+    RlikeColumn,
 )
-from sparkchecker.bin._dataframe_utils import (
-    _CountThreshold,
-    _Exist,
-    _IsEmpty,
-    _PartitionsCount,
+from sparkchecker.bin._dataframe_expectations import (
+    CountThreshold,
+    Exist,
+    IsEmpty,
+    PartitionsCount,
 )
 
 DATAFRAME_OPERATIONS = {
-    "count": _CountThreshold,
-    "partitions": _PartitionsCount,
-    "is_empty": _IsEmpty,
-    "exist": _Exist,
+    "count": CountThreshold,
+    "partitions": PartitionsCount,
+    "is_empty": IsEmpty,
+    "exist": Exist,
 }
 COLUMN_INSTANCES = {
-    "not_null": _NonNullColumn,
-    "is_null": _NullColumn,
-    "pattern": _RlikeColumn,
-    "in": _IsInColumn,
-    "lower": _ColumnCompare,
-    "lower_or_equal": _ColumnCompare,
-    "equal": _ColumnCompare,
-    "different": _ColumnCompare,
-    "higher": _ColumnCompare,
-    "higher_or_equal": _ColumnCompare,
+    "not_null": NonNullColumn,
+    "is_null": NullColumn,
+    "pattern": RlikeColumn,
+    "in": IsInColumn,
+    "lower": ColumnCompare,
+    "lower_or_equal": ColumnCompare,
+    "equal": ColumnCompare,
+    "different": ColumnCompare,
+    "higher": ColumnCompare,
+    "higher_or_equal": ColumnCompare,
 }
 
 
-class ConstraintCompiler:
+class ExpectationsFactory:
     """
     This class compiles a stack of checks into a list of dictionaries.
     """
@@ -68,9 +68,9 @@ class ConstraintCompiler:
 
         :return: (dict), the compiled check
         """
-        check_instance = DATAFRAME_OPERATIONS[check["check"]](df=df, **check)
-        predicate = check_instance.predicate
-        check.update(predicate)
+        expectation_instance = DATAFRAME_OPERATIONS[check["check"]](**check)
+        expectation = expectation_instance.expectation(df)
+        check.update(expectation)
         return check
 
     @staticmethod
@@ -84,17 +84,12 @@ class ConstraintCompiler:
 
         :return: (dict), the compiled check
         """
-        check_instance = COLUMN_INSTANCES[check["operator"]]
-        check_instance = check_instance(**check)
-        df = df.filter(~check_instance.predicate)
-        example = df.first()
-        predicate = bool(not example)
-        count_cases = 0
-        if predicate:
-            count_cases = df.count()
+        expectation_instance = COLUMN_INSTANCES[check["operator"]]
+        expectation_instance = expectation_instance(**check)
+        expectation, count_cases, example= expectation_instance.expectation(df)
         check.update(
             {
-                "predicate": predicate.predicate,
+                "expectation": expectation.expectation,
                 "count_cases": count_cases,
                 "example": example,
             },

@@ -1,0 +1,70 @@
+count:
+  - higher:
+      constraint: 0
+      strategy : "warn"
+is_empty:
+  constraint: False
+  strategy: "fail"
+partitions:
+  - equal:
+      constraint: 2
+      strategy : "warn"
+has_columns:
+  - passengers_name: string
+  - passengers_age
+  - passengers_country
+  - departure_country
+  - arrival_country: string
+  - departure_time: timestamp
+  - gate: integer
+  - airline_company
+  - aircraft_type
+  - is_military: boolean
+checks:
+  - is_military:
+    - equal:
+        constraint: False
+        strategy: "fail"
+        message: "There should be no military in civilian dataset"
+    - is_null:
+        constraint: False
+  - passengers_country:
+    - different:
+        constraint: arrival_country
+        strategy: "warn"
+        message: "The passenger country should be different from the arrival country in this dataset"
+    - in:
+        constraint: ["USA", "UK", "FR", "DE", "IT", "ES", "JP", "CN", "RU"]
+        strategy: "fail"
+    - is_null:
+        constraint: False
+  - departure_country:
+    - in:
+        constraint: ["USA", "UK", "FR", "DE", "IT", "ES", "JP", "CN", "RU"]
+        strategy: "fail"
+    - is_null:
+        constraint: False
+  - arrival_country:
+    - in:
+        constraint: ["USA", "UK", "FR", "DE", "IT", "ES", "JP", "CN", "RU"]
+        strategy: "fail"
+    - is_null:
+        constraint: False
+  - departure_time:
+    - higher:
+        constraint: "2023-10-01 10:00"
+        strategy: "warn"
+  - gate:
+    - lower:
+        constraint: 15
+        strategy: "fail"
+        message: "The gate number should be lower than 15"
+    - higher:
+        constraint: 2
+        strategy: "fail"
+        message: "The gate number should be higher than 2"
+  - aircraft_type:
+    - pattern:
+        constraint: "Boeing|Airbus"
+        strategy: "fail"
+        message: "The aircraft type should be an Airbus or a Boeing"

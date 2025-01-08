@@ -1,0 +1,11 @@
+passengers_name,passengers_age,passengers_country,departure_country,arrival_country,departure_time,gate,airline_company,aircraft_type,is_military
+John Doe,34,USA,USA,USA,2023-10-01 08:00,12,Delta,Boeing 737,False
+Jane Smith,28,UK,UK,FR,2023-10-01 09:30,5,British Airways,Airbus A320,False
+Alice Johnson,45,CN,CN,USA,2023-10-01 11:00,3,Air Canada,Boeing 777,False
+Bob Brown,50,AU,AU,AU,2023-10-01 13:45,7,Qantas,Boeing 787,False
+Charlie Davis,22,GR,GR,IT,2023-10-01 15:20,9,Lufthansa,Airbus A380,False
+Emily Wilson,30,FR,FR,SP,2023-10-01 17:00,2,Air France,Airbus A330,False
+Frank Miller,40,USA,USA,MX,2023-10-01 18:30,8,American Airlines,Boeing 737,False
+Grace Lee,27,SK,SK,CH,2023-10-01 20:00,4,Korean Air,Boeing 747,False
+Henry Kim,35,JA,JA,SK,2023-10-01 21:45,6,Japan Airlines,Boeing 767,False
+Ivy Martinez,32,MX,MX,USA,2023-10-01 23:15,10,Aeromexico,Falcon 9,False
