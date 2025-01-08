@@ -4,6 +4,7 @@ This module contains the ExpectationsYamlParser class.
 This class is used to construct constraints.
 """
 
+import yaml
 from typing import Optional, Union
 
 from jsonpath_ng import parse
@@ -25,6 +26,39 @@ from sparkchecker.bin._utils import (
     parse_decimal_type,
 )
 
+def read_yaml_file(file_path: str) -> dict:
+    """
+    Reads a YAML file and returns the parsed data.
+
+    :param file_path: Path to the YAML file.
+
+    :return: (dict) Parsed data as a Python dictionary.
+    """
+    with open(file_path, encoding="utf-8") as file:
+        data = yaml.safe_load(file)
+    return data
+
+def replace_keys_in_json(json_data, replacements):
+    """
+    Replaces specified keys in a JSON-like dictionary with new keys based on a mapping.
+
+    Args:
+        json_data (dict): The input JSON-like dictionary.
+        replacements (dict): A dictionary mapping old keys to new keys.
+
+    Returns:
+        dict: The modified dictionary with keys replaced.
+    """
+    for old_key, new_key in replacements.items():
+        jsonpath_expr = parse(f"$..{old_key}")  # Match all occurrences of the old key
+
+        matches = jsonpath_expr.find(json_data)  # Find all matching nodes
+        for match in matches:
+            parent = match.context.value  # Parent object of the old key
+            if isinstance(parent, dict):
+                parent[new_key] = parent.pop(old_key)  # Replace old key with new key
+
+    return json_data
 
 class ExpectationsYamlParser:
     """
@@ -96,6 +130,12 @@ class ExpectationsYamlParser:
         for expectation in self._constraint_obj:
             if expectation not in CONSTRAINT_CONSTRUCTOR:
                 raise IllegalConstraintConstructor(self.constraint, expectation)
+        if (message := self._constraint_obj.get("message")) and not isinstance(message, str):
+            raise TypeError("Message must be of type str but got: ", type(message))
+        if (strategy := self._constraint_obj.get("strategy")) and not isinstance(strategy, str):
+            raise TypeError("Strategy must be of type str but got: ", type(strategy))
+        if (strategy := self._constraint_obj.get("strategy")) and strategy not in {"fail", "warn"}:
+            raise ValueError("Strategy must be one of 'fail' or 'warn' but got: ", strategy)
 
     def _verify_threshold_parsing(self) -> None:
         """
@@ -182,7 +222,7 @@ class ExpectationsYamlParser:
                 )
                 constraint = {
                     "column": self._constraint,
-                    "constraint": self._constraint_obj,
+                    "value": self._constraint_obj,
                 }
             else:
                 constraint = {"column": self._constraint}
