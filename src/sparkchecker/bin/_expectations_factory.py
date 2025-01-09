@@ -17,6 +17,7 @@ from sparkchecker.bin._dataframe_expectations import (
     IsEmpty,
     PartitionsCount,
 )
+from sparkchecker.bin._decorators import order_expectations_dict
 
 DATAFRAME_OPERATIONS = {
     "count": CountThreshold,
@@ -58,6 +59,7 @@ class ExpectationsFactory:
         self.compiled_stack: list[dict] = []
 
     @staticmethod
+    @order_expectations_dict
     def _compile_dataframe_operation(df: DataFrame, check: dict) -> dict:
         """
         This static method compiles a dataframe operation check into a dictionary.
@@ -74,6 +76,7 @@ class ExpectationsFactory:
         return check
 
     @staticmethod
+    @order_expectations_dict
     def _compile_column_operation(df: DataFrame, check: dict) -> dict:
         """
         This static method compiles a column operation check into a dictionary.

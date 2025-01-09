@@ -11,15 +11,19 @@ from sparkchecker.bin._decorators import (
 )
 from sparkchecker.bin._utils import (
     _check_operator,
+    _override_msg,
+    _placeholder,
     args_to_list_cols,
     col_to_name,
     str_to_col,
-    _placeholder,
-    _override_msg,
 )
 
 
-def evaluate_expectation(column: Column, df: DataFrame, expectation: Column) -> tuple[bool, int, dict]:
+def evaluate_expectation(
+    column: Union[str, Column],
+    df: DataFrame,
+    expectation: Column,
+) -> tuple[bool, int, dict]:
     if not isinstance(expectation, Column):
         raise TypeError(
             "Argument `expectation` must be of type Column but got: ",
@@ -30,6 +34,7 @@ def evaluate_expectation(column: Column, df: DataFrame, expectation: Column) -> 
             "Argument `df` must be of type DataFrame but got: ",
             type(df),
         )
+    column = str_to_col(column)
     # We need to check the opposite of our expectations
     df = df.select(column).filter(~expectation)
     first_failed_row = df.first()
@@ -56,7 +61,10 @@ class ColumnsExpectations(ABC):
     @abstractmethod
     @validate_expectation
     @check_column_exist
-    def expectation(self, df: DataFrame) -> tuple[bool, int, dict]: ...
+    def expectation(self, df: DataFrame) -> dict: ...
+
+    @abstractmethod
+    def message_result(self, check: bool) -> str: ...
 
 
 class NonNullColumn(ColumnsExpectations):
@@ -76,6 +84,8 @@ class NonNullColumn(ColumnsExpectations):
 
         :param value: (bool), the value to check
 
+        :param message: (Union[str, None]), the message to display
+
         :return: None
         """
         super().__init__(column, message)
@@ -88,28 +98,51 @@ class NonNullColumn(ColumnsExpectations):
 
     @property
     def constraint(self) -> Column:
+        """
+        This method returns the constraint.
+
+        :param: None
+
+        :returns: None
+        """
         self.column = str_to_col(self.column)
         return self.column.isNotNull()
 
+    def message_result(self, check: bool) -> str:
+        """
+        This method returns the message result formatted with the check.
+
+        :param check: (bool), the check
+
+        :returns: (str), the message
+        """
+        default_msg = f"The column {col_to_name(self.column)} <$is|is not> Not Null"
+        self.message = _override_msg(default_msg, self.message)
+        self.message = _placeholder(self.message, check, "<$is|is not>")
+
     @validate_expectation
     @check_column_exist
-    def expectation(self, df: DataFrame) -> tuple[bool, int, dict]:
+    def expectation(self, df: DataFrame) -> dict:
         """
-        This method returns the expectation.
+        This method returns the expectation result.
 
-        :param None:
+        :param df: (DataFrame), the DataFrame to check
 
-        :return: (Column), the expectation
+        :return: (dict), the expectation result
         """
-        check, count_cases, first_failed_row = evaluate_expectation(self.column, df, self.constraint)
-        has_failed = self.value != check
-        self.message = _placeholder(
-            _override_msg(f"The column {col_to_name(self.column)} <$is_or_not> empty", self.message),
-            check,
-            "<$is_or_not>",
-            ("is not", "is"),
+        check, count_cases, first_failed_row = evaluate_expectation(
+            self.column,
+            df,
+            self.constraint,
         )
-        return {"has_failed":has_failed, "got": count_cases, "message": self.message, "example": first_failed_row}
+        has_failed = self.value != check
+        self.message_result(check)
+        return {
+            "has_failed": has_failed,
+            "got": count_cases,
+            "message": self.message,
+            "example": first_failed_row,
+        }
 
 
 class NullColumn(ColumnsExpectations):
@@ -128,6 +161,8 @@ class NullColumn(ColumnsExpectations):
 
         :param value: (bool), the value to check
 
+        :param message: (Union[str, None]), the message to display
+
         :return: None
         """
         super().__init__(column, message)
@@ -140,29 +175,51 @@ class NullColumn(ColumnsExpectations):
 
     @property
     def constraint(self) -> Column:
+        """
+        This method returns the constraint.
+
+        :param: None
+
+        :returns: None
+        """
         self.column = str_to_col(self.column)
         return self.column.isNull()
 
+    def message_result(self, check: bool) -> str:
+        """
+        This method returns the message result formatted with the check.
+
+        :param check: (bool), the check
+
+        :returns: (str), the message
+        """
+        default_msg = f"The column {col_to_name(self.column)} <$is not|is> Null"
+        self.message = _override_msg(default_msg, self.message)
+        self.message = _placeholder(self.message, check, "<$is not|is>")
+
     @validate_expectation
     @check_column_exist
-    def expectation(self, df: DataFrame) -> tuple[bool, int, dict]:
+    def expectation(self, df: DataFrame) -> dict:
         """
-        This method returns the expectation.
+        This method returns the expectation result.
 
-        :param None:
+        :param df: (DataFrame), the DataFrame to check
 
-        :return: (Column), the expectation
+        :return: (dict), the expectation result
         """
-        check, count_cases, first_failed_row = evaluate_expectation(self.column, df, self.constraint)
-        has_failed = self.value != check
-        self.message = _placeholder(
-            _override_msg(f"The column {col_to_name(self.column)} <$is_or_not> null", self.message),
-            check,
-            "<$is_or_not>",
-            ("is", "is not"),
+        check, count_cases, first_failed_row = evaluate_expectation(
+            self.column,
+            df,
+            self.constraint,
         )
-        return {"has_failed":has_failed, "got": count_cases, "message": self.message, "example": first_failed_row}
-
+        has_failed = self.value != check
+        self.message_result(check)
+        return {
+            "has_failed": has_failed,
+            "got": count_cases,
+            "message": self.message,
+            "example": first_failed_row,
+        }
 
 
 class RlikeColumn(ColumnsExpectations):
@@ -181,6 +238,8 @@ class RlikeColumn(ColumnsExpectations):
 
         :param value: (str), the value to match
 
+        :param message: (Union[str, None]), the message to display
+
         :return: None
         """
         super().__init__(column, message)
@@ -193,28 +252,53 @@ class RlikeColumn(ColumnsExpectations):
 
     @property
     def constraint(self) -> Column:
+        """
+        This method returns the constraint.
+
+        :param: None
+
+        :returns: None
+        """
         self.column = str_to_col(self.column)
         return self.column.rlike(self.value)
 
+    def message_result(self, check: bool) -> str:
+        """
+        This method returns the message result formatted with the check.
+
+        :param check: (bool), the check
+
+        :returns: (str), the message
+        """
+        default_msg = (
+            f"The column {col_to_name(self.column)} <$does|doesn't>"
+            f" respect the pattern `{self.value}`"
+        )
+        self.message = _override_msg(default_msg, self.message)
+        self.message = _placeholder(self.message, check, "<$does|doesn't>")
+
     @validate_expectation
     @check_column_exist
-    def expectation(self, df: DataFrame) -> tuple[bool, int, dict]:
+    def expectation(self, df: DataFrame) -> dict:
         """
-        This method returns the expectation.
+        This method returns the expectation result.
 
-        :param None:
+        :param df: (DataFrame), the DataFrame to check
 
-        :return: (Column), the expectation
+        :return: (dict), the expectation result
         """
-        check, count_cases, first_failed_row = evaluate_expectation(self.column, df, self.constraint)
-        self.message = _placeholder(
-            _override_msg(f"The column {col_to_name(self.column)} <$does_or_not> respect the patter `{self.value}`", self.message),
-            check,
-            "<$does_or_not>",
-            ("does", "doesn't"),
+        check, count_cases, first_failed_row = evaluate_expectation(
+            self.column,
+            df,
+            self.constraint,
         )
-        return {"has_failed": not (check), "got": count_cases, "message": self.message, "example": first_failed_row}
-
+        self.message_result(check)
+        return {
+            "has_failed": not (check),
+            "got": count_cases,
+            "message": self.message,
+            "example": first_failed_row,
+        }
 
 
 class IsInColumn(ColumnsExpectations):
@@ -231,7 +315,9 @@ class IsInColumn(ColumnsExpectations):
 
         :param column: (Union[str, Column]), the column to check
 
-        :param array: (Union[Column, str, list[Column], list[str]]), the array to check
+        :param value: (Union[Column, str, list[Column], list[str]]), the value to check
+
+        :param message: (Union[str, None]), the message to display
 
         :return: None
         """
@@ -242,34 +328,60 @@ class IsInColumn(ColumnsExpectations):
                     Union[Column, str, list[Column], list[str]] but got: ",
                 type(value),
             )
+        if not value:
+            raise ValueError("Argument for in `value` must not be empty")
         self.value = value
 
     @property
     def constraint(self) -> Column:
+        """
+        This method returns the constraint.
+
+        :param: None
+
+        :returns: None
+        """
         self.value = args_to_list_cols(self.value, is_col=False)
         self.column = str_to_col(self.column)
         return self.column.isin(*self.value)
 
+    def message_result(self, check: bool) -> str:
+        """
+        This method returns the message result formatted with the check.
+
+        :param check: (bool), the check
+
+        :returns: (str), the message
+        """
+        default_msg = (
+            f"The column {col_to_name(self.column)} <$is|is not> in `{self.expected}`"
+        )
+        self.message = _override_msg(default_msg, self.message)
+        self.message = _placeholder(self.message, check, "<$is|is not>")
+
     @validate_expectation
     @check_column_exist
-    def expectation(self, df: DataFrame) -> tuple[bool, int, dict]:
+    def expectation(self, df: DataFrame) -> dict:
         """
-        This method returns the expectation.
+        This method returns the expectation result.
 
-        :param None:
+        :param df: (DataFrame), the DataFrame to check
 
-        :return: (Column), the expectation
+        :return: (dict), the expectation result
         """
-        check, count_cases, first_failed_row = evaluate_expectation(self.column, df, self.constraint)
-        value_names = ", ".join([col_to_name(c) for c in self.value])
-        self.message = _placeholder(
-            _override_msg(f"The column {col_to_name(self.column)} <$is_or_not> in `{value_names}`", self.message),
-            check,
-            "<$is_or_not>",
-            ("is", "is not"),
+        check, count_cases, first_failed_row = evaluate_expectation(
+            self.column,
+            df,
+            self.constraint,
         )
-        return {"has_failed": not (check), "got": count_cases, "message": self.message, "example": first_failed_row}
-
+        self.expected = ", ".join([col_to_name(c) for c in self.value])
+        self.message_result(check)
+        return {
+            "has_failed": not (check),
+            "got": count_cases,
+            "message": self.message,
+            "example": first_failed_row,
+        }
 
 
 class ColumnCompare(ColumnsExpectations):
@@ -290,6 +402,10 @@ class ColumnCompare(ColumnsExpectations):
         :param value: (Union[str, float]), the value to compare
 
         :param operator: (str), the operator to use
+
+        :param message: (Union[str, None]), the message to display
+
+        :return: None
         """
         super().__init__(column, message)
         _check_operator(operator)
@@ -304,34 +420,61 @@ class ColumnCompare(ColumnsExpectations):
 
     @property
     def constraint(self) -> Column:
+        """
+        This method returns the constraint.
+
+        :param: None
+
+        :returns: None
+        """
         self.column = str_to_col(self.column)
         return OPERATOR_MAP[self.operator](self.column, self.value)
 
-    @validate_expectation
-    @check_column_exist
-    def expectation(self, df: DataFrame) -> tuple[bool, int, dict]:
+    def message_result(self, check: bool) -> str:
         """
-        This method returns the expectation.
+        This method returns the message result formatted with the check.
 
-        :param None:
+        :param check: (bool), the check
 
-        :return: (Column), the expectation
+        :returns: (str), the message
         """
-        str_repr_of_value = self.value
-        is_col = col_to_name(str(self.value))
-        self.value = str_to_col(self.value, is_col in df.columns)
-
-        check, count_cases, first_failed_row = evaluate_expectation(self.column, df, self.constraint)
-        self.message = _placeholder(
-            _override_msg(f"The column {col_to_name(self.column)} <$is_or_not> {self.operator} <$to_or_than> `{str_repr_of_value}`", self.message),
-            check,
-            "<$is_or_not>",
-            ("is", "is not"),
+        default_message = (
+            f"The column {col_to_name(self.column)} "
+            f"<$is|is not> {self.operator} <$to|than> `{self.expected}`"
         )
+        self.message = _override_msg(default_message, self.message)
+        self.message = _placeholder(self.message, check, "<$is|is not>")
         self.message = _placeholder(
             self.message,
             self.operator in {"equal", "different"},
-            "<$to_or_than>",
-            ("to", "than"),
+            "<$to|than>",
         )
-        return {"has_failed": not (check), "got": count_cases, "message": self.message, "example": first_failed_row}
+
+    @validate_expectation
+    @check_column_exist
+    def expectation(self, df: DataFrame) -> dict:
+        """
+        This method returns the expectation result.
+
+        :param df: (DataFrame), the DataFrame to check
+
+        :return: (dict), the expectation result
+        """
+        self.expected = self.value
+        is_col = col_to_name(str(self.value))
+        self.value = str_to_col(self.value, is_col in df.columns)
+
+        check, count_cases, first_failed_row = evaluate_expectation(
+            self.column,
+            df,
+            self.constraint,
+        )
+
+        self.message_result(check)
+
+        return {
+            "has_failed": not (check),
+            "got": count_cases,
+            "message": self.message,
+            "example": first_failed_row,
+        }

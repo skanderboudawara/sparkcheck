@@ -130,27 +130,29 @@ def extract_base_path_and_filename(file_path: str) -> tuple[str, str]:
     return filename, os.path.join(base_path, new_filename)
 
 
-def _placeholder(
-    input_string: str,
-    condition: bool,
-    placeholder: str,
-    replacements: tuple[str, str],
-) -> str:
+def _placeholder(input_string: str, condition: bool, placeholder: str) -> str:
     """
     Replaces the specified placeholder in a string based on a boolean condition.
+
+    The placeholder is in the format "<$text1|text2>", where "text1" is used
+    if the condition is True, and "text2" is used if the condition is False.
 
     :param input_string (str): The string containing the placeholder.
 
     :param condition (bool): The condition to determine the replacement value.
 
-    :param placeholder (str): The placeholder to replace (e.g., "<$is_or_not>").
-
-    :param replacements (tuple[str, str]): A tuple containing the replacements
-        for True and False conditions.
+    :param placeholder (str): The placeholder to replace (e.g., "<$is|not>").
 
     :returns: (str) The modified string with the placeholder replaced.
     """
-    replacement = replacements[0] if condition else replacements[1]
+    match = re.match(r"<\$(.*?)\|(.*?)>", placeholder)
+    if not match:
+        raise ValueError(
+            "Invalid placeholder format. Must be in the format '<$text1|text2>'.",
+        )
+
+    text1, text2 = match.groups()
+    replacement = text1 if condition else text2
     return input_string.replace(placeholder, replacement)
 
 
