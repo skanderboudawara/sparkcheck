@@ -230,7 +230,7 @@ def extract_base_path_and_filename(file_path: str) -> tuple[str, str]:
     base_path = os.path.dirname(file_path)
     filename = os.path.splitext(os.path.basename(file_path))[0]
     new_filename = f"{filename}_expectations_result.log"
-    return base_path, new_filename
+    return filename, os.path.join(base_path, new_filename)
 
 
 def _substitute(input_string: str, condition: bool, placeholder: str) -> str:
