@@ -81,7 +81,9 @@ class IllegalThresholdMathOperator(Exception):
 
 class ConstrainsOutOfRange(Exception):
     def __init__(
-        self, constraint: Union[str, None], exception: Union[dict, str],
+        self,
+        constraint: Union[str, None],
+        exception: Union[dict, str],
     ) -> None:
         """
         This class raises an exception when the constraints are out of range.

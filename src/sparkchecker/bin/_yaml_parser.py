@@ -19,8 +19,8 @@ from sparkchecker.bin._exceptions import (
     IllegalColumnCheck,
     IllegalColumnType,
     IllegalConstraintConstructor,
-    IllegalThresholdMathOperator,
     IllegalHasColumnExpectations,
+    IllegalThresholdMathOperator,
     InternalError,
 )
 from sparkchecker.bin._utils import (
@@ -131,17 +131,19 @@ class ExpectationsYamlParser:
         if not isinstance(self.constraint_obj, dict):
             raise TypeError(
                 f"Expected a dict for constraint_obj, \
-                but got: {type(self.constraint_obj)}"
+                but got: {type(self.constraint_obj)}",
             )
         for expectation in self.constraint_obj:
             if expectation not in CONSTRAINT_CONSTRUCTOR:
                 raise IllegalConstraintConstructor(self.constraint, expectation)
         if (message := self.constraint_obj.get("message")) and not isinstance(
-            message, str
+            message,
+            str,
         ):
             raise TypeError("Message must be of type str but got: ", type(message))
         if (strategy := self.constraint_obj.get("strategy")) and not isinstance(
-            strategy, str
+            strategy,
+            str,
         ):
             raise TypeError("Strategy must be of type str but got: ", type(strategy))
         if (strategy := self.constraint_obj.get("strategy")) and strategy not in {
@@ -149,7 +151,8 @@ class ExpectationsYamlParser:
             "warn",
         }:
             raise ValueError(
-                "Strategy must be one of 'fail' or 'warn' but got: ", strategy
+                "Strategy must be one of 'fail' or 'warn' but got: ",
+                strategy,
             )
 
     def _verify_threshold_parsing(self) -> None:
