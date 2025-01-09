@@ -1,13 +1,22 @@
+"""
+This is the main file that contains the main function that is used to check the DataFrame
+    against the checks in the yaml file.
+"""
+
 from pyspark.sql import DataFrame
-import json
+
 from .bin._constants import KEY_EQUIVALENT
 from .bin._expectations_factory import ExpectationsFactory
 from .bin._logger import setup_logger
 from .bin._utils import extract_base_path_and_filename
-from .bin._yaml_parser import ExpectationsYamlParser, read_yaml_file, replace_keys_in_json
+from .bin._yaml_parser import (
+    ExpectationsYamlParser,
+    read_yaml_file,
+    replace_keys_in_json,
+)
 
 
-def sparkChecker(
+def sparkChecker(  # noqa: N802
     self: DataFrame,
     path: str,
 ) -> None:
@@ -21,10 +30,9 @@ def sparkChecker(
     :return: None
     """
     yaml_checks = read_yaml_file(path)
-    
+
     yaml_checks = replace_keys_in_json(yaml_checks, KEY_EQUIVALENT)
 
-    print(json.dumps(yaml_checks, indent=4))
     stack = ExpectationsYamlParser(yaml_checks)
 
     stack.parse()
@@ -38,4 +46,4 @@ def sparkChecker(
     setup_logger(name, path)
 
 
-DataFrame.sparkChecker = sparkChecker
+DataFrame.sparkChecker = sparkChecker  # type: ignore

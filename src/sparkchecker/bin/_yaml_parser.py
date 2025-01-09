@@ -4,9 +4,9 @@ This module contains the ExpectationsYamlParser class.
 This class is used to construct constraints.
 """
 
-import yaml
 from typing import Optional, Union
 
+import yaml
 from jsonpath_ng import parse
 
 from sparkchecker.bin._constants import (
@@ -20,11 +20,13 @@ from sparkchecker.bin._exceptions import (
     IllegalColumnType,
     IllegalConstraintConstructor,
     IllegalThresholdMathOperator,
+    IllegalHasColumnExpectations,
     InternalError,
 )
 from sparkchecker.bin._utils import (
     parse_decimal_type,
 )
+
 
 def read_yaml_file(file_path: str) -> dict:
     """
@@ -38,16 +40,15 @@ def read_yaml_file(file_path: str) -> dict:
         data = yaml.safe_load(file)
     return data
 
-def replace_keys_in_json(json_data, replacements):
+
+def replace_keys_in_json(json_data: dict, replacements: dict) -> dict:
     """
     Replaces specified keys in a JSON-like dictionary with new keys based on a mapping.
 
-    Args:
-        json_data (dict): The input JSON-like dictionary.
-        replacements (dict): A dictionary mapping old keys to new keys.
+    : param json_data (dict): The input JSON-like dictionary.
+    : param replacements (dict): A dictionary mapping old keys to new keys.
 
-    Returns:
-        dict: The modified dictionary with keys replaced.
+    :returns: (dict)n The modified dictionary with keys replaced.
     """
     for old_key, new_key in replacements.items():
         jsonpath_expr = parse(f"$..{old_key}")  # Match all occurrences of the old key
@@ -59,6 +60,7 @@ def replace_keys_in_json(json_data, replacements):
                 parent[new_key] = parent.pop(old_key)  # Replace old key with new key
 
     return json_data
+
 
 class ExpectationsYamlParser:
     """
@@ -79,7 +81,7 @@ class ExpectationsYamlParser:
         self._constraint_obj: Union[dict, str, None] = None
 
     @property
-    def constraint(self) -> str:
+    def constraint(self) -> Union[str, None]:
         """
         This method is a getter for the constraint attribute.
 
@@ -100,8 +102,7 @@ class ExpectationsYamlParser:
         """
         return self._constraint_obj
 
-    @constraint.setter
-    def constraint(self, new_constraint: dict) -> None:
+    def set_constraint(self, new_constraint: dict) -> None:
         """
         This method is a setter for the constraint attribute.
 
@@ -125,17 +126,31 @@ class ExpectationsYamlParser:
 
         :return: None
         """
-        if self._constraint_obj is None:
-            raise IllegalConstraintConstructor(self.constraint, self._constraint_obj)
-        for expectation in self._constraint_obj:
+        if self.constraint_obj is None:
+            raise ValueError("Constraint object cannot be None")
+        if not isinstance(self.constraint_obj, dict):
+            raise TypeError(
+                f"Expected a dict for constraint_obj, \
+                but got: {type(self.constraint_obj)}"
+            )
+        for expectation in self.constraint_obj:
             if expectation not in CONSTRAINT_CONSTRUCTOR:
                 raise IllegalConstraintConstructor(self.constraint, expectation)
-        if (message := self._constraint_obj.get("message")) and not isinstance(message, str):
+        if (message := self.constraint_obj.get("message")) and not isinstance(
+            message, str
+        ):
             raise TypeError("Message must be of type str but got: ", type(message))
-        if (strategy := self._constraint_obj.get("strategy")) and not isinstance(strategy, str):
+        if (strategy := self.constraint_obj.get("strategy")) and not isinstance(
+            strategy, str
+        ):
             raise TypeError("Strategy must be of type str but got: ", type(strategy))
-        if (strategy := self._constraint_obj.get("strategy")) and strategy not in {"fail", "warn"}:
-            raise ValueError("Strategy must be one of 'fail' or 'warn' but got: ", strategy)
+        if (strategy := self.constraint_obj.get("strategy")) and strategy not in {
+            "fail",
+            "warn",
+        }:
+            raise ValueError(
+                "Strategy must be one of 'fail' or 'warn' but got: ", strategy
+            )
 
     def _verify_threshold_parsing(self) -> None:
         """
@@ -145,12 +160,20 @@ class ExpectationsYamlParser:
 
         :return: None
         """
+        if not isinstance(self.constraint, str):
+            raise ValueError("Constraint must be a string")
+        if not isinstance(self.constraint_obj, dict):
+            raise ValueError("Constraint object must be a dict")
         if self.constraint not in OPERATOR_MAP:
-            raise IllegalThresholdMathOperator(self.constraint, self._constraint_obj)
+            raise IllegalThresholdMathOperator(self.constraint, self.constraint_obj)
 
     def _verify_column_checks_parsing(self) -> None:
+        if not isinstance(self.constraint, str):
+            raise ValueError("Constraint must be a string")
+        if not isinstance(self.constraint_obj, dict):
+            raise ValueError("Constraint object must be a dict")
         if self.constraint not in {*OPERATOR_MAP, *COLUMN_OPERATIONS}:
-            raise IllegalColumnCheck(self.constraint, self._constraint_obj)
+            raise IllegalColumnCheck(self.constraint, self.constraint_obj)
 
     def _check_count(self) -> None:
         """
@@ -160,10 +183,10 @@ class ExpectationsYamlParser:
 
         :return: None
         """
-        count = parse("$.count")
-        count = count.find(self.data)[0].value[0]
+        parser_count = parse("$.count")
+        count: dict = parser_count.find(self.data)[0].value[0]
         if count:
-            self.constraint = count
+            self.set_constraint(count)
             self._verify_constructor_parsing()
             self._verify_threshold_parsing()
             self.append("count", self.constraint_obj, self.constraint)
@@ -176,10 +199,10 @@ class ExpectationsYamlParser:
 
         :return: None
         """
-        partitions = parse("$.partitions")
-        partitions = partitions.find(self.data)[0].value[0]
+        parser_partitions = parse("$.partitions")
+        partitions: dict = parser_partitions.find(self.data)[0].value[0]
         if partitions:
-            self.constraint = partitions
+            self.set_constraint(partitions)
             self._verify_constructor_parsing()
             self._verify_threshold_parsing()
             self.append("partitions", self.constraint_obj, self.constraint)
@@ -192,10 +215,10 @@ class ExpectationsYamlParser:
 
         :return: None
         """
-        is_empty = parse("$.is_empty")
-        is_empty = is_empty.find(self.data)[0].value
+        parser_is_empty = parse("$.is_empty")
+        is_empty: dict = parser_is_empty.find(self.data)[0].value
         if is_empty:
-            self.constraint = {"is_empty": is_empty}
+            self.set_constraint({"is_empty": is_empty})
             self._verify_constructor_parsing()
             self.append("is_empty", self.constraint_obj)
 
@@ -207,25 +230,26 @@ class ExpectationsYamlParser:
 
         :return: None
         """
-        has_columns = parse("$.has_columns[*]")
-        has_columns = has_columns.find(self.data)
+        parser_has_columns = parse("$.has_columns[*]")
+        has_columns: list = parser_has_columns.find(self.data)
         for column in has_columns:
-            self.constraint = column.value
-            if self._constraint_obj:
-                if self._constraint_obj not in COLUMN_TYPES:
-                    raise IllegalColumnType(self._constraint, self._constraint_obj)
-
-                self._constraint_obj = (
-                    parse_decimal_type(self._constraint_obj)
-                    if "decimal" in self._constraint_obj
-                    else COLUMN_TYPES[self._constraint_obj]
+            self.set_constraint(column.value)
+            if self.constraint_obj:
+                if not isinstance(self.constraint_obj, str):
+                    raise IllegalHasColumnExpectations(self.constraint_obj)
+                if self.constraint_obj not in COLUMN_TYPES:
+                    raise IllegalColumnType(self.constraint, self.constraint_obj)
+                column_type = (
+                    parse_decimal_type(self.constraint_obj)
+                    if "decimal" in self.constraint_obj
+                    else COLUMN_TYPES[self.constraint_obj]
                 )
                 constraint = {
-                    "column": self._constraint,
-                    "value": self._constraint_obj,
+                    "column": self.constraint,
+                    "value": column_type,
                 }
             else:
-                constraint = {"column": self._constraint}
+                constraint = {"column": self.constraint}
             self.append("exist", constraint)
 
     def _column_checks(self) -> None:
@@ -241,10 +265,12 @@ class ExpectationsYamlParser:
         for column in column_check:
             column_name, list_of_checks = next(iter(column.value.items()))
             for check in list_of_checks:
-                self.constraint = check
+                self.set_constraint(check)
                 self._verify_column_checks_parsing()
                 self._verify_constructor_parsing()
-                self._constraint_obj.update({"column": column_name})
+                if not isinstance(self.constraint_obj, dict):
+                    raise ValueError("Constraint object must be a dict")
+                self.constraint_obj.update({"column": column_name})
                 self.append("column", self.constraint_obj, self.constraint)
 
     def parse(self) -> None:
@@ -280,6 +306,10 @@ class ExpectationsYamlParser:
             raise ValueError("Check cannot be None")
         if constraint is None:
             raise ValueError("Constraint cannot be None")
+        if not isinstance(chk, str):
+            raise ValueError("Check must be a string")
+        if not isinstance(constraint, dict):
+            raise ValueError("Constraint must be a dictionary")
         constraint["check"] = chk
         if operator:
             constraint["operator"] = operator

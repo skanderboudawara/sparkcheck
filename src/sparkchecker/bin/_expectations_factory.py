@@ -53,9 +53,9 @@ class ExpectationsFactory:
 
         :return: None
         """
-        self.stack = stack
-        self.df = df
-        self.compiled_stack = []
+        self.stack: list = stack
+        self.df: DataFrame = df
+        self.compiled_stack: list[dict] = []
 
     @staticmethod
     def _compile_dataframe_operation(df: DataFrame, check: dict) -> dict:
@@ -86,14 +86,8 @@ class ExpectationsFactory:
         """
         expectation_instance = COLUMN_INSTANCES[check["operator"]]
         expectation_instance = expectation_instance(**check)
-        expectation, count_cases, example= expectation_instance.expectation(df)
-        check.update(
-            {
-                "expectation": expectation.expectation,
-                "count_cases": count_cases,
-                "example": example,
-            },
-        )
+        expectation = expectation_instance.expectation(df)
+        check.update(expectation)
         return check
 
     def compile(self) -> None:
