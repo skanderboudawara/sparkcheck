@@ -17,8 +17,7 @@ repos:
     rev: v0.9.0
     hooks:
       - id: ruff
-        args: [--unsafe-fixes, --fix, --show-fixes, --no-cache, --preview]
-      - id: ruff-format
+        args: [--unsafe-fixes, --fix, --show-fixes, --no-cache, --preview, --config=pyproject.toml]
 
   - repo: https://github.com/psf/black
     rev: 24.10.0
@@ -31,7 +30,7 @@ repos:
       - id: mypy
         files: '(src|tests)/.*\.py$'  # Single quote critical due to escape character '\' used in RegEx search string (see YAML - 7.3 Flow Scalar Styles)
         additional_dependencies: [types-PyYAML]
-        args: [--config-file=./pyproject.toml]
+        args: [--config-file=pyproject.toml]
 
   - repo: https://github.com/pre-commit/pygrep-hooks
     rev: v1.10.0
