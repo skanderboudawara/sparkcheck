@@ -1,6 +1,6 @@
 import inspect
 from functools import wraps
-
+from pyspark.sql import DataFrame
 from sparkchecker.bin._utils import col_to_name
 
 
@@ -23,10 +23,15 @@ def validate_expectation(func):
             raise TypeError(
                 f"Expected return type 'dict', but got '{type(result).__name__}'.",
             )
-
-        # Check if required keys are present
-        required_keys = {"expectation", "got", "message"}
-        missing_keys = required_keys - result.keys()
+        if len(result.keys()) not in [3, 4]:
+            raise ValueError("Expected 3 or 4 keys in return value.")
+        missing_keys = None
+        if len(result.keys()) == 4:
+            required_keys = {"has_failed", "got", "message", "example"}
+            missing_keys = required_keys - result.keys()
+        elif len(result.keys()) == 3:
+            required_keys = {"has_failed", "got", "message"}
+            missing_keys = required_keys - result.keys()
         if missing_keys:
             raise KeyError(
                 f"Missing required keys in return value: {', '.join(missing_keys)}",
@@ -39,12 +44,12 @@ def validate_expectation(func):
 
 def check_column_exist(method):
     def _expectation(
-        self,
+        self, df: DataFrame
     ):
         column_name = col_to_name(self.column)
-        if column_name not in self.df.columns:
+        if column_name not in df.columns:
             raise ValueError(f"Column {column_name} does not exist in DataFrame")
-        return method(self)
+        return method(self, df)
 
     _expectation.__name__ = method.__name__
     _expectation.__doc__ = method.__doc__

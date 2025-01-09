@@ -1,3 +1,5 @@
+from typing import Any, Union
+
 from sparkchecker.bin._constants import (
     COLUMN_OPERATIONS,
     COLUMN_TYPES,
@@ -7,7 +9,7 @@ from sparkchecker.bin._constants import (
 
 
 class InternalError(Exception):
-    def __init__(self, constraint: str, exception: str) -> None:
+    def __init__(self, constraint: str, exception: Union[dict, str]) -> None:
         """
         This class raises an exception when an internal error occurs.
 
@@ -22,7 +24,7 @@ class InternalError(Exception):
 
 
 class IllegalConstraintConstructor(Exception):
-    def __init__(self, constraint: str, exception: str) -> None:
+    def __init__(self, constraint: Union[str, None], exception: dict) -> None:
         """
         This class raises an exception when an illegal constraint constructor is used.
 
@@ -37,8 +39,30 @@ class IllegalConstraintConstructor(Exception):
         super().__init__(message)
 
 
+class IllegalHasColumnExpectations(Exception):
+    def __init__(self, exception: Any) -> None:
+        """
+        This class raises an exception when an illegal constraint constructor is used.
+
+        :param constraint: (str), the constraint
+
+        :param exception: (str), the exception
+
+        :return: None
+        """
+        message = " ".join(
+            [
+                "Constraint object must be a string in has_columns but got: ",
+                repr(type(exception)),
+                " = ",
+                repr(exception),
+            ],
+        )
+        super().__init__(message)
+
+
 class IllegalThresholdMathOperator(Exception):
-    def __init__(self, constraint: str, exception: str) -> None:
+    def __init__(self, constraint: Union[str, None], exception: dict) -> None:
         """
         This class raises an exception when an illegal threshold math operator is used.
 
@@ -56,7 +80,9 @@ class IllegalThresholdMathOperator(Exception):
 
 
 class ConstrainsOutOfRange(Exception):
-    def __init__(self, constraint: str, exception: str) -> None:
+    def __init__(
+        self, constraint: Union[str, None], exception: Union[dict, str],
+    ) -> None:
         """
         This class raises an exception when the constraints are out of range.
 
@@ -81,7 +107,7 @@ class ConstrainsOutOfRange(Exception):
 
 
 class IllegalColumnType(Exception):
-    def __init__(self, constraint: str, exception: str) -> None:
+    def __init__(self, constraint: Union[str, None], exception: str) -> None:
         """
         This class raises an exception when an illegal column type is used.
 
@@ -98,7 +124,7 @@ class IllegalColumnType(Exception):
 
 
 class IllegalColumnCheck(Exception):
-    def __init__(self, constraint: str, exception: str) -> None:
+    def __init__(self, constraint: Union[str, None], exception: dict) -> None:
         """
         This class raises an exception when an illegal threshold math operator is used.
 

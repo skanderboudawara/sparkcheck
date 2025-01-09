@@ -2,7 +2,6 @@ import os
 import re
 from typing import Union
 
-import yaml
 from pyspark.sql import Column
 from pyspark.sql.functions import col, lit
 from pyspark.sql.types import DecimalType
@@ -10,7 +9,7 @@ from pyspark.sql.types import DecimalType
 from sparkchecker.bin._constants import OPERATOR_MAP
 
 
-def str_to_col(column_name: Union[str, Column], is_col: bool = True) -> Column:
+def str_to_col(column_name: Union[str, float, Column], is_col: bool = True) -> Column:
     """
     Convert a `column_name` string to a column.
 
@@ -36,7 +35,7 @@ def col_to_name(column: Union[str, Column]) -> str:
     if isinstance(column, str):
         return column
     if isinstance(column, Column):
-        return column._jc.toString()
+        return column._jc.toString()  # noqa: SLF001
     raise TypeError(
         "Argument `column` must be of type Union[str, Column] but got: ",
         type(column),
@@ -63,7 +62,7 @@ def args_to_list_cols(
     :returns: (list[Column]), a list of Column
     """
     if isinstance(list_args, (str, Column)):
-        return list(str_to_col(list_args, is_col))
+        return [str_to_col(list_args, is_col)]
     if not isinstance(list_args, (list, tuple)):
         raise TypeError(
             "Argument `list_args` must be of type \
@@ -93,9 +92,6 @@ def _check_operator(operator: str) -> None:
         )
 
 
-
-
-
 def parse_decimal_type(decimal_string: str) -> DecimalType:
     """
     Parses a string like 'decimal(10,2)' and converts it to a DecimalType object.
@@ -114,14 +110,17 @@ def parse_decimal_type(decimal_string: str) -> DecimalType:
         precision, scale = map(int, match.groups())
         return DecimalType(precision=precision, scale=scale)
     raise ValueError(
-        f"Invalid decimal type string: {decimal_string}, it should be writtend `decimal(1, 2)`",
+        f"Invalid decimal type string: {decimal_string}, it should be written like `decimal(1, 2)`",
     )
 
 
-def extract_base_path_and_filename(file_path):
+def extract_base_path_and_filename(file_path: str) -> tuple[str, str]:
     """
     Extracts the base path and the filename from a given file path.
 
+    :param file_path (str): The file path to extract the base path and filename from.
+
+    :returns: (tuple[str, str]) The base path and the filename.
     """
     base_path = os.path.dirname(file_path)
     filename = os.path.splitext(os.path.basename(file_path))[
@@ -141,9 +140,13 @@ def _placeholder(
     Replaces the specified placeholder in a string based on a boolean condition.
 
     :param input_string (str): The string containing the placeholder.
+
     :param condition (bool): The condition to determine the replacement value.
+
     :param placeholder (str): The placeholder to replace (e.g., "<$is_or_not>").
-    :param replacements (tuple[str, str]): A tuple containing the replacements for True and False conditions.
+
+    :param replacements (tuple[str, str]): A tuple containing the replacements
+        for True and False conditions.
 
     :returns: (str) The modified string with the placeholder replaced.
     """
@@ -151,5 +154,14 @@ def _placeholder(
     return input_string.replace(placeholder, replacement)
 
 
-def _overrid_msg(default, msg):
-    return default if not msg else msg
+def _override_msg(default: str, msg: Union[str, None]) -> str:
+    """
+    This function returns the default message if the message is None.
+
+    :param default: (str), the default message
+
+    :param msg: (Union[str, None]), the message
+
+    :return: (str), the message
+    """
+    return msg if msg else default
