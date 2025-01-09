@@ -143,6 +143,7 @@ known-local-folder = ["src"]
 [tool.mypy]
 mypy_path = "src"
 strict = false
+files = "src"
 exclude = [
     "(^|/)(test.*)$",
     ".*sandbox.*",
@@ -152,6 +153,7 @@ exclude = [
 pretty = true
 error_summary = false
 disallow_any_generics = false
+explicit_package_bases = true
 
 [[tool.mypy.overrides]]
 module = ["pyspark.*", "jsonpath_ng.*"]
