@@ -43,8 +43,6 @@ def sparkChecker(  # noqa: N802
 
     setup_logger(name, path)
 
-    import json  # noqa: PLC0415
-
     print(compile_stack.compiled)  # noqa: T201
 
 

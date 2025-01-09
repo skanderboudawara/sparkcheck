@@ -92,8 +92,8 @@ def args_to_list_cols(
         float,
         str,
         Column,
-        list[Union[str, Column]],
-        tuple[Union[str, Column], ...],
+        list,
+        tuple,
     ],
     is_col: bool = True,
 ) -> list[Column]:
