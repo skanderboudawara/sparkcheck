@@ -1,6 +1,6 @@
 from pyspark.sql import DataFrame
 
-from .app import sparkChecker
+from .sparkchecker import sparkChecker
 
 __all__ = [
     "sparkChecker",

@@ -9,57 +9,16 @@ from typing import Optional, Union
 import yaml
 from jsonpath_ng import parse
 
-from sparkchecker.bin._constants import (
+from sparkchecker.constants import (
     COLUMN_OPERATIONS,
     COLUMN_TYPES,
     CONSTRAINT_CONSTRUCTOR,
     OPERATOR_MAP,
 )
-from sparkchecker.bin._exceptions import (
-    IllegalColumnCheck,
-    IllegalColumnType,
-    IllegalConstraintConstructor,
-    IllegalHasColumnExpectations,
-    IllegalThresholdMathOperator,
-    InternalError,
-)
-from sparkchecker.bin._utils import (
+from sparkchecker.ext._exceptions import SparkCheckerError
+from sparkchecker.ext._utils import (
     parse_decimal_type,
 )
-
-
-def read_yaml_file(file_path: str) -> dict:
-    """
-    Reads a YAML file and returns the parsed data.
-
-    :param file_path: Path to the YAML file.
-
-    :return: (dict) Parsed data as a Python dictionary.
-    """
-    with open(file_path, encoding="utf-8") as file:
-        data = yaml.safe_load(file)
-    return data
-
-
-def replace_keys_in_json(json_data: dict, replacements: dict) -> dict:
-    """
-    Replaces specified keys in a JSON-like dictionary with new keys based on a mapping.
-
-    : param json_data (dict): The input JSON-like dictionary.
-    : param replacements (dict): A dictionary mapping old keys to new keys.
-
-    :returns: (dict)n The modified dictionary with keys replaced.
-    """
-    for old_key, new_key in replacements.items():
-        jsonpath_expr = parse(f"$..{old_key}")  # Match all occurrences of the old key
-
-        matches = jsonpath_expr.find(json_data)  # Find all matching nodes
-        for match in matches:
-            parent = match.context.value  # Parent object of the old key
-            if isinstance(parent, dict):
-                parent[new_key] = parent.pop(old_key)  # Replace old key with new key
-
-    return json_data
 
 
 class ExpectationsYamlParser:
@@ -71,8 +30,7 @@ class ExpectationsYamlParser:
         """
         This class is used to construct constraints.
 
-        :param None:
-
+        :param yaml_data: (dict), the yaml data to parse
         :return: None
         """
         self.data = yaml_data
@@ -85,8 +43,7 @@ class ExpectationsYamlParser:
         """
         This method is a getter for the constraint attribute.
 
-        :param None:
-
+        :param: None
         :return: (None | Any), the constraint attribute
         """
         return self._constraint
@@ -96,8 +53,7 @@ class ExpectationsYamlParser:
         """
         This method is a getter for the constraint_obj attribute.
 
-        :param None:
-
+        :param: None
         :return: (dict), the constraint_obj attribute
         """
         return self._constraint_obj
@@ -107,8 +63,8 @@ class ExpectationsYamlParser:
         This method is a setter for the constraint attribute.
 
         :param new_constraint: (dict), the new constraint to set
-
         :return: None
+        :raises: (SparkCheckerError), if the constraint is not a dict
         """
         if isinstance(new_constraint, dict):
             self._constraint, self._constraint_obj = next(iter(new_constraint.items()))
@@ -116,15 +72,19 @@ class ExpectationsYamlParser:
             self._constraint = new_constraint
             self._constraint_obj = None
         else:
-            raise InternalError({"item": {"constraint": 10}}, new_constraint)
+            raise SparkCheckerError(
+                SparkCheckerError.InternalError,
+                {"item": {"constraint": 10}},
+                new_constraint,
+            )
 
     def _verify_constructor_parsing(self) -> None:
         """
         This method checks the constraint objects.
 
-        :param None:
-
+        :param: None
         :return: None
+        :raises: (SparkCheckerError), if the expectation is not in the CONSTRAINT_CONSTRUCTOR
         """
         if self.constraint_obj is None:
             raise ValueError("Constraint object cannot be None")
@@ -135,7 +95,11 @@ class ExpectationsYamlParser:
             )
         for expectation in self.constraint_obj:
             if expectation not in CONSTRAINT_CONSTRUCTOR:
-                raise IllegalConstraintConstructor(self.constraint, expectation)
+                raise SparkCheckerError(
+                    SparkCheckerError.IllegalConstraintConstructor,
+                    self.constraint,
+                    expectation,
+                )
         if (message := self.constraint_obj.get("message")) and not isinstance(
             message,
             str,
@@ -159,31 +123,50 @@ class ExpectationsYamlParser:
         """
         This method checks the threshold items.
 
-        :param None:
-
+        :param: None
         :return: None
+        :raises: (ValueError), if the constraint is not a string
+        :raises: (ValueError), if the constraint object is not a dict
+        :raises: (SparkCheckerError), if the expectation is not in the OPERATOR_MAP
         """
         if not isinstance(self.constraint, str):
             raise ValueError("Constraint must be a string")
         if not isinstance(self.constraint_obj, dict):
             raise ValueError("Constraint object must be a dict")
         if self.constraint not in OPERATOR_MAP:
-            raise IllegalThresholdMathOperator(self.constraint, self.constraint_obj)
+            raise SparkCheckerError(
+                SparkCheckerError.IllegalThresholdMathOperator,
+                self.constraint,
+                self.constraint_obj,
+            )
 
     def _verify_column_checks_parsing(self) -> None:
+        """
+        This method checks the column checks.
+
+        :param: None
+        :return: None
+        :raises: (ValueError), if the constraint is not a string
+        :raises: (ValueError), if the constraint object is not a dict
+        :raises: (SparkCheckerError), if the expectation is not in the OPERATOR_MAP
+            and COLUMN_OPERATIONS
+        """
         if not isinstance(self.constraint, str):
             raise ValueError("Constraint must be a string")
         if not isinstance(self.constraint_obj, dict):
             raise ValueError("Constraint object must be a dict")
         if self.constraint not in {*OPERATOR_MAP, *COLUMN_OPERATIONS}:
-            raise IllegalColumnCheck(self.constraint, self.constraint_obj)
+            raise SparkCheckerError(
+                SparkCheckerError.IllegalColumnCheck,
+                self.constraint,
+                self.constraint_obj,
+            )
 
     def _check_count(self) -> None:
         """
         This method checks the count.
 
-        :param None:
-
+        :param: None
         :return: None
         """
         parser_count = parse("$.count")
@@ -198,8 +181,7 @@ class ExpectationsYamlParser:
         """
         This method checks the count.
 
-        :param None:
-
+        :param: None
         :return: None
         """
         parser_partitions = parse("$.partitions")
@@ -214,8 +196,7 @@ class ExpectationsYamlParser:
         """
         This method checks the is empty.
 
-        :param None:
-
+        :param: None
         :return: None
         """
         parser_is_empty = parse("$.is_empty")
@@ -229,9 +210,10 @@ class ExpectationsYamlParser:
         """
         This method checks and dispatches the has column.
 
-        :param None:
-
+        :param: None
         :return: None
+        :raises: (SparkCheckerError), if the constraint object is not a string
+        :raises: (SparkCheckerError), if the constraint object is not in COLUMN_TYPES
         """
         parser_has_columns = parse("$.has_columns[*]")
         has_columns: list = parser_has_columns.find(self.data)
@@ -239,9 +221,16 @@ class ExpectationsYamlParser:
             self.set_constraint(column.value)
             if self.constraint_obj:
                 if not isinstance(self.constraint_obj, str):
-                    raise IllegalHasColumnExpectations(self.constraint_obj)
+                    raise SparkCheckerError(
+                        SparkCheckerError.IllegalHasColumnExpectations,
+                        self.constraint_obj,
+                    )
                 if self.constraint_obj not in COLUMN_TYPES:
-                    raise IllegalColumnType(self.constraint, self.constraint_obj)
+                    raise SparkCheckerError(
+                        SparkCheckerError.IllegalColumnType,
+                        self.constraint,
+                        self.constraint_obj,
+                    )
                 column_type = (
                     parse_decimal_type(self.constraint_obj)
                     if "decimal" in self.constraint_obj
@@ -259,9 +248,9 @@ class ExpectationsYamlParser:
         """
         This method checks the constraints.
 
-        :param None:
-
+        :param: None
         :return: None
+        :raises: (ValueError), if the constraint object is not a dict
         """
         column_check = parse("$.checks[*]")
         column_check = column_check.find(self.data)
@@ -280,8 +269,7 @@ class ExpectationsYamlParser:
         """
         This method runs the checks.
 
-        :param None:
-
+        :param: None
         :return: None
         """
         self._check_count()
@@ -300,10 +288,13 @@ class ExpectationsYamlParser:
         This method appends the constraint.
 
         :param chk: (str), the check to append
-
         :param constraint: (dict), the constraint to append
-
+        :param operator: (str), the operator to append
         :return: None
+        :raises: (ValueError), if the check is None
+        :raises: (ValueError), if the constraint is None
+        :raises: (ValueError), if the check is not a string
+        :raises: (ValueError), if the constraint is not a dictionary
         """
         if chk is None:
             raise ValueError("Check cannot be None")
@@ -323,8 +314,39 @@ class ExpectationsYamlParser:
         """
         This method is a getter for the stack attribute.
 
-        :param None:
-
+        :param: None
         :return: (list), the stack attribute
         """
         return self.stack
+
+
+def read_yaml_file(file_path: str) -> dict:
+    """
+    Reads a YAML file and returns the parsed data.
+
+    :param file_path: Path to the YAML file.
+    :return: (dict) Parsed data as a Python dictionary.
+    """
+    with open(file_path, encoding="utf-8") as file:
+        data = yaml.safe_load(file)
+    return data
+
+
+def replace_keys_in_json(json_data: dict, replacements: dict) -> dict:
+    """
+    Replaces specified keys in a JSON-like dictionary with new keys based on a mapping.
+
+    :param json_data (dict): The input JSON-like dictionary.
+    :param replacements (dict): A dictionary mapping old keys to new keys.
+    :returns: (dict)n The modified dictionary with keys replaced.
+    """
+    for old_key, new_key in replacements.items():
+        jsonpath_expr = parse(f"$..{old_key}")  # Match all occurrences of the old key
+
+        matches = jsonpath_expr.find(json_data)  # Find all matching nodes
+        for match in matches:
+            parent = match.context.value  # Parent object of the old key
+            if isinstance(parent, dict):
+                parent[new_key] = parent.pop(old_key)  # Replace old key with new key
+
+    return json_data

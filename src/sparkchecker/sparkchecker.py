@@ -5,15 +5,15 @@ This is the main file that contains the main function that is used to check the 
 
 from pyspark.sql import DataFrame
 
-from .bin._constants import KEY_EQUIVALENT
 from .bin._expectations_factory import ExpectationsFactory
-from .bin._logger import setup_logger
-from .bin._utils import extract_base_path_and_filename
 from .bin._yaml_parser import (
     ExpectationsYamlParser,
     read_yaml_file,
     replace_keys_in_json,
 )
+from .constants import KEY_EQUIVALENT
+from .ext._logger import setup_logger
+from .ext._utils import extract_base_path_and_filename
 
 
 def sparkChecker(  # noqa: N802
@@ -24,9 +24,7 @@ def sparkChecker(  # noqa: N802
     This function checks a DataFrame against a stack of checks.
 
     :param self: (DataFrame), the DataFrame to check
-
     :param path: (str), the path to the yaml file containing the checks
-
     :return: None
     """
     yaml_checks = read_yaml_file(path)
@@ -44,6 +42,10 @@ def sparkChecker(  # noqa: N802
     name, path = extract_base_path_and_filename(path)
 
     setup_logger(name, path)
+
+    import json  # noqa: PLC0415
+
+    print(compile_stack.compiled)  # noqa: T201
 
 
 DataFrame.sparkChecker = sparkChecker  # type: ignore
