@@ -1,6 +1,5 @@
 """
 File used for prototyping: src/proto.py.
-
 Will be removed in the final version.
 """
 
