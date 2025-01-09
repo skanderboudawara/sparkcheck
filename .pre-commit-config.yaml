@@ -14,17 +14,24 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.7.2
+    rev: v0.9.0
     hooks:
       - id: ruff
-        args: [check, --unsafe-fixes, --fix, --show-fixes]
+        args: [--unsafe-fixes, --fix, --show-fixes, --no-cache, --preview]
       - id: ruff-format
 
+  - repo: https://github.com/psf/black
+    rev: 24.10.0  # Replace with the desired version
+    hooks:
+      - id: black
+
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.13.0
+    rev: v1.14.1
     hooks:
       - id: mypy
-        exclude: "^tests/"
+        files: '(src|tests)/.*\.py$'  # Single quote critical due to escape character '\' used in RegEx search string (see YAML - 7.3 Flow Scalar Styles)
+        additional_dependencies: [types-PyYAML]
+        args: [--config-file=./pyproject.toml]
 
   - repo: https://github.com/pre-commit/pygrep-hooks
     rev: v1.10.0
@@ -33,4 +40,4 @@ repos:
       - id: rst-directive-colons
       - id: rst-inline-touching-normal
 ci:
-  autoupdate_schedule: quarterly
+  autoupdate_schedule: monthly

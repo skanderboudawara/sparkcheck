@@ -1,3 +1,7 @@
+"""
+Additional functions to create a logger with a rotating file handler.
+"""
+
 import logging
 from logging.handlers import TimedRotatingFileHandler
 
