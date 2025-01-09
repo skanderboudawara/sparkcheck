@@ -1,3 +1,7 @@
+"""
+This module contains constants used in the SparkChecker library.
+"""
+
 from operator import eq, ge, gt, le, lt, ne
 
 from pyspark.sql.types import (
