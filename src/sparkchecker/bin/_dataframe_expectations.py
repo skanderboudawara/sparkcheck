@@ -25,7 +25,7 @@ class IsEmpty(DataFrameExpectation):
         :return: None
         :raises: (TypeError), If the value is not a boolean.
         """
-        super().__init__(message)
+        self.message = message
         if not value:
             value = True
         if value and not isinstance(value, bool):
@@ -35,7 +35,7 @@ class IsEmpty(DataFrameExpectation):
             )
         self.value = value
 
-    def get_message(self, check: bool) -> str:
+    def get_message(self, check: bool) -> None:
         """
         This method returns the message result formatted with the check.
 
@@ -87,7 +87,7 @@ class IsNotEmpty(DataFrameExpectation):
         :return: None
         :raises: (TypeError), If the value is not a boolean.
         """
-        super().__init__(message)
+        self.message = message
         if not value:
             value = True
         if value and not isinstance(value, bool):
@@ -97,7 +97,7 @@ class IsNotEmpty(DataFrameExpectation):
             )
         self.value = value
 
-    def get_message(self, check: bool) -> str:
+    def get_message(self, check: bool) -> None:
         """
         This method returns the message result formatted with the check.
 
@@ -151,7 +151,7 @@ class CountThreshold(DataFrameExpectation):
         :raises: (TypeError), If the value is not an integer.
         :raises: (ValueError), If the operator is not valid.
         """
-        super().__init__(message)
+        self.message = message
         _check_operator(operator)
         if not isinstance(value, int):
             raise TypeError(
@@ -161,7 +161,7 @@ class CountThreshold(DataFrameExpectation):
         self.value = value
         self.operator = operator
 
-    def get_message(self, check: bool) -> str:
+    def get_message(self, check: bool) -> None:
         """
         This method returns the message result formatted with the check.
 
@@ -221,7 +221,7 @@ class PartitionsCount(DataFrameExpectation):
         :raises: (TypeError), If the value is not an integer.
         :raises: (ValueError), If the operator is not valid.
         """
-        super().__init__(message)
+        self.message = message
         _check_operator(operator)
         if not isinstance(value, int):
             raise TypeError(
@@ -231,7 +231,7 @@ class PartitionsCount(DataFrameExpectation):
         self.value = value
         self.operator = operator
 
-    def get_message(self, check: bool) -> str:
+    def get_message(self, check: bool) -> None:
         """
         This method returns the message result formatted with the check.
 
@@ -294,7 +294,7 @@ class Exist(DataFrameExpectation):
         :return: None
         :raises: (TypeError), If the value is not a DataType.
         """
-        super().__init__(message)
+        self.message = message
         if value and not isinstance(value, DataType):
             raise TypeError(
                 "Argument for DataFrame Partitions must be of type int but got: ",
@@ -303,7 +303,7 @@ class Exist(DataFrameExpectation):
         self.value = value
         self.column = column
 
-    def get_message(self, check: bool) -> str:
+    def get_message(self, check: bool) -> None:
         """
         This method returns the message result formatted with the check.
 

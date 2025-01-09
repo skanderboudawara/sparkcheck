@@ -96,7 +96,7 @@ class ExpectationsYamlParser:
         for expectation in self.constraint_obj:
             if expectation not in CONSTRAINT_CONSTRUCTOR:
                 raise SparkCheckerError(
-                    SparkCheckerError.IllegalConstraintConstructor,
+                    SparkCheckerError.ILLEGAL_CONSTRAINT_CONSTRUCTOR,
                     self.constraint,
                     expectation,
                 )
@@ -135,7 +135,7 @@ class ExpectationsYamlParser:
             raise ValueError("Constraint object must be a dict")
         if self.constraint not in OPERATOR_MAP:
             raise SparkCheckerError(
-                SparkCheckerError.IllegalThresholdMathOperator,
+                SparkCheckerError.ILLEGAL_THRESHOLD_MATH_OPERATOR,
                 self.constraint,
                 self.constraint_obj,
             )
@@ -157,7 +157,7 @@ class ExpectationsYamlParser:
             raise ValueError("Constraint object must be a dict")
         if self.constraint not in {*OPERATOR_MAP, *COLUMN_OPERATIONS}:
             raise SparkCheckerError(
-                SparkCheckerError.IllegalColumnCheck,
+                SparkCheckerError.ILLEGAL_COLUMN_CHECK,
                 self.constraint,
                 self.constraint_obj,
             )
@@ -222,12 +222,12 @@ class ExpectationsYamlParser:
             if self.constraint_obj:
                 if not isinstance(self.constraint_obj, str):
                     raise SparkCheckerError(
-                        SparkCheckerError.IllegalHasColumnExpectations,
-                        self.constraint_obj,
+                        SparkCheckerError.ILLEGAL_HAS_COLUMN_EXPECTATIONS,
+                        repr(self.constraint_obj),
                     )
                 if self.constraint_obj not in COLUMN_TYPES:
                     raise SparkCheckerError(
-                        SparkCheckerError.IllegalColumnType,
+                        SparkCheckerError.ILLEGAL_COLUMN_TYPE,
                         self.constraint,
                         self.constraint_obj,
                     )

@@ -2,9 +2,12 @@
 This module contains the ExpectationsFactory class.
 """
 
+from collections.abc import Mapping
+
 from pyspark.sql import DataFrame
 
 from ..ext._decorators import order_expectations_dict
+from ._base import ColumnsExpectations, DataFrameExpectation
 from ._column_expectations import (
     ColumnCompare,
     IsInColumn,
@@ -19,13 +22,13 @@ from ._dataframe_expectations import (
     PartitionsCount,
 )
 
-DATAFRAME_OPERATIONS = {
+DATAFRAME_OPERATIONS: Mapping[str, type[DataFrameExpectation]] = {
     "count": CountThreshold,
     "partitions": PartitionsCount,
     "is_empty": IsEmpty,
     "exist": Exist,
 }
-COLUMN_INSTANCES = {
+COLUMN_INSTANCES: Mapping[str, type[ColumnsExpectations]] = {
     "not_null": NonNullColumn,
     "is_null": NullColumn,
     "pattern": RlikeColumn,

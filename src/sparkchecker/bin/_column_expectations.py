@@ -43,7 +43,8 @@ class NonNullColumn(ColumnsExpectations):
         :return: None
         :raises: (TypeError), If the value is not of type bool
         """
-        super().__init__(column, message)
+        self.column = column
+        self.message = message
         if not isinstance(value, bool):
             raise TypeError(
                 "Argument is not_null `value` must be of type bool but got: ",
@@ -62,7 +63,7 @@ class NonNullColumn(ColumnsExpectations):
         self.column = str_to_col(self.column)
         return self.column.isNotNull()
 
-    def get_message(self, check: bool) -> str:
+    def get_message(self, check: bool) -> None:
         """
         This method returns the message result formatted with the check.
 
@@ -115,7 +116,8 @@ class NullColumn(ColumnsExpectations):
         :return: None
         :raises: (TypeError), If the value is not of type bool
         """
-        super().__init__(column, message)
+        self.column = column
+        self.message = message
         if not isinstance(value, bool):
             raise TypeError(
                 "Argument for is_null `value` must be of type bool but got: ",
@@ -134,7 +136,7 @@ class NullColumn(ColumnsExpectations):
         self.column = str_to_col(self.column)
         return self.column.isNull()
 
-    def get_message(self, check: bool) -> str:
+    def get_message(self, check: bool) -> None:
         """
         This method returns the message result formatted with the check.
 
@@ -187,7 +189,8 @@ class RlikeColumn(ColumnsExpectations):
         :return: None
         :raises: (TypeError), If the value is not of type str
         """
-        super().__init__(column, message)
+        self.column = column
+        self.message = message
         if not isinstance(value, str):
             raise TypeError(
                 "Argument pattern `value` must be of type bool but got: ",
@@ -206,7 +209,7 @@ class RlikeColumn(ColumnsExpectations):
         self.column = str_to_col(self.column)
         return self.column.rlike(self.value)
 
-    def get_message(self, check: bool) -> str:
+    def get_message(self, check: bool) -> None:
         """
         This method returns the message result formatted with the check.
 
@@ -262,13 +265,8 @@ class IsInColumn(ColumnsExpectations):
         :raises: (TypeError), If the value is not of type Union[Column, str, list]
         :raises: (ValueError), If the value is empty
         """
-        super().__init__(column, message)
-        if not isinstance(value, (str, Column, list)):
-            raise TypeError(
-                "Argument for in `value` must be of type \
-                    Union[Column, str, list[Column], list[str]] but got: ",
-                type(value),
-            )
+        self.column = column
+        self.message = message
         if not value:
             raise ValueError("Argument for in `value` must not be empty")
         self.value = value
@@ -282,11 +280,17 @@ class IsInColumn(ColumnsExpectations):
 
         :returns: None
         """
+        if not isinstance(self.value, (float, str, Column, list, tuple)):
+            raise TypeError(
+                "Argument for in `value` must be of type \
+                    Union[Column, str, list[Column], list[str]] but got: ",
+                type(self.value),
+            )
         self.value = args_to_list_cols(self.value, is_col=False)
         self.column = str_to_col(self.column)
         return self.column.isin(*self.value)
 
-    def get_message(self, check: bool) -> str:
+    def get_message(self, check: bool) -> None:
         """
         This method returns the message result formatted with the check.
 
@@ -308,12 +312,12 @@ class IsInColumn(ColumnsExpectations):
         :param target: (DataFrame), the DataFrame to check
         :return: (dict), the expectation result
         """
+        self.expected = ", ".join([col_to_name(c) for c in self.value])
         check, count_cases, first_failed_row = evaluate_first_fail(
             target,
             self.column,
             self.constraint,
         )
-        self.expected = ", ".join([col_to_name(c) for c in self.value])
         self.get_message(check)
         return {
             "has_failed": not (check),
@@ -344,7 +348,8 @@ class ColumnCompare(ColumnsExpectations):
         :raises: (TypeError), If the value is not of type Union[str, float]
         :raises: (ValueError), If the operator is not valid.
         """
-        super().__init__(column, message)
+        self.column = column
+        self.message = message
         _check_operator(operator)
         self.operator = operator
         if not isinstance(value, (str, float, int, Column)):
@@ -366,7 +371,7 @@ class ColumnCompare(ColumnsExpectations):
         self.column = str_to_col(self.column)
         return OPERATOR_MAP[self.operator](self.column, self.value)
 
-    def get_message(self, check: bool) -> str:
+    def get_message(self, check: bool) -> None:
         """
         This method returns the message result formatted with the check.
 
