@@ -2,7 +2,7 @@
 This module contains the column expectations classes.
 """
 
-from typing import Any, Union
+from typing import Any
 
 from pyspark.sql import Column, DataFrame
 
@@ -29,9 +29,9 @@ class NonNullColumn(ColumnsExpectations):
     @check_message
     def __init__(
         self,
-        column: Union[str, Column],
+        column: str | Column,
         value: bool,
-        message: Union[str, None] = None,
+        message: str | None = None,
         **kwargs: Any,  # noqa: ARG002
     ) -> None:
         """
@@ -102,9 +102,9 @@ class NullColumn(ColumnsExpectations):
     @check_message
     def __init__(
         self,
-        column: Union[str, Column],
+        column: str | Column,
         value: bool,
-        message: Union[str, None] = None,
+        message: str | None = None,
         **kwargs: Any,  # noqa: ARG002
     ) -> None:
         """
@@ -175,9 +175,9 @@ class RlikeColumn(ColumnsExpectations):
     @check_message
     def __init__(
         self,
-        column: Union[str, Column],
+        column: str | Column,
         value: str,
-        message: Union[str, None] = None,
+        message: str | None = None,
         **kwargs: Any,  # noqa: ARG002
     ) -> None:
         """
@@ -250,9 +250,9 @@ class IsInColumn(ColumnsExpectations):
     @check_message
     def __init__(
         self,
-        column: Union[str, Column],
-        value: Union[Column, str, list[Column], list[str]],
-        message: Union[str, None] = None,
+        column: str | Column,
+        value: Column | str | list[Column] | list[str],
+        message: str | None = None,
         **kwargs: Any,  # noqa: ARG002
     ) -> None:
         """
@@ -280,7 +280,7 @@ class IsInColumn(ColumnsExpectations):
 
         :returns: None
         """
-        if not isinstance(self.value, (float, str, Column, list, tuple)):
+        if not isinstance(self.value, float | str | Column | list | tuple):
             raise TypeError(
                 "Argument for in `value` must be of type \
                     Union[Column, str, list[Column], list[str]] but got: ",
@@ -331,10 +331,10 @@ class ColumnCompare(ColumnsExpectations):
     @check_message
     def __init__(
         self,
-        column: Union[str, Column],
-        value: Union[str, float, Column],
+        column: str | Column,
+        value: str | float | Column,
         operator: str,
-        message: Union[str, None] = None,
+        message: str | None = None,
         **kwargs: Any,  # noqa: ARG002
     ) -> None:
         """
@@ -352,7 +352,7 @@ class ColumnCompare(ColumnsExpectations):
         self.message = message
         _check_operator(operator)
         self.operator = operator
-        if not isinstance(value, (str, float, int, Column)):
+        if not isinstance(value, str | float | int | Column):
             raise TypeError(
                 "Argument for column comparison `value` must be of type \
                     Union[str, float] but got: ",

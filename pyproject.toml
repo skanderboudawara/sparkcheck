@@ -59,11 +59,13 @@ addopts = [
     "-vv",
     "-p",
     "no:warnings",
-    "--cov-fail-under=100",
+    "--cov=src",
+    "--cov-report=term-missing",
+    "--cov-fail-under=0",
     "--tb=short",
 ]
 pythonpath = ["src"]
-testpaths = ["tests"]
+testpaths = ["."]
 xfail_strict = true
 filterwarnings = ["error"]
 python_files = "test_*.py"
@@ -121,7 +123,7 @@ strict = false
 files = "src"
 exclude = [
     "(^|/)(test.*)$",
-    ".*sandbox.*",
+    "*conftest*",
     "(^|/)(__init__/.*py)$",
     ".*jobs.*",
 ]

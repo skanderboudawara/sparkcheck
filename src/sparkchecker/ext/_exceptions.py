@@ -1,4 +1,4 @@
-from typing import Any, Union
+from typing import Any
 
 from sparkchecker.constants import (
     COLUMN_OPERATIONS,
@@ -26,8 +26,8 @@ class SparkCheckerError(Exception):
     def __init__(
         self,
         error_type: str,
-        constraint: Union[str, None] = None,
-        exception: Union[Any, str] = None,
+        constraint: str | None = None,
+        exception: Any | str = None,
     ) -> None:
         """
         Initialize a SparkCheckerError with a specific error type and details.
@@ -42,8 +42,8 @@ class SparkCheckerError(Exception):
     @staticmethod
     def _generate_message(
         error_type: str,
-        constraint: Union[str, None],
-        exception: Union[Any, str],
+        constraint: str | None,
+        exception: Any | str,
     ) -> str:
         """
         Generate an error message based on the error type and details.

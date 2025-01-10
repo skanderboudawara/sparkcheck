@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Union
+from typing import Any
 
 from pyspark.sql import Column, DataFrame
 
@@ -14,8 +14,8 @@ class ColumnsExpectations(ABC):
     @check_message
     def __init__(
         self,
-        col_name: Union[str, Column],
-        message: Union[str, None] = None,
+        col_name: str | Column,
+        message: str | None = None,
         **kwargs: Any,  # noqa: ARG002
     ) -> None:
         self.column = col_name
@@ -38,7 +38,7 @@ class DataFrameExpectation(ABC):
     @check_message
     def __init__(
         self,
-        message: Union[str, None] = None,
+        message: str | None = None,
         **kwargs: Any,  # noqa: ARG002
     ) -> None:
         self.message = message

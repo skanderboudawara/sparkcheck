@@ -1,4 +1,4 @@
-from typing import Any, Union
+from typing import Any
 
 from pyspark.sql import DataFrame
 from pyspark.sql.types import DataType
@@ -13,8 +13,8 @@ class IsEmpty(DataFrameExpectation):
     @check_message
     def __init__(
         self,
-        message: Union[str, None] = None,
-        value: Union[bool, None] = None,
+        message: str | None = None,
+        value: bool | None = None,
         **kwargs: Any,  # noqa: ARG002
     ) -> None:
         """
@@ -75,8 +75,8 @@ class IsNotEmpty(DataFrameExpectation):
     @check_message
     def __init__(
         self,
-        message: Union[str, None] = None,
-        value: Union[bool, None] = None,
+        message: str | None = None,
+        value: bool | None = None,
         **kwargs: Any,  # noqa: ARG002
     ) -> None:
         """
@@ -138,7 +138,7 @@ class CountThreshold(DataFrameExpectation):
         self,
         value: int,
         operator: str,
-        message: Union[str, None] = None,
+        message: str | None = None,
         **kwargs: Any,  # noqa: ARG002
     ) -> None:
         """
@@ -208,7 +208,7 @@ class PartitionsCount(DataFrameExpectation):
         self,
         value: int,
         operator: str,
-        message: Union[str, None] = None,
+        message: str | None = None,
         **kwargs: Any,  # noqa: ARG002
     ) -> None:
         """
@@ -281,8 +281,8 @@ class Exist(DataFrameExpectation):
     def __init__(
         self,
         column: str,
-        message: Union[str, None] = None,
-        value: Union[DataType, None] = None,
+        message: str | None = None,
+        value: DataType | None = None,
         **kwargs: Any,  # noqa: ARG002
     ) -> None:
         """

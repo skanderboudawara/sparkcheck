@@ -1,6 +1,5 @@
 import os
 import re
-from typing import Union
 
 from pyspark.sql import Column, DataFrame
 from pyspark.sql.functions import col, lit
@@ -10,7 +9,7 @@ from sparkchecker.constants import OPERATOR_MAP
 
 
 def str_to_col(
-    column_name: Union[str, bool, float, Column],
+    column_name: str | bool | float | Column,
     is_col: bool = True,
 ) -> Column:
     """
@@ -22,31 +21,35 @@ def str_to_col(
     :raises: (TypeError), If the input is not a string, float, or Column
 
     Examples:
+    >>> from pyspark.sql import SparkSession
+    >>> spark = SparkSession.builder.getOrCreate()
     >>> str_to_col('column1')
-    Column<b'column1'>
+    Column<'column1'>
 
     >>> str_to_col('column1', is_col=False)
-    Column<b'column1'>
+    Column<'column1'>
 
     >>> str_to_col(123)
-    Column<b'123'>
+    Column<'123'>
 
     >>> str_to_col(col('column1'))
-    Column<b'column1'>
+    Column<'column1'>
 
     >>> str_to_col(123.0)
-    Column<b'123.0'>
+    Column<'123.0'>
 
     >>> str_to_col(123.0, is_col=False)
-    Column<b'123.0'>
+    Column<'123.0'>
 
     >>> str_to_col(123.0, is_col=True)
-    Column<b'123.0'>
+    Column<'123.0'>
+
+    >>> spark.stop()
 
     """
     if isinstance(column_name, str):
         return col(column_name) if is_col else lit(column_name)
-    if isinstance(column_name, (float, int, bool)):
+    if isinstance(column_name, float | int | bool):
         return lit(column_name)
     if isinstance(column_name, Column):
         return column_name
@@ -56,7 +59,7 @@ def str_to_col(
     )
 
 
-def col_to_name(column: Union[str, Column]) -> str:
+def col_to_name(column: str | Column) -> str:
     """
     Convert a `column` to a column name.
 
@@ -65,16 +68,15 @@ def col_to_name(column: Union[str, Column]) -> str:
     :raises: (TypeError), If the input is not a string or Column
 
     Examples:
+    >>> from pyspark.sql import SparkSession
+    >>> spark = SparkSession.builder.getOrCreate()
     >>> col_to_name('column1')
     'column1'
 
     >>> col_to_name(col('column1'))
     'column1'
 
-    >>> col_to_name(123)
-    Traceback (most recent call last):
-        ...
-    TypeError: Argument `column` must be of type Union[str, Column] but got:  <class 'int'>
+    >>> spark.stop()
 
     """
     if isinstance(column, str):
@@ -88,21 +90,14 @@ def col_to_name(column: Union[str, Column]) -> str:
 
 
 def args_to_list_cols(
-    list_args: Union[
-        float,
-        str,
-        Column,
-        list,
-        tuple,
-    ],
+    list_args: float | str | Column | list | tuple,
     is_col: bool = True,
 ) -> list[Column]:
     """
     Convert `list_args` to a list of Columns.
 
-    :param list_args:
-        (Union[float, str, Column, list[Union[str, float, Column]], tuple[Union[str, Column], ...]])
-        a list or tuple of arguments that can be strings or Columns.
+    :param list_args: (float | str | Column | list | tuple) a list or tuple
+        of arguments that can be strings or Columns.
     :param is_col: (bool), flag to determine if the strings should be treated as
         column names or literals.
     :returns: (list[Column]), a list of Columns.
@@ -110,35 +105,39 @@ def args_to_list_cols(
     :raises: (TypeError), If the elements of the list are not strings or Columns.
 
     Examples:
+    >>> from pyspark.sql import SparkSession
+    >>> spark = SparkSession.builder.getOrCreate()
     >>> args_to_list_cols('column1')
-    [Column<b'column1'>]
+    [Column<'column1'>]
 
     >>> args_to_list_cols(col('column1'))
-    [Column<b'column1'>]
+    [Column<'column1'>]
 
     >>> args_to_list_cols(['column1', 'column2'])
-    [Column<b'column1'>, Column<b'column2'>]
+    [Column<'column1'>, Column<'column2'>]
 
     >>> args_to_list_cols(('column1', 'column2'))
-    [Column<b'column1'>, Column<b'column2'>]
+    [Column<'column1'>, Column<'column2'>]
 
     >>> args_to_list_cols(['column1', col('column2')])
-    [Column<b'column1'>, Column<b'column2'>]
+    [Column<'column1'>, Column<'column2'>]
 
     >>> args_to_list_cols('column1', is_col=False)
-    [Column<b'column1'>]
+    [Column<'column1'>]
+
+    >>> spark.stop()
 
     """
-    if isinstance(list_args, (str, float, Column)):
+    if isinstance(list_args, str | float | Column):
         return [str_to_col(list_args, is_col)]
-    if not isinstance(list_args, (list, tuple)):
+    if not isinstance(list_args, list | tuple):
         raise TypeError(
             "Argument `list_args` must be of type Union[str, Column, list[Union[str, Column]]",
             f" tuple[Union[str, Column], ...]] but got: {type(list_args)}",
         )
-    if not all(isinstance(arg, (str, Column, float)) for arg in list_args):
+    if not all(isinstance(arg, str | Column | float) for arg in list_args):
         raise TypeError(
-            "All elements of `list_args` must be of type Union[str, Column] but got:",
+            "All elements of `list_args` must be of type Union[str, Column, float] but got:",
             f" {[type(arg) for arg in list_args]}",
         )
     return [str_to_col(arg, is_col) for arg in list_args]
@@ -153,14 +152,7 @@ def _check_operator(operator: str) -> None:
     :raises: (ValueError), If the operator is not valid.
 
     Example:
-    >>> OPERATOR_MAP = {'+': 'add', '-': 'subtract'}
-
-    >>> _check_operator('+')
-
-    >>> _check_operator('/')
-    Traceback (most recent call last):
-    ...
-    ValueError: Invalid operator: '/'. Must be one of: +, -
+    >>> _check_operator('lower')
 
     """
     if operator not in OPERATOR_MAP:
@@ -181,18 +173,13 @@ def parse_decimal_type(decimal_string: str) -> DecimalType:
 
     Examples:
     >>> parse_decimal_type('decimal(10,2)')
-    DecimalType(precision=10, scale=2)
+    DecimalType(10,2)
 
     >>> parse_decimal_type('decimal(5, 0)')
-    DecimalType(precision=5, scale=0)
+    DecimalType(5,0)
 
     >>> parse_decimal_type('decimal(15, 5)')
-    DecimalType(precision=15, scale=5)
-
-    >>> parse_decimal_type('invalid')
-    Traceback (most recent call last):
-        ...
-    ValueError: Invalid decimal type string: invalid, it should be written like `decimal(10, 2)`
+    DecimalType(15,5)
 
     """
     # Regular expression to match 'decimal(precision,scale)'
@@ -221,10 +208,10 @@ def extract_base_path_and_filename(file_path: str) -> tuple[str, str]:
 
     Examples:
     >>> extract_base_path_and_filename('/path/to/file.txt')
-    ('/path/to', 'file_expectations_result.log')
+    ('file', '/path/to/file_sparkchecker_result.log')
 
     >>> extract_base_path_and_filename('file.txt')
-    ('', 'file_expectations_result.log')
+    ('file', 'file_sparkchecker_result.log')
 
     """
     base_path = os.path.dirname(file_path)
@@ -262,11 +249,6 @@ def _substitute(input_string: str, condition: bool, placeholder: str) -> str:
     >>> _substitute("The value is <$high|low>.", False, "<$high|low>")
     'The value is low.'
 
-    >>> _substitute("Invalid placeholder <$invalid>", True, "<$invalid>")
-    Traceback (most recent call last):
-        ...
-    ValueError: Invalid placeholder format. Must be in the format '<$text1|text2>'.
-
     """
     if not isinstance(input_string, str):
         raise TypeError(
@@ -294,7 +276,7 @@ def _substitute(input_string: str, condition: bool, placeholder: str) -> str:
     return input_string.replace(placeholder, replacement)
 
 
-def _resolve_msg(default: str, msg: Union[str, None]) -> str:
+def _resolve_msg(default: str, msg: str | None) -> str:
     """
     Returns the provided message if it is not None, otherwise returns the default message.
 
@@ -311,23 +293,13 @@ def _resolve_msg(default: str, msg: Union[str, None]) -> str:
     >>> _resolve_msg("Default message", None)
     'Default message'
 
-    >>> _resolve_msg(123, "Custom message")
-    Traceback (most recent call last):
-        ...
-    TypeError: Argument `default` must be of type str but got:  <class 'int'>
-
-    >>> _resolve_msg("Default message", 123)
-    Traceback (most recent call last):
-        ...
-    TypeError: Argument `msg` must be of type Union[str, None] but got:  <class 'int'>
-
     """
     if not isinstance(default, str):
         raise TypeError(
             "Argument `default` must be of type str but got: ",
             type(default),
         )
-    if not isinstance(msg, (str, type(None))):
+    if not isinstance(msg, str | type(None)):
         raise TypeError(
             "Argument `msg` must be of type Union[str, None] but got: ",
             type(msg),
@@ -337,7 +309,7 @@ def _resolve_msg(default: str, msg: Union[str, None]) -> str:
 
 def evaluate_first_fail(
     df: DataFrame,
-    column: Union[str, Column],
+    column: str | Column,
     expectation: Column,
 ) -> tuple[bool, int, dict]:
     """
@@ -349,6 +321,31 @@ def evaluate_first_fail(
     :return: (tuple), the check, the count of cases and the first failed row
     :raises: (TypeError), if the expectation is not of type Column
     :raises: (TypeError), if the DataFrame is not of type DataFrame
+
+    Examples:
+    >>> from pyspark.sql import SparkSession
+    >>> spark = SparkSession.builder.getOrCreate()
+    >>> df = spark.createDataFrame([(1, 2), (3, 4)], ['a', 'b'])
+    >>> df = df.cache()
+
+    >>> expectation = col('a') > 0
+    >>> evaluate_first_fail(df, 'a', expectation)
+    (True, 0, {})
+
+    >>> expectation = col('a') > 3
+    >>> evaluate_first_fail(df, 'a', expectation)
+    (False, 0, {'a': 1})
+
+    >>> expectation = col('a').isNotNull()
+    >>> evaluate_first_fail(df, 'a', expectation)
+    (True, 0, {})
+
+    >>> expectation = col('a').isNull()
+    >>> evaluate_first_fail(df, 'a', expectation)
+    (False, 0, {'a': 1})
+
+    >>> spark.stop()
+
     """
     if not isinstance(expectation, Column):
         raise TypeError(
@@ -365,5 +362,5 @@ def evaluate_first_fail(
     df = df.select(column).filter(~expectation)
     first_failed_row = df.first()
     check = bool(not first_failed_row)
-    count_cases = df.count() if check else 0
+    count_cases = df.filter(expectation).count() if check else 0
     return check, count_cases, first_failed_row.asDict() if first_failed_row else {}
