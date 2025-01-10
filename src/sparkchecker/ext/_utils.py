@@ -326,8 +326,6 @@ def evaluate_first_fail(
     Examples:
     >>> from pyspark.sql import SparkSession
     >>> spark = SparkSession.builder.getOrCreate()
-    >>> print(spark.sparkContext.pythonVer)
-    3.10
     >>> df = spark.createDataFrame([(1, 2), (3, 4)], ['a', 'b'])
     >>> df = df.cache()
 
