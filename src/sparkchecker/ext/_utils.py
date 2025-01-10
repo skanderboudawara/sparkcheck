@@ -360,7 +360,9 @@ def evaluate_first_fail(
     column = str_to_col(column)
     # We need to check the opposite of our expectations
     df = df.select(column).filter(~expectation)
-    first_failed_row = df.first()
-    check = bool(not first_failed_row)
-    count_cases = df.filter(expectation).count() if check else 0
-    return check, count_cases, first_failed_row.asDict() if first_failed_row else {}
+    if not df.isEmpty():
+        first_failed_row = df.first()
+        check = bool(not first_failed_row)
+        count_cases = df.filter(expectation).count()
+        return check, count_cases, first_failed_row.asDict()
+    return True, 0, {}
