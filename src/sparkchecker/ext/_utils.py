@@ -1,7 +1,8 @@
 import os
 import re
+from typing import cast
 
-from pyspark.sql import Column, DataFrame
+from pyspark.sql import Column, DataFrame, Row
 from pyspark.sql.functions import col, lit
 from pyspark.sql.types import DecimalType
 
@@ -325,6 +326,8 @@ def evaluate_first_fail(
     Examples:
     >>> from pyspark.sql import SparkSession
     >>> spark = SparkSession.builder.getOrCreate()
+    >>> print(spark.sparkContext.pythonVer)
+    3.10
     >>> df = spark.createDataFrame([(1, 2), (3, 4)], ['a', 'b'])
     >>> df = df.cache()
 
@@ -361,7 +364,7 @@ def evaluate_first_fail(
     # We need to check the opposite of our expectations
     df = df.select(column).filter(~expectation)
     if not df.isEmpty():
-        first_failed_row = df.first()
+        first_failed_row = cast(Row, df.first())
         check = bool(not first_failed_row)
         count_cases = df.filter(expectation).count()
         return check, count_cases, first_failed_row.asDict()
