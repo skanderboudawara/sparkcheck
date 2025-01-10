@@ -5,15 +5,15 @@ This is the main file that contains the main function that is used to check the 
 
 from pyspark.sql import DataFrame
 
-from .bin._expectations_factory import ExpectationsFactory
-from .bin._yaml_parser import (
+from ..bin._expectations_factory import ExpectationsFactory
+from ..bin._yaml_parser import (
     ExpectationsYamlParser,
     read_yaml_file,
     replace_keys_in_json,
 )
-from .constants import KEY_EQUIVALENT
-from .ext._logger import setup_logger
-from .ext._utils import extract_base_path_and_filename
+from ..constants import KEY_EQUIVALENT
+from ..ext._logger import setup_logger
+from ..ext._utils import extract_base_path_and_filename
 
 
 def sparkChecker(  # noqa: N802
