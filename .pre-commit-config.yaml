@@ -1,4 +1,14 @@
 repos:
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        stages: [pre-commit]
+        language: python
+        entry: ./.venv/bin/pytest --cov
+        types: [python]
+        pass_filenames: false
+        always_run: true
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:

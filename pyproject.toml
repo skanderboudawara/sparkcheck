@@ -17,7 +17,7 @@ requires-python = ">=3.10"
 dependencies = [
     "PyYaml >= 6.0.2",
     "jsonpath-ng >= 1.7.0",
-    "pyspark >= 3.4",
+    "pyspark >= 3.5",
 ]
 dynamic = ["version"]
 
@@ -52,6 +52,7 @@ exclude_lines = [
     "pragma: no cover",
     "if TYPE_CHECKING:",
 ]
+fail_under = 80
 
 [tool.pytest.ini_options]
 addopts = [
@@ -59,9 +60,6 @@ addopts = [
     "-vv",
     "-p",
     "no:warnings",
-    "--cov=src",
-    "--cov-report=term-missing",
-    "--cov-fail-under=0",
     "--tb=short",
 ]
 pythonpath = ["src"]
