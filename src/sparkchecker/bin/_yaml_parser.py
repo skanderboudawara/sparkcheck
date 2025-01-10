@@ -4,8 +4,6 @@ This module contains the ExpectationsYamlParser class.
 This class is used to construct constraints.
 """
 
-from typing import Optional, Union
-
 import yaml
 from jsonpath_ng import parse
 
@@ -35,11 +33,11 @@ class ExpectationsYamlParser:
         """
         self.data = yaml_data
         self.stack: list[dict] = []
-        self._constraint: Union[str, None] = None
-        self._constraint_obj: Union[dict, str, None] = None
+        self._constraint: str | None = None
+        self._constraint_obj: dict | str | None = None
 
     @property
-    def constraint(self) -> Union[str, None]:
+    def constraint(self) -> str | None:
         """
         This method is a getter for the constraint attribute.
 
@@ -49,7 +47,7 @@ class ExpectationsYamlParser:
         return self._constraint
 
     @property
-    def constraint_obj(self) -> Union[dict, str, None]:
+    def constraint_obj(self) -> dict | str | None:
         """
         This method is a getter for the constraint_obj attribute.
 
@@ -280,9 +278,9 @@ class ExpectationsYamlParser:
 
     def append(
         self,
-        chk: Union[str, None],
-        constraint: Union[dict, str, None],
-        operator: Optional[str] = None,
+        chk: str | None,
+        constraint: dict | str | None,
+        operator: str | None = None,
     ) -> None:
         """
         This method appends the constraint.

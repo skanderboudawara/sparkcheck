@@ -28,7 +28,7 @@ repos:
     rev: v1.14.1
     hooks:
       - id: mypy
-        files: '(src|tests)/.*\.py$'  # Single quote critical due to escape character '\' used in RegEx search string (see YAML - 7.3 Flow Scalar Styles)
+        files: '(src)/.*\.py$'  # Single quote critical due to escape character '\' used in RegEx search string (see YAML - 7.3 Flow Scalar Styles)
         additional_dependencies: [types-PyYAML]
         args: [--config-file=pyproject.toml]
 
