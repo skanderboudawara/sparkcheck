@@ -227,7 +227,9 @@ def extract_base_path_and_filename(file_path: str) -> tuple[str, str]:
     base_path = os.path.dirname(file_path)
     filename = os.path.splitext(os.path.basename(file_path))[0]
     new_filename = f"{filename}_sparkchecker_result.log"
-    return filename, os.path.join(base_path, new_filename)
+    full_path = os.path.join(base_path, new_filename)
+    full_path_normalized = os.path.normpath(full_path)
+    return filename, full_path_normalized
 
 
 def _substitute(input_string: str, condition: bool, placeholder: str) -> str:
