@@ -208,7 +208,7 @@ def parse_decimal_type(decimal_string: str) -> DecimalType:
 
 
 def extract_base_path_and_filename(file_path: str) -> tuple[str, str]:
-    """
+    r"""
     Extracts the base path and the filename from a given file path.
 
     :param file_path (str): The file path to extract the base path
@@ -217,8 +217,12 @@ def extract_base_path_and_filename(file_path: str) -> tuple[str, str]:
         '_expectations_result.log' appended.
 
     Examples:
-    >>> extract_base_path_and_filename('/path/to/file.txt')
-    ('file', '/path/to/file_sparkchecker_result.log')
+    >>> extract_base_path_and_filename('/path/to/file.txt')[1] \
+    ...     .replace('\\\\', '/') # Normalize path for Windows
+    '/path/to/file_sparkchecker_result.log'
+
+    >>> extract_base_path_and_filename('/path/to/file.txt')[0]
+    'file'
 
     >>> extract_base_path_and_filename('file.txt')
     ('file', 'file_sparkchecker_result.log')
