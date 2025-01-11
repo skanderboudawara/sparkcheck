@@ -5,7 +5,7 @@ from typing import Any
 
 from pyspark.sql import DataFrame
 
-from sparkchecker.ext._utils import col_to_name
+from sparkchecker.ext._utils import get_name
 
 
 def validate_expectation(func: Callable) -> Callable:
@@ -114,7 +114,7 @@ def check_column_exist(method: Callable) -> Callable:
 
     @wraps(method)
     def _expectation(self: Any, target: DataFrame) -> Any:
-        column_name = col_to_name(self.column)
+        column_name = get_name(self.column)
         if column_name not in target.columns:
             target.printSchema()
             raise ValueError(

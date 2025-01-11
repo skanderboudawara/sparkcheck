@@ -13,7 +13,7 @@ from ..bin._yaml_parser import (
 )
 from ..constants import KEY_EQUIVALENT
 from ..ext._logger import setup_logger
-from ..ext._utils import extract_base_path_and_filename
+from ..ext._utils import split_base_file
 
 
 def sparkChecker(  # noqa: N802
@@ -39,7 +39,7 @@ def sparkChecker(  # noqa: N802
 
     compile_stack.compile()
 
-    name, path = extract_base_path_and_filename(path)
+    name, path = split_base_file(path)
 
     setup_logger(name, path)
 

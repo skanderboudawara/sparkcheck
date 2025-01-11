@@ -15,7 +15,7 @@ from sparkchecker.constants import (
 )
 from sparkchecker.ext._exceptions import SparkCheckerError
 from sparkchecker.ext._utils import (
-    parse_decimal_type,
+    to_decimal,
 )
 
 
@@ -245,7 +245,7 @@ class ExpectationsYamlParser:
                         self.constraint_obj,
                     )
                 column_type = (
-                    parse_decimal_type(self.constraint_obj)
+                    to_decimal(self.constraint_obj)
                     if "decimal" in self.constraint_obj
                     else COLUMN_TYPES[self.constraint_obj]
                 )

@@ -5,7 +5,7 @@ from pyspark.sql.types import DataType
 
 from ..constants import OPERATOR_MAP
 from ..ext._decorators import check_message, validate_expectation
-from ..ext._utils import _check_operator, _resolve_msg, _substitute
+from ..ext._utils import _op_check, _resolve_msg, _substitute
 from ._base import DataFrameExpectation
 
 
@@ -156,7 +156,7 @@ class CountThreshold(DataFrameExpectation):
         :raises: (ValueError), If the operator is not valid.
         """
         self.message = message
-        _check_operator(operator)
+        _op_check(operator)
         if not isinstance(value, int):
             raise TypeError(
                 "Argument for DataFrame count must be of "
@@ -232,7 +232,7 @@ class PartitionsCount(DataFrameExpectation):
         :raises: (ValueError), If the operator is not valid.
         """
         self.message = message
-        _check_operator(operator)
+        _op_check(operator)
         if not isinstance(value, int):
             raise TypeError(
                 f"Argument for DataFrame column must be of type DataType"
