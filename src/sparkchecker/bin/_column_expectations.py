@@ -17,7 +17,6 @@ from ..ext._utils import (
     _op_check,
     _resolve_msg,
     _substitute,
-    args_as_cols,
     eval_first_fail,
     to_col,
     to_name,
@@ -73,7 +72,7 @@ class NonNullColumn(ColumnsExpectations):
         :returns: (str), the message
         """
         default_msg = (
-            f"The column {to_name(self.column)} <$did not|did> "
+            f"The column `{to_name(self.column)}` <$did not|did> "
             f"meet the expectation of {type(self).__name__}"
         )
         self.message = _resolve_msg(default_msg, self.message)
@@ -155,7 +154,7 @@ class NullColumn(ColumnsExpectations):
         :returns: (str), the message
         """
         default_msg = (
-            f"The column {to_name(self.column)} <$did not|did> "
+            f"The column `{to_name(self.column)}` <$did not|did> "
             f"meet the expectation of {type(self).__name__}"
         )
         self.message = _resolve_msg(default_msg, self.message)
@@ -237,7 +236,7 @@ class RlikeColumn(ColumnsExpectations):
         :returns: (str), the message
         """
         default_msg = (
-            f"The column {to_name(self.column)} <$did not|did> "
+            f"The column `{to_name(self.column)}` <$did not|did> "
             f"respect the pattern `{to_name(self.value)}`"
         )
         self.message = _resolve_msg(default_msg, self.message)
@@ -276,7 +275,7 @@ class IsInColumn(ColumnsExpectations):
     def __init__(
         self,
         column: str | Column,
-        value: Column | str | list[Column] | list[str],
+        value: Any,
         message: str | None = None,
         **kwargs: Any,  # noqa: ARG002
     ) -> None:
@@ -293,14 +292,12 @@ class IsInColumn(ColumnsExpectations):
         """
         self.column = column
         self.message = message
-        if not isinstance(value, float | str | Column | list | tuple):
+        if not value:
             raise TypeError(
-                "Argument for in `value` for {type(self).__name__} must"
-                "must be of type "
-                "float | str | Column | list | tuple but got: ",
-                type(value),
+                f"Argument `value` for {type(self).__name__} "
+                "must not be empty",
             )
-        self.value = value
+        self.value = value if isinstance(value, list | tuple) else [value]
 
     @property
     def constraint(self) -> Column:
@@ -311,7 +308,6 @@ class IsInColumn(ColumnsExpectations):
 
         :returns: None
         """
-        self.value = args_as_cols(self.value, is_col=False)
         self.column = to_col(self.column)
         return self.column.isin(*self.value)
 
@@ -323,11 +319,24 @@ class IsInColumn(ColumnsExpectations):
         :returns: (str), the message
         """
         default_msg = str(
-            f"The column {to_name(self.column)} <$is not|is>"
-            f"in `{self.expected}`",
+            f"The column `{to_name(self.column)}` <$is not|is> "
+            f"in `[{self.expected}]`",
         )
         self.message = _resolve_msg(default_msg, self.message)
         self.message = _substitute(self.message, has_failed, "<$is not|is>")
+
+    def _prepare_isin_list(self, target: DataFrame) -> None:
+        """
+        This method prepares the list of values to check.
+
+        :param target: (DataFrame), the DataFrame to check
+        :return: None
+        """
+        string_values = [to_name(c) for c in self.value]
+        string_values = list(set(string_values))
+        string_values.sort()
+        self.expected = ", ".join(string_values)
+        self.value = [to_col(c, c in target.columns) for c in self.value]
 
     @validate_expectation
     @check_column_exist
@@ -338,9 +347,9 @@ class IsInColumn(ColumnsExpectations):
         :param target: (DataFrame), the DataFrame to check
         :return: (dict), the expectation result
         """
-        self.expected = ", ".join(
-            [to_name(c) for c in self.value],  # type: ignore
-        )
+        self._prepare_isin_list(target)
+        # To make NULL as list constraint
+        target = target.select(self.column).fillna("NULL")
         has_failed, count_cases, first_failed_row = eval_first_fail(
             target,
             self.column,
@@ -408,7 +417,7 @@ class ColumnCompare(ColumnsExpectations):
         :returns: (str), the message
         """
         default_message = (
-            f"The column {to_name(self.column)} "
+            f"The column `{to_name(self.column)}` "
             f"<$is not|is> {self.operator} <$to|than> `{self.expected}`"
         )
         self.message = _resolve_msg(default_message, self.message)
@@ -431,7 +440,6 @@ class ColumnCompare(ColumnsExpectations):
         self.expected = self.value
         is_col = to_name(str(self.value))
         self.value = to_col(self.value, is_col in target.columns)
-
         has_failed, count_cases, first_failed_row = eval_first_fail(
             target,
             self.column,

@@ -33,6 +33,7 @@ repos:
     rev: 24.10.0
     hooks:
       - id: black
+        files: '(src)/.*\.py$'
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.14.1
