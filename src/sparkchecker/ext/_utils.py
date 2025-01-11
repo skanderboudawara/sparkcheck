@@ -12,6 +12,7 @@ from sparkchecker.constants import OPERATOR_MAP
 def to_col(
     column_name: str | bool | float | Column | None,
     is_col: bool = True,
+    escaped: bool = False,
 ) -> Column:
     """
     Convert a `column_name` string to a column.
@@ -20,6 +21,8 @@ def to_col(
         or a column name
     :param is_col: (bool), flag to determine if the column should be treated
         as a column or literal
+    :param escaped: (bool), flag to determine if the column should be treated
+        as a raw string literal or not
     :returns: (Column) a spark Column
     :raises: (TypeError), If the input is not a string, float, or Column
 
@@ -55,20 +58,31 @@ def to_col(
     """
     if column_name is None:
         return lit(None)
+
+    # Handle string column names
     if isinstance(column_name, str):
-        return col(column_name) if is_col else lit(column_name)
-    if isinstance(column_name, float | int | bool):
+        if is_col:
+            return col(column_name)
+        if escaped:
+            return lit(rf"{column_name}")
         return lit(column_name)
+
+    # Handle numeric types (int, float, bool)
+    if isinstance(column_name, int | float | bool):
+        return lit(column_name)
+
+    # Handle Column type directly
     if isinstance(column_name, Column):
         return column_name
+
+    # Raise an error if none of the conditions match
     raise TypeError(
-        "Argument `column_name` must be of type",
-        "str | float | Column but got: ",
-        type(column_name),
+        "Argument `column_name` must be of type "
+        "`str`, `float`, `Column`, or `None`, but got: {type(column_name)}",
     )
 
 
-def get_name(column: str | Column) -> str:
+def to_name(column: str | Column) -> str:
     """
     Convert a `column` to a column name.
 
@@ -79,10 +93,10 @@ def get_name(column: str | Column) -> str:
     Examples:
     >>> from pyspark.sql import SparkSession
     >>> spark = SparkSession.builder.getOrCreate()
-    >>> get_name('column1')
+    >>> to_name('column1')
     'column1'
 
-    >>> get_name(col('column1'))
+    >>> to_name(col('column1'))
     'column1'
 
     >>> spark.stop()
