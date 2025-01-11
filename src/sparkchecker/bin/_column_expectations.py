@@ -88,9 +88,9 @@ class NonNullColumn(ColumnsExpectations):
         check, count_cases, first_failed_row = evaluate_first_fail(
             target,
             self.column,
-            self.constraint,
+            self.constraint if self.value else ~self.constraint,
         )
-        has_failed = self.value != check
+        has_failed = not check
         self.get_message(check)
         return {
             "has_failed": has_failed,

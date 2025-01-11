@@ -118,7 +118,7 @@ def check_column_exist(method: Callable) -> Callable:
         if column_name not in target.columns:
             target.printSchema()
             raise ValueError(
-                f"Column '{column_name}' does not exist in DataFrame",
+                f"Column '{column_name}' does not exist in the DataFrame",
             )
         return method(self, target)
 

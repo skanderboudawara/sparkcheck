@@ -257,6 +257,9 @@ def _substitute(input_string: str, condition: bool, placeholder: str) -> str:
     >>> _substitute("This is <$is|not> a test.", True, "<$is|not>")
     'This is is a test.'
 
+    >>> _substitute("This is <$is|is not> a test.", False, "<$is|is not>")
+    'This is is not a test.'
+
     >>> _substitute("This is <$is|not> a test.", False, "<$is|not>")
     'This is not a test.'
 
@@ -354,7 +357,7 @@ def evaluate_first_fail(
 
     >>> expectation = col('a') > 3
     >>> evaluate_first_fail(df, 'a', expectation)
-    (False, 0, {'a': 1})
+    (False, 2, {'a': 1})
 
     >>> expectation = col('a').isNotNull()
     >>> evaluate_first_fail(df, 'a', expectation)
@@ -362,7 +365,7 @@ def evaluate_first_fail(
 
     >>> expectation = col('a').isNull()
     >>> evaluate_first_fail(df, 'a', expectation)
-    (False, 0, {'a': 1})
+    (False, 2, {'a': 1})
 
     >>> spark.stop()
 
@@ -383,6 +386,6 @@ def evaluate_first_fail(
     if not df.isEmpty():
         first_failed_row = cast(Row, df.first())
         check = bool(not first_failed_row)
-        count_cases = df.filter(expectation).count()
+        count_cases = df.count()
         return check, count_cases, first_failed_row.asDict()
     return True, 0, {}
