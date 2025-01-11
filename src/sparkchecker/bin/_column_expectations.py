@@ -5,6 +5,7 @@ This module contains the column expectations classes.
 from typing import Any
 
 from pyspark.sql import Column, DataFrame
+from pyspark.sql.functions import regexp
 
 from ..constants import OPERATOR_MAP
 from ..ext._decorators import (
@@ -18,8 +19,8 @@ from ..ext._utils import (
     _substitute,
     args_as_cols,
     eval_first_fail,
-    get_name,
     to_col,
+    to_name,
 )
 from ._base import ColumnsExpectations
 
@@ -72,7 +73,7 @@ class NonNullColumn(ColumnsExpectations):
         :returns: (str), the message
         """
         default_msg = (
-            f"The column {get_name(self.column)} <$did not|did> "
+            f"The column {to_name(self.column)} <$did not|did> "
             f"meet the expectation of {type(self).__name__}"
         )
         self.message = _resolve_msg(default_msg, self.message)
@@ -154,7 +155,7 @@ class NullColumn(ColumnsExpectations):
         :returns: (str), the message
         """
         default_msg = (
-            f"The column {get_name(self.column)} <$did not|did> "
+            f"The column {to_name(self.column)} <$did not|did> "
             f"meet the expectation of {type(self).__name__}"
         )
         self.message = _resolve_msg(default_msg, self.message)
@@ -194,7 +195,7 @@ class RlikeColumn(ColumnsExpectations):
     def __init__(
         self,
         column: str | Column,
-        value: str,
+        value: str | Column,
         message: str | None = None,
         **kwargs: Any,  # noqa: ARG002
     ) -> None:
@@ -215,7 +216,7 @@ class RlikeColumn(ColumnsExpectations):
                 "be of type str but got: ",
                 type(value),
             )
-        self.value = rf"{value}"
+        self.value = value
 
     @property
     def constraint(self) -> Column:
@@ -226,7 +227,7 @@ class RlikeColumn(ColumnsExpectations):
         :returns: None
         """
         self.column = to_col(self.column)
-        return self.column.rlike(self.value)
+        return regexp(self.column, self.value)
 
     def get_message(self, has_failed: bool) -> None:
         """
@@ -236,8 +237,8 @@ class RlikeColumn(ColumnsExpectations):
         :returns: (str), the message
         """
         default_msg = (
-            f"The column {get_name(self.column)} <$did not|did> "
-            f" respect the pattern `{self.value}`"
+            f"The column {to_name(self.column)} <$did not|did> "
+            f"respect the pattern `{to_name(self.value)}`"
         )
         self.message = _resolve_msg(default_msg, self.message)
         self.message = _substitute(self.message, has_failed, "<$did not|did>")
@@ -251,6 +252,11 @@ class RlikeColumn(ColumnsExpectations):
         :param target: (DataFrame), the DataFrame to check
         :return: (dict), the expectation result
         """
+        self.value = to_col(  # type: ignore
+            self.value,
+            is_col=self.value in target.columns,
+            escaped=True,
+        )
         has_failed, count_cases, first_failed_row = eval_first_fail(
             target,
             self.column,
@@ -317,7 +323,7 @@ class IsInColumn(ColumnsExpectations):
         :returns: (str), the message
         """
         default_msg = str(
-            f"The column {get_name(self.column)} <$is not|is>"
+            f"The column {to_name(self.column)} <$is not|is>"
             f"in `{self.expected}`",
         )
         self.message = _resolve_msg(default_msg, self.message)
@@ -332,7 +338,7 @@ class IsInColumn(ColumnsExpectations):
         :param target: (DataFrame), the DataFrame to check
         :return: (dict), the expectation result
         """
-        self.expected = ", ".join([get_name(c) for c in self.value])  # type: ignore
+        self.expected = ", ".join([to_name(c) for c in self.value])  # type: ignore
         has_failed, count_cases, first_failed_row = eval_first_fail(
             target,
             self.column,
@@ -400,7 +406,7 @@ class ColumnCompare(ColumnsExpectations):
         :returns: (str), the message
         """
         default_message = (
-            f"The column {get_name(self.column)} "
+            f"The column {to_name(self.column)} "
             f"<$is not|is> {self.operator} <$to|than> `{self.expected}`"
         )
         self.message = _resolve_msg(default_message, self.message)
@@ -421,7 +427,7 @@ class ColumnCompare(ColumnsExpectations):
         :return: (dict), the expectation result
         """
         self.expected = self.value
-        is_col = get_name(str(self.value))
+        is_col = to_name(str(self.value))
         self.value = to_col(self.value, is_col in target.columns)
 
         has_failed, count_cases, first_failed_row = eval_first_fail(

@@ -2,6 +2,7 @@ import pytest
 from src.sparkchecker.bin._column_expectations import (
     NonNullColumn,
     NullColumn,
+    RlikeColumn,
 )
 from pyspark.sql.types import (
     StructType,
@@ -11,6 +12,7 @@ from pyspark.sql.types import (
     IntegerType,
     BooleanType,
 )
+from pyspark.sql.functions import col, lit
 
 
 @pytest.fixture
@@ -24,12 +26,34 @@ def df_test(spark_session):
             StructField("age", IntegerType(), True),
             StructField("height", DoubleType(), True),
             StructField("is_student", BooleanType(), True),
+            StructField("pattern_ok", StringType(), True),
+            StructField("pattern_nok", StringType(), True),
         ]
     )
     data = [
-        ("Alice", "AU", None, "swimming", 25, 1.60, True),
-        ("Bob", "FR", None, None, 30, 1.75, False),
-        ("Charlie", "DE", None, "running", 35, 1.80, True),
+        (
+            "Alice",
+            "AU",
+            None,
+            "swimming",
+            25,
+            1.60,
+            True,
+            r"[A-Z]{2}",
+            r"[A-Z]{2}",
+        ),
+        ("Bob", "FR", None, None, 30, 1.75, False, r"[A-Z]{2}", r"[A-Z]{1}"),
+        (
+            "Charlie",
+            "DE",
+            None,
+            "running",
+            35,
+            1.80,
+            True,
+            r"[A-Z]{2}",
+            r"[A-Z]{3}",
+        ),
     ]
 
     df = spark_session.createDataFrame(data, schema)
@@ -39,18 +63,18 @@ def df_test(spark_session):
 class TestNonNullColumn:
 
     @pytest.mark.parametrize(
-        "column_name, is_not_null, message",
+        "column_name, value, message",
         [
             ("name", True, None),
             ("name", False, None),
             ("name", True, "hello world"),
         ],
     )
-    def test_init(self, column_name, is_not_null, message):
-        NonNullColumn(column_name, is_not_null, message)
+    def test_init(self, column_name, value, message):
+        NonNullColumn(column_name, value, message)
 
     @pytest.mark.parametrize(
-        "column_name, is_not_null, message, exception, match",
+        "column_name, value, message, exception, match",
         [
             (
                 "name",
@@ -69,28 +93,28 @@ class TestNonNullColumn:
         ],
     )
     def test_init_exceptions(
-        self, column_name, is_not_null, message, exception, match
+        self, column_name, value, message, exception, match
     ):
         with pytest.raises(exception, match=match):
-            NonNullColumn(column_name, is_not_null, message)
+            NonNullColumn(column_name, value, message)
 
     @pytest.mark.parametrize(
-        "column_name, is_not_null, expected_constraint",
+        "column_name, value, expected_constraint",
         [
             ("name", True, "Column<'(name IS NOT NULL)'>"),
             ("name", False, "Column<'(name IS NOT NULL)'>"),
         ],
     )
     def test_constraint(
-        self, spark_session, column_name, is_not_null, expected_constraint
+        self, spark_session, column_name, value, expected_constraint
     ):
         assert (
-            repr(NonNullColumn(column_name, is_not_null).constraint)
+            repr(NonNullColumn(column_name, value).constraint)
             == expected_constraint
         )
 
     @pytest.mark.parametrize(
-        "column_name, is_not_null, custom_message, input_value, expected_message",
+        "column_name, value, custom_message, input_value, expected_message",
         [
             ("name", True, "custom message", True, "custom message"),
             ("name", True, "custom message", False, "custom message"),
@@ -113,17 +137,17 @@ class TestNonNullColumn:
     def test_get_message(
         self,
         column_name,
-        is_not_null,
+        value,
         custom_message,
         input_value,
         expected_message,
     ):
-        expectations = NonNullColumn(column_name, is_not_null, custom_message)
+        expectations = NonNullColumn(column_name, value, custom_message)
         expectations.get_message(input_value)
         assert expectations.message == expected_message
 
     @pytest.mark.parametrize(
-        "column_name, is_not_null, custom_message, expected_result",
+        "column_name, value, custom_message, expected_result",
         [
             (
                 "name",
@@ -219,11 +243,11 @@ class TestNonNullColumn:
         self,
         df_test,
         column_name,
-        is_not_null,
+        value,
         custom_message,
         expected_result,
     ):
-        expectations = NonNullColumn(column_name, is_not_null, custom_message)
+        expectations = NonNullColumn(column_name, value, custom_message)
         assert expectations.eval_expectation(df_test) == expected_result
 
     def test_eval_expectation_exception(self, df_test):
@@ -237,18 +261,18 @@ class TestNonNullColumn:
 class TestNullColumn:
 
     @pytest.mark.parametrize(
-        "column_name, is_not_null, message",
+        "column_name, value, message",
         [
             ("name", True, None),
             ("name", False, None),
             ("name", True, "hello world"),
         ],
     )
-    def test_init(self, column_name, is_not_null, message):
-        NullColumn(column_name, is_not_null, message)
+    def test_init(self, column_name, value, message):
+        NullColumn(column_name, value, message)
 
     @pytest.mark.parametrize(
-        "column_name, is_not_null, message, exception, match",
+        "column_name, value, message, exception, match",
         [
             (
                 "name",
@@ -267,28 +291,28 @@ class TestNullColumn:
         ],
     )
     def test_init_exceptions(
-        self, column_name, is_not_null, message, exception, match
+        self, column_name, value, message, exception, match
     ):
         with pytest.raises(exception, match=match):
-            NullColumn(column_name, is_not_null, message)
+            NullColumn(column_name, value, message)
 
     @pytest.mark.parametrize(
-        "column_name, is_null, expected_constraint",
+        "column_name, value, expected_constraint",
         [
             ("name", True, "Column<'(name IS NULL)'>"),
             ("name", False, "Column<'(name IS NULL)'>"),
         ],
     )
     def test_constraint(
-        self, spark_session, column_name, is_null, expected_constraint
+        self, spark_session, column_name, value, expected_constraint
     ):
         assert (
-            repr(NullColumn(column_name, is_null).constraint)
+            repr(NullColumn(column_name, value).constraint)
             == expected_constraint
         )
 
     @pytest.mark.parametrize(
-        "column_name, is_not_null, custom_message, input_value, expected_message",
+        "column_name, value, custom_message, input_value, expected_message",
         [
             ("name", True, "custom message", True, "custom message"),
             ("name", True, "custom message", False, "custom message"),
@@ -311,17 +335,17 @@ class TestNullColumn:
     def test_get_message(
         self,
         column_name,
-        is_not_null,
+        value,
         custom_message,
         input_value,
         expected_message,
     ):
-        expectations = NullColumn(column_name, is_not_null, custom_message)
+        expectations = NullColumn(column_name, value, custom_message)
         expectations.get_message(input_value)
         assert expectations.message == expected_message
 
     @pytest.mark.parametrize(
-        "column_name, is_not_null, custom_message, expected_result",
+        "column_name, value, custom_message, expected_result",
         [
             (
                 "name",
@@ -417,15 +441,192 @@ class TestNullColumn:
         self,
         df_test,
         column_name,
-        is_not_null,
+        value,
         custom_message,
         expected_result,
     ):
-        expectations = NullColumn(column_name, is_not_null, custom_message)
+        expectations = NullColumn(column_name, value, custom_message)
         assert expectations.eval_expectation(df_test) == expected_result
 
     def test_eval_expectation_exception(self, df_test):
         expectations = NullColumn("name", True)
+        with pytest.raises(
+            ValueError, match="Column 'name' does not exist in the DataFrame"
+        ):
+            expectations.eval_expectation(df_test.drop("name"))
+
+
+class TestRlikeColumn:
+
+    @pytest.mark.parametrize(
+        "column_name, value, message",
+        [
+            ("name", "regexp", None),
+            ("name", "regexp", "hello world"),
+        ],
+    )
+    def test_init(self, column_name, value, message):
+        RlikeColumn(column_name, value, message)
+
+    @pytest.mark.parametrize(
+        "column_name, value, message, exception, match",
+        [
+            (
+                "name",
+                "regexp",
+                1,
+                TypeError,
+                r"Expected 'message' to be of type 'str', but got 'int'",
+            ),
+            (
+                "name",
+                1,
+                None,
+                TypeError,
+                r"Argument `value` for RlikeColumn must be of type str but got: ', <class 'int'>",
+            ),
+            (
+                "name",
+                None,
+                None,
+                TypeError,
+                r"Argument `value` for RlikeColumn must be of type str but got: ', <class 'NoneType'>",
+            ),
+        ],
+    )
+    def test_init_exceptions(
+        self, column_name, value, message, exception, match
+    ):
+        with pytest.raises(exception, match=match):
+            RlikeColumn(column_name, value, message)
+
+    def test_constraint(self, spark_session):
+        expectations = RlikeColumn("name", ".*")
+        expectations.value = lit(r".*")
+        assert repr(expectations.constraint) == "Column<'regexp(name, .*)'>"
+        expectations = RlikeColumn("name", "alice")
+        expectations.value = col("alice")
+        assert repr(expectations.constraint) == "Column<'regexp(name, alice)'>"
+
+    @pytest.mark.parametrize(
+        "column_name, value, custom_message, input_value, expected_message",
+        [
+            ("name", r".*", "custom message", True, "custom message"),
+            ("name", r".*", "custom message", False, "custom message"),
+            (
+                "name",
+                r".*",
+                None,
+                True,
+                "The column name did not respect the pattern `.*`",
+            ),
+            (
+                "name",
+                r".*",
+                None,
+                False,
+                "The column name did respect the pattern `.*`",
+            ),
+        ],
+    )
+    def test_get_message(
+        self,
+        spark_session,
+        column_name,
+        value,
+        custom_message,
+        input_value,
+        expected_message,
+    ):
+        expectations = RlikeColumn(column_name, value, custom_message)
+        expectations.value = lit(value)
+        expectations.get_message(input_value)
+        assert expectations.message == expected_message
+
+    @pytest.mark.parametrize(
+        "column_name, value, custom_message, expected_result",
+        [
+            (
+                "name",
+                r".*",
+                None,
+                {
+                    "example": {},
+                    "got": 0,
+                    "has_failed": False,
+                    "message": r"The column name did respect the pattern `.*`",
+                },
+            ),
+            (
+                "name",
+                r"/d",
+                None,
+                {
+                    "example": {"name": "Alice"},
+                    "got": 3,
+                    "has_failed": True,
+                    "message": r"The column name did not respect the pattern `/d`",
+                },
+            ),
+            (
+                "name",
+                r".*",
+                "custom message",
+                {
+                    "example": {},
+                    "got": 0,
+                    "has_failed": False,
+                    "message": "custom message",
+                },
+            ),
+            (
+                "name",
+                r"/d",
+                "custom message",
+                {
+                    "example": {"name": "Alice"},
+                    "got": 3,
+                    "has_failed": True,
+                    "message": "custom message",
+                },
+            ),
+            (
+                "country",
+                "pattern_ok",
+                None,
+                {
+                    "example": {},
+                    "got": 0,
+                    "has_failed": False,
+                    "message": r"The column country did respect the pattern `pattern_ok`",
+                },
+            ),
+            (
+                "country",
+                "pattern_nok",
+                None,
+                {
+                    "example": {"country": "DE"},
+                    "got": 1,
+                    "has_failed": True,
+                    "message": r"The column country did not respect the pattern `pattern_nok`",
+                },
+            ),
+        ],
+    )
+    def test_eval_expectation(
+        self,
+        df_test,
+        column_name,
+        value,
+        custom_message,
+        expected_result,
+    ):
+        expectations = RlikeColumn(column_name, value, custom_message)
+        assert expectations.eval_expectation(df_test) == expected_result
+
+    def test_eval_expectation_exception(self, df_test):
+        expectations = RlikeColumn("name", "crypto")
         with pytest.raises(
             ValueError, match="Column 'name' does not exist in the DataFrame"
         ):
