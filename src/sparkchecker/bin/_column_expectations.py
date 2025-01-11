@@ -338,7 +338,9 @@ class IsInColumn(ColumnsExpectations):
         :param target: (DataFrame), the DataFrame to check
         :return: (dict), the expectation result
         """
-        self.expected = ", ".join([to_name(c) for c in self.value])  # type: ignore
+        self.expected = ", ".join(
+            [to_name(c) for c in self.value],  # type: ignore
+        )
         has_failed, count_cases, first_failed_row = eval_first_fail(
             target,
             self.column,
