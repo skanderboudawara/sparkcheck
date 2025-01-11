@@ -29,7 +29,8 @@ def validate_expectation(func: Callable) -> Callable:
 
         if not isinstance(result, dict):
             raise TypeError(
-                f"Expected return type 'dict', but got '{type(result).__name__}'.",
+                "Expected return type 'dict', "
+                f"but got '{type(result).__name__}'.",
             )
 
         valid_key_sets = [
@@ -40,9 +41,12 @@ def validate_expectation(func: Callable) -> Callable:
         result_keys = set(result.keys())
 
         if result_keys not in valid_key_sets:
-            expected_keys = [", ".join(sorted(keys)) for keys in valid_key_sets]
+            expected_keys = [
+                ", ".join(sorted(keys)) for keys in valid_key_sets
+            ]
             raise KeyError(
-                f"Invalid keys in return value. Expected one of: {expected_keys}, "
+                "Invalid keys in return value. "
+                f"Expected one of: {expected_keys}, "
                 f"but got: {', '.join(sorted(result_keys))}.",
             )
 
@@ -53,10 +57,12 @@ def validate_expectation(func: Callable) -> Callable:
 
 def order_expectations_dict(func: Callable) -> Callable:
     """
-    A decorator to order the keys of the dictionary returned by the wrapped function.
+    A decorator to order the keys of the dictionary returned by
+        the wrapped function.
 
-    The dictionary will be ordered based on a predefined key order. Any additional keys
-    not in the predefined order will be appended at the end in their original order.
+    The dictionary will be ordered based on a predefined key order.
+        Any additional keys not in the predefined order will
+        be appended at the end in their original order.
 
     :param func: (Callable), The function to wrap.
     :return:(Callable), The wrapped function with ordered dictionary keys.
@@ -69,7 +75,8 @@ def order_expectations_dict(func: Callable) -> Callable:
 
         if not isinstance(result, dict):
             raise TypeError(
-                f"Expected return type 'dict', but got '{type(result).__name__}'.",
+                "Expected return type 'dict', "
+                f"but got '{type(result).__name__}'.",
             )
 
         key_order = [
@@ -82,7 +89,9 @@ def order_expectations_dict(func: Callable) -> Callable:
             "message",
         ]
         ordered_dict = {key: result[key] for key in key_order if key in result}
-        additional_keys = {key: result[key] for key in result if key not in key_order}
+        additional_keys = {
+            key: result[key] for key in result if key not in key_order
+        }
         ordered_dict.update(additional_keys)
         return ordered_dict
 
@@ -93,13 +102,14 @@ def check_column_exist(method: Callable) -> Callable:
     """
     A decorator to check if a specified column exists in the DataFrame.
 
-    This decorator checks if the column specified in the 'self.column' attribute
-    exists in the DataFrame passed to the decorated method. If the column does not
-    exist, a ValueError is raised.
+    This decorator checks if the column specified in the 'self.column'
+        attribute exists in the DataFrame passed to the decorated method.
+        If the column does not exist, a ValueError is raised.
 
     :param method: (Callable), The method to be decorated.
     :return: (Callable), The wrapped method with column existence validation.
-    :raises: (ValueError), If the specified column does not exist in the DataFrame.
+    :raises: (ValueError), If the specified column does not exist in
+        the DataFrame.
     """
 
     @wraps(method)
@@ -107,7 +117,9 @@ def check_column_exist(method: Callable) -> Callable:
         column_name = col_to_name(self.column)
         if column_name not in target.columns:
             target.printSchema()
-            raise ValueError(f"Column '{column_name}' does not exist in DataFrame")
+            raise ValueError(
+                f"Column '{column_name}' does not exist in DataFrame",
+            )
         return method(self, target)
 
     return _expectation
@@ -115,11 +127,12 @@ def check_column_exist(method: Callable) -> Callable:
 
 def check_message(func: Callable) -> Callable:
     """
-    A decorator that checks if the 'message' argument passed to the decorated function is a string.
+    A decorator that checks if the 'message' argument passed to the decorated
+        function is a string.
 
-    This decorator inspects the arguments passed to the decorated function and ensures that if a
-    'message' argument is present, it is of type 'str'. If 'message' is not a string, a TypeError
-    is raised.
+    This decorator inspects the arguments passed to the decorated function
+        and ensures that if a 'message' argument is present, it is of
+        type 'str'. If 'message' is not a string, a TypeError is raised.
 
     :param func: (Callable), The function to be decorated.
     :return: (Callable), The wrapped function with 'message' type validation.
@@ -137,7 +150,8 @@ def check_message(func: Callable) -> Callable:
         # Validate 'message' is a string
         if message is not None and not isinstance(message, str):
             raise TypeError(
-                f"Expected 'message' to be of type 'str', but got '{type(message).__name__}'.",
+                "Expected 'message' to be of type 'str', "
+                f"but got '{type(message).__name__}'.",
             )
 
         return func(*args, **kwargs)

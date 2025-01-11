@@ -71,15 +71,18 @@ def _setup_logger_checks(
     """
     if not isinstance(name, str):
         raise TypeError(
-            f"Expected 'name' to be a string, but got '{type(name).__name__}'.",
+            "Expected 'name' to be a string, "
+            f"but got '{type(name).__name__}'.",
         )
     if not isinstance(log_file, str):
         raise TypeError(
-            f"Expected 'log_file' to be a string, but got '{type(log_file).__name__}'.",
+            "Expected 'log_file' to be a string, "
+            f"but got '{type(log_file).__name__}'.",
         )
     if not isinstance(level, int):
         raise TypeError(
-            f"Expected 'level' to be an integer, but got '{type(level).__name__}'.",
+            "Expected 'level' to be an integer, "
+            f"but got '{type(level).__name__}'.",
         )
     if not name:
         raise ValueError("The 'name' argument cannot be empty.")

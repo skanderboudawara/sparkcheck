@@ -30,7 +30,8 @@ class IsEmpty(DataFrameExpectation):
             value = True
         if value and not isinstance(value, bool):
             raise TypeError(
-                "Argument for DataFrame isEmpty must be of type bool but got: ",
+                "Argument for DataFrame isEmpty must be of "
+                "type bool but got: ",
                 type(value),
             )
         self.value = value
@@ -58,7 +59,8 @@ class IsEmpty(DataFrameExpectation):
         """
         if not isinstance(target, DataFrame):
             raise TypeError(
-                "Argument for DataFrame isEmpty must be of type DataFrame but got: ",
+                "Argument for DataFrame isEmpty must be of "
+                "type DataFrame but got: ",
                 type(target),
             )
         check = target.isEmpty()
@@ -92,7 +94,8 @@ class IsNotEmpty(DataFrameExpectation):
             value = True
         if value and not isinstance(value, bool):
             raise TypeError(
-                "Argument for DataFrame isEmpty must be of type bool but got: ",
+                "Argument for DataFrame isEmpty must be of "
+                "type bool but got: ",
                 type(value),
             )
         self.value = value
@@ -119,7 +122,8 @@ class IsNotEmpty(DataFrameExpectation):
         """
         if not isinstance(target, DataFrame):
             raise TypeError(
-                "Argument for DataFrame isEmpty must be of type DataFrame but got: ",
+                "Argument for DataFrame isEmpty must be of "
+                "type DataFrame but got: ",
                 type(target),
             )
         check = not (target.isEmpty())
@@ -155,7 +159,8 @@ class CountThreshold(DataFrameExpectation):
         _check_operator(operator)
         if not isinstance(value, int):
             raise TypeError(
-                "Argument for DataFrame count must be of type int but got: ",
+                "Argument for DataFrame count must be of "
+                "type int but got: ",
                 type(value),
             )
         self.value = value
@@ -191,7 +196,8 @@ class CountThreshold(DataFrameExpectation):
         """
         if not isinstance(target, DataFrame):
             raise TypeError(
-                "Argument for DataFrame isEmpty must be of type DataFrame but got: ",
+                "Argument for DataFrame isEmpty must be of "
+                "type DataFrame but got: ",
                 type(target),
             )
         count = target.count()
@@ -199,7 +205,11 @@ class CountThreshold(DataFrameExpectation):
         check = OPERATOR_MAP[self.operator](count, self.value)
         self.result = count
         self.get_message(check)
-        return {"has_failed": not (check), "got": count, "message": self.message}
+        return {
+            "has_failed": not (check),
+            "got": count,
+            "message": self.message,
+        }
 
 
 class PartitionsCount(DataFrameExpectation):
@@ -261,7 +271,8 @@ class PartitionsCount(DataFrameExpectation):
         """
         if not isinstance(target, DataFrame):
             raise TypeError(
-                "Argument for DataFrame isEmpty must be of type DataFrame but got: ",
+                "Argument for DataFrame isEmpty must be of "
+                "type DataFrame but got: ",
                 type(target),
             )
         rdd_count = target.rdd.getNumPartitions()
@@ -297,7 +308,8 @@ class Exist(DataFrameExpectation):
         self.message = message
         if value and not isinstance(value, DataType):
             raise TypeError(
-                "Argument for DataFrame Partitions must be of type int but got: ",
+                "Argument for DataFrame Partitions must be of "
+                "type int but got: ",
                 type(value),
             )
         self.value = value
@@ -335,7 +347,8 @@ class Exist(DataFrameExpectation):
         """
         if not isinstance(target, DataFrame):
             raise TypeError(
-                "Argument for DataFrame isEmpty must be of type DataFrame but got: ",
+                "Argument for DataFrame isEmpty must be of "
+                "type DataFrame but got: ",
                 type(target),
             )
         check_exist = self.column in target.columns

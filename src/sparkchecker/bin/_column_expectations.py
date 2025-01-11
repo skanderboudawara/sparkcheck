@@ -70,7 +70,9 @@ class NonNullColumn(ColumnsExpectations):
         :param check: (bool), the check
         :returns: (str), the message
         """
-        default_msg = f"The column {col_to_name(self.column)} <$is|is not> Not Null"
+        default_msg = (
+            f"The column {col_to_name(self.column)} <$is|is not> Not Null"
+        )
         self.message = _resolve_msg(default_msg, self.message)
         self.message = _substitute(self.message, check, "<$is|is not>")
 
@@ -143,7 +145,9 @@ class NullColumn(ColumnsExpectations):
         :param check: (bool), the check
         :returns: (str), the message
         """
-        default_msg = f"The column {col_to_name(self.column)} <$is not|is> Null"
+        default_msg = (
+            f"The column {col_to_name(self.column)} <$is not|is> Null"
+        )
         self.message = _resolve_msg(default_msg, self.message)
         self.message = _substitute(self.message, check, "<$is not|is>")
 
@@ -259,10 +263,11 @@ class IsInColumn(ColumnsExpectations):
         This class checks if a column is in an array.
 
         :param column: (Union[str, Column]), the column to check
-        :param value: (Union[Column, str, list[Column], list[str]]), the value to check
+        :param value: (Union[Column, str, list[Column], list[str]]),
+            the value to check
         :param message: (Union[str, None]), the message to display
         :return: None
-        :raises: (TypeError), If the value is not of type Union[Column, str, list]
+        :raises: (TypeError), If the value is not of type Column | str | list
         :raises: (ValueError), If the value is empty
         """
         self.column = column
@@ -282,8 +287,8 @@ class IsInColumn(ColumnsExpectations):
         """
         if not isinstance(self.value, float | str | Column | list | tuple):
             raise TypeError(
-                "Argument for in `value` must be of type \
-                    Union[Column, str, list[Column], list[str]] but got: ",
+                "Argument for in `value` must be of type "
+                "Union[Column, str, list[Column], list[str]] but got: ",
                 type(self.value),
             )
         self.value = args_to_list_cols(self.value, is_col=False)
@@ -297,8 +302,9 @@ class IsInColumn(ColumnsExpectations):
         :param check: (bool), the check
         :returns: (str), the message
         """
-        default_msg = (
-            f"The column {col_to_name(self.column)} <$is|is not> in `{self.expected}`"
+        default_msg = str(
+            f"The column {col_to_name(self.column)} <$is|is not>"
+            f"in `{self.expected}`",
         )
         self.message = _resolve_msg(default_msg, self.message)
         self.message = _substitute(self.message, check, "<$is|is not>")
@@ -354,8 +360,8 @@ class ColumnCompare(ColumnsExpectations):
         self.operator = operator
         if not isinstance(value, str | float | int | Column):
             raise TypeError(
-                "Argument for column comparison `value` must be of type \
-                    Union[str, float] but got: ",
+                "Argument for column comparison `value` must be of type "
+                "Union[str, float] but got: ",
                 type(value),
             )
         self.value = value

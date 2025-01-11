@@ -16,8 +16,10 @@ def str_to_col(
     """
     Convert a `column_name` string to a column.
 
-    :param column_name: (Union[str, bool, float, Column]), `pyspark.sql.Column` or a column name
-    :param is_col: (bool), flag to determine if the column should be treated as a column or literal
+    :param column_name: (Union[str, bool, float, Column]), `pyspark.sql.Column`
+        or a column name
+    :param is_col: (bool), flag to determine if the column should be treated
+        as a column or literal
     :returns: (Column) a spark Column
     :raises: (TypeError), If the input is not a string, float, or Column
 
@@ -55,7 +57,8 @@ def str_to_col(
     if isinstance(column_name, Column):
         return column_name
     raise TypeError(
-        "Argument `column_name` must be of type Union[str, float, Column] but got: ",
+        "Argument `column_name` must be of type",
+        "str | float | Column but got: ",
         type(column_name),
     )
 
@@ -99,11 +102,12 @@ def args_to_list_cols(
 
     :param list_args: (float | str | Column | list | tuple) a list or tuple
         of arguments that can be strings or Columns.
-    :param is_col: (bool), flag to determine if the strings should be treated as
-        column names or literals.
+    :param is_col: (bool), flag to determine if the strings should be treated
+        as column names or literals.
     :returns: (list[Column]), a list of Columns.
     :raises: (TypeError), If the input is not a string, Column, list, or tuple.
-    :raises: (TypeError), If the elements of the list are not strings or Columns.
+    :raises: (TypeError), If the elements of the list are
+        not strings or Columns.
 
     Examples:
     >>> from pyspark.sql import SparkSession
@@ -133,12 +137,14 @@ def args_to_list_cols(
         return [str_to_col(list_args, is_col)]
     if not isinstance(list_args, list | tuple):
         raise TypeError(
-            "Argument `list_args` must be of type Union[str, Column, list[Union[str, Column]]",
+            "Argument `list_args` must be of type",
+            "float | str | Column | list | tuple",
             f" tuple[Union[str, Column], ...]] but got: {type(list_args)}",
         )
     if not all(isinstance(arg, str | Column | float) for arg in list_args):
         raise TypeError(
-            "All elements of `list_args` must be of type Union[str, Column, float] but got:",
+            "All elements of `list_args` must be of"
+            "type str | Column | float but got:",
             f" {[type(arg) for arg in list_args]}",
         )
     return [str_to_col(arg, is_col) for arg in list_args]
@@ -159,13 +165,15 @@ def _check_operator(operator: str) -> None:
     if operator not in OPERATOR_MAP:
         valid_operators = ", ".join(OPERATOR_MAP.keys())
         raise ValueError(
-            f"Invalid operator: '{operator}'. Must be one of: {valid_operators}",
+            f"Invalid operator: '{operator}'."
+            f"Must be one of: {valid_operators}",
         )
 
 
 def parse_decimal_type(decimal_string: str) -> DecimalType:
     """
-    Parses a string like 'decimal(10,2)' and converts it to a DecimalType object.
+    Parses a string like 'decimal(10,2)' and converts it
+        to a DecimalType object.
 
     :param decimal_string: (str), string like 'decimal(10,2)'.
 
@@ -191,7 +199,7 @@ def parse_decimal_type(decimal_string: str) -> DecimalType:
 
     if not match:
         raise ValueError(
-            f"Invalid decimal type string: {decimal_string},",
+            f"Invalid decimal type string: {decimal_string},"
             " it should be written like `decimal(10, 2)`",
         )
 
@@ -203,7 +211,8 @@ def extract_base_path_and_filename(file_path: str) -> tuple[str, str]:
     """
     Extracts the base path and the filename from a given file path.
 
-    :param file_path (str): The file path to extract the base path and filename from.
+    :param file_path (str): The file path to extract the base path
+        and filename from.
     :returns: (tuple[str, str]) The base path and the filename with
         '_expectations_result.log' appended.
 
@@ -223,7 +232,8 @@ def extract_base_path_and_filename(file_path: str) -> tuple[str, str]:
 
 def _substitute(input_string: str, condition: bool, placeholder: str) -> str:
     """
-    Replaces the specified placeholder in a string based on a boolean condition.
+    Replaces the specified placeholder in a string
+        based on a boolean condition.
 
     The placeholder is in the format "<$text1|text2>", where "text1" is used
     if the condition is True, and "text2" is used if the condition is False.
@@ -269,7 +279,8 @@ def _substitute(input_string: str, condition: bool, placeholder: str) -> str:
     match = re.match(r"<\$(.*?)\|(.*?)>", placeholder)
     if not match:
         raise ValueError(
-            "Invalid placeholder format. Must be in the format '<$text1|text2>'.",
+            "Invalid placeholder format. Must be in the "
+            "format '<$text1|text2>'.",
         )
 
     text1, text2 = match.groups()
@@ -279,10 +290,12 @@ def _substitute(input_string: str, condition: bool, placeholder: str) -> str:
 
 def _resolve_msg(default: str, msg: str | None) -> str:
     """
-    Returns the provided message if it is not None, otherwise returns the default message.
+    Returns the provided message if it is not None,
+        otherwise returns the default message.
 
     :param default: (str), the default message to use if `msg` is None.
-    :param msg: (Union[str, None]), the message to override the default message.
+    :param msg: (str | None), the message to override
+        the default message.
     :return: (str), the resulting message.
     :raises: (TypeError), If the default message is not a string.
     :raises: (TypeError), If the message is not a string or None.

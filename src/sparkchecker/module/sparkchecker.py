@@ -1,6 +1,6 @@
 """
-This is the main file that contains the main function that is used to check the DataFrame
-    against the checks in the yaml file.
+This is the main file that contains the main function that is
+    used to check the DataFrame against the checks in the yaml file.
 """
 
 from pyspark.sql import DataFrame
