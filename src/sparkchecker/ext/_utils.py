@@ -16,7 +16,7 @@ def str_to_col(
     """
     Convert a `column_name` string to a column.
 
-    :param column_name: (Union[str, bool, float, Column]), `pyspark.sql.Column`
+    :param column_name: (str | bool | float | Column), `pyspark.sql.Column`
         or a column name
     :param is_col: (bool), flag to determine if the column should be treated
         as a column or literal
@@ -88,7 +88,7 @@ def col_to_name(column: str | Column) -> str:
     if isinstance(column, Column):
         return column._jc.toString()  # noqa: SLF001
     raise TypeError(
-        "Argument `column` must be of type Union[str, Column] but got: ",
+        "Argument `column` must be of type str | Column but got: ",
         type(column),
     )
 
@@ -139,7 +139,7 @@ def args_to_list_cols(
         raise TypeError(
             "Argument `list_args` must be of type",
             "float | str | Column | list | tuple",
-            f" tuple[Union[str, Column], ...]] but got: {type(list_args)}",
+            f" tuple[str | Column, ...]] but got: {type(list_args)}",
         )
     if not all(isinstance(arg, str | Column | float) for arg in list_args):
         raise TypeError(
@@ -321,7 +321,7 @@ def _resolve_msg(default: str, msg: str | None) -> str:
         )
     if not isinstance(msg, str | type(None)):
         raise TypeError(
-            "Argument `msg` must be of type Union[str, None] but got: ",
+            "Argument `msg` must be of type str | None but got: ",
             type(msg),
         )
     return msg if msg is not None else default
@@ -336,7 +336,7 @@ def evaluate_first_fail(
     This function evaluates the expectation on the DataFrame.
 
     :param df: (DataFrame), the DataFrame to check
-    :param column: (Union[str, Column]), the column to check
+    :param column: (str | Column), the column to check
     :param expectation: (Column), the expectation to check
     :return: (tuple), the check, the count of cases and the first failed row
     :raises: (TypeError), if the expectation is not of type Column

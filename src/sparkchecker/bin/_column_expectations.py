@@ -37,9 +37,9 @@ class NonNullColumn(ColumnsExpectations):
         """
         This class checks if a column is not null.
 
-        :param column: (Union[str, Column]), the column to check
+        :param column: (str | Column), the column to check
         :param value: (bool), the value to check
-        :param message: (Union[str, None]), the message to display
+        :param message: (str | None), the message to display
         :return: None
         :raises: (TypeError), If the value is not of type bool
         """
@@ -112,9 +112,9 @@ class NullColumn(ColumnsExpectations):
         """
         This class checks if a column is null.
 
-        :param column: (Union[str, Column]), the column to check
+        :param column: (str | Column), the column to check
         :param value: (bool), the value to check
-        :param message: (Union[str, None]), the message to display
+        :param message: (str | None), the message to display
         :return: None
         :raises: (TypeError), If the value is not of type bool
         """
@@ -187,9 +187,9 @@ class RlikeColumn(ColumnsExpectations):
         """
         This class checks if a column matches a pattern.
 
-        :param column: (Union[str, Column]), the column to check
+        :param column: (str | Column), the column to check
         :param value: (str), the value to match
-        :param message: (Union[str, None]), the message to display
+        :param message: (str | None), the message to display
         :return: None
         :raises: (TypeError), If the value is not of type str
         """
@@ -262,10 +262,10 @@ class IsInColumn(ColumnsExpectations):
         """
         This class checks if a column is in an array.
 
-        :param column: (Union[str, Column]), the column to check
-        :param value: (Union[Column, str, list[Column], list[str]]),
+        :param column: (str | Column), the column to check
+        :param value: (Column | str | list[Column] | list[str]),
             the value to check
-        :param message: (Union[str, None]), the message to display
+        :param message: (str | None), the message to display
         :return: None
         :raises: (TypeError), If the value is not of type Column | str | list
         :raises: (ValueError), If the value is empty
@@ -288,7 +288,7 @@ class IsInColumn(ColumnsExpectations):
         if not isinstance(self.value, float | str | Column | list | tuple):
             raise TypeError(
                 "Argument for in `value` must be of type "
-                "Union[Column, str, list[Column], list[str]] but got: ",
+                "float | str | Column | list | tuple but got: ",
                 type(self.value),
             )
         self.value = args_to_list_cols(self.value, is_col=False)
@@ -346,12 +346,12 @@ class ColumnCompare(ColumnsExpectations):
         """
         This class compares a column to a value.
 
-        :param column: (Union[str, Column]), the column to compare
-        :param value: (Union[str, float]), the value to compare
+        :param column: (str | Column), the column to compare
+        :param value: (str | float), the value to compare
         :param operator: (str), the operator to use
-        :param message: (Union[str, None]), the message to display
+        :param message: (str | None), the message to display
         :return: None
-        :raises: (TypeError), If the value is not of type Union[str, float]
+        :raises: (TypeError), If the value is not of type str | float
         :raises: (ValueError), If the operator is not valid.
         """
         self.column = column
@@ -361,7 +361,7 @@ class ColumnCompare(ColumnsExpectations):
         if not isinstance(value, str | float | int | Column):
             raise TypeError(
                 "Argument for column comparison `value` must be of type "
-                "Union[str, float] but got: ",
+                "str | float but got: ",
                 type(value),
             )
         self.value = value

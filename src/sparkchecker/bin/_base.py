@@ -10,7 +10,7 @@ from ..ext._decorators import (
 )
 
 
-class ColumnsExpectations(ABC):
+class ColumnsExpectations(ABC):  # pragma: no cover
     @check_message
     def __init__(
         self,
@@ -34,7 +34,7 @@ class ColumnsExpectations(ABC):
     def get_message(self, check: bool) -> None: ...
 
 
-class DataFrameExpectation(ABC):
+class DataFrameExpectation(ABC):  # pragma: no cover
     @check_message
     def __init__(
         self,
