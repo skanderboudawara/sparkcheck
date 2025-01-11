@@ -218,7 +218,7 @@ def extract_base_path_and_filename(file_path: str) -> tuple[str, str]:
 
     Examples:
     >>> extract_base_path_and_filename('/path/to/file.txt')[1] \
-    ...     .replace('\\\\', '/') # Normalize path for Windows
+    ...     .replace('\\', '/')  # Normalize path for Windows
     '/path/to/file_sparkchecker_result.log'
 
     >>> extract_base_path_and_filename('/path/to/file.txt')[0]
