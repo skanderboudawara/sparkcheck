@@ -47,7 +47,8 @@ class NonNullColumn(ColumnsExpectations):
         self.message = message
         if not isinstance(value, bool):
             raise TypeError(
-                "Argument is not_null `value` must be of type bool but got: ",
+                f"Argument `value` for {type(self).__name__} must "
+                "be of type bool but got: ",
                 type(value),
             )
         self.value = value
@@ -71,10 +72,11 @@ class NonNullColumn(ColumnsExpectations):
         :returns: (str), the message
         """
         default_msg = (
-            f"The column {col_to_name(self.column)} <$is|is not> Not Null"
+            f"The column {col_to_name(self.column)} <$did not|did> "
+            f"meet the expectation of {type(self).__name__}"
         )
         self.message = _resolve_msg(default_msg, self.message)
-        self.message = _substitute(self.message, check, "<$is|is not>")
+        self.message = _substitute(self.message, check, "<$did not|did>")
 
     @validate_expectation
     @check_column_exist
@@ -85,15 +87,20 @@ class NonNullColumn(ColumnsExpectations):
         :param target: (DataFrame), the DataFrame to check
         :return: (dict), the expectation result
         """
+        if not self.value:
+            return NullColumn(
+                self.column,
+                True,
+                self.message,
+            ).eval_expectation(target)
         check, count_cases, first_failed_row = evaluate_first_fail(
             target,
             self.column,
-            self.constraint if self.value else ~self.constraint,
+            self.constraint,
         )
-        has_failed = not check
         self.get_message(check)
         return {
-            "has_failed": has_failed,
+            "has_failed": check,
             "got": count_cases,
             "message": self.message,
             "example": first_failed_row,
@@ -122,7 +129,8 @@ class NullColumn(ColumnsExpectations):
         self.message = message
         if not isinstance(value, bool):
             raise TypeError(
-                "Argument for is_null `value` must be of type bool but got: ",
+                f"Argument `value` for {type(self).__name__} must "
+                "be of type bool but got: ",
                 type(value),
             )
         self.value = value
@@ -146,10 +154,11 @@ class NullColumn(ColumnsExpectations):
         :returns: (str), the message
         """
         default_msg = (
-            f"The column {col_to_name(self.column)} <$is not|is> Null"
+            f"The column {col_to_name(self.column)} <$did not|did> "
+            f"meet the expectation of {type(self).__name__}"
         )
         self.message = _resolve_msg(default_msg, self.message)
-        self.message = _substitute(self.message, check, "<$is not|is>")
+        self.message = _substitute(self.message, check, "<$did not|did>")
 
     @validate_expectation
     @check_column_exist
@@ -160,15 +169,20 @@ class NullColumn(ColumnsExpectations):
         :param target: (DataFrame), the DataFrame to check
         :return: (dict), the expectation result
         """
+        if not self.value:
+            return NonNullColumn(
+                self.column,
+                True,
+                self.message,
+            ).eval_expectation(target)
         check, count_cases, first_failed_row = evaluate_first_fail(
             target,
             self.column,
             self.constraint,
         )
-        has_failed = self.value != check
         self.get_message(check)
         return {
-            "has_failed": has_failed,
+            "has_failed": check,
             "got": count_cases,
             "message": self.message,
             "example": first_failed_row,
@@ -197,7 +211,8 @@ class RlikeColumn(ColumnsExpectations):
         self.message = message
         if not isinstance(value, str):
             raise TypeError(
-                "Argument pattern `value` must be of type bool but got: ",
+                f"Argument `value` for {type(self).__name__} must "
+                "be of type str but got: ",
                 type(value),
             )
         self.value = rf"{value}"
@@ -243,7 +258,7 @@ class RlikeColumn(ColumnsExpectations):
         )
         self.get_message(check)
         return {
-            "has_failed": not (check),
+            "has_failed": check,
             "got": count_cases,
             "message": self.message,
             "example": first_failed_row,
@@ -272,8 +287,13 @@ class IsInColumn(ColumnsExpectations):
         """
         self.column = column
         self.message = message
-        if not value:
-            raise ValueError("Argument for in `value` must not be empty")
+        if not isinstance(value, float | str | Column | list | tuple):
+            raise TypeError(
+                "Argument for in `value` for {type(self).__name__} must"
+                "must be of type "
+                "float | str | Column | list | tuple but got: ",
+                type(value),
+            )
         self.value = value
 
     @property
@@ -285,12 +305,6 @@ class IsInColumn(ColumnsExpectations):
 
         :returns: None
         """
-        if not isinstance(self.value, float | str | Column | list | tuple):
-            raise TypeError(
-                "Argument for in `value` must be of type "
-                "float | str | Column | list | tuple but got: ",
-                type(self.value),
-            )
         self.value = args_to_list_cols(self.value, is_col=False)
         self.column = str_to_col(self.column)
         return self.column.isin(*self.value)
@@ -318,7 +332,7 @@ class IsInColumn(ColumnsExpectations):
         :param target: (DataFrame), the DataFrame to check
         :return: (dict), the expectation result
         """
-        self.expected = ", ".join([col_to_name(c) for c in self.value])
+        self.expected = ", ".join([col_to_name(c) for c in self.value])  # type: ignore
         check, count_cases, first_failed_row = evaluate_first_fail(
             target,
             self.column,
@@ -360,8 +374,9 @@ class ColumnCompare(ColumnsExpectations):
         self.operator = operator
         if not isinstance(value, str | float | int | Column):
             raise TypeError(
-                "Argument for column comparison `value` must be of type "
-                "str | float but got: ",
+                "Argument for in `value` for {type(self).__name__} must"
+                "must be of type "
+                "str | float | int | Column but got: ",
                 type(value),
             )
         self.value = value
