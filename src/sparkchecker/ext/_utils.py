@@ -82,11 +82,11 @@ def to_col(
     )
 
 
-def to_name(column: str | Column) -> str:
+def to_name(column: str | Column | bool | float | None) -> str:
     """
     Convert a `column` to a column name.
 
-    :param column: (Column), a spark Column
+    :param column: (str | Column | bool | float | None), a spark Column
     :returns: (str) a column name
     :raises: (TypeError), If the input is not a string or Column
 
@@ -99,84 +99,28 @@ def to_name(column: str | Column) -> str:
     >>> to_name(col('column1'))
     'column1'
 
+    >>> to_name(None)
+    'NULL'
+
+    >>> to_name(1)
+    '1'
+
+    >>> to_name(True)
+    'True'
+
     >>> spark.stop()
 
     """
-    if isinstance(column, str):
-        return column
+    if column is None:
+        return "NULL"
+    if isinstance(column, str | bool | float | int):
+        return str(column)
     if isinstance(column, Column):
         return column._jc.toString()  # noqa: SLF001
     raise TypeError(
         "Argument `column` must be of type str | Column but got: ",
         type(column),
     )
-
-
-def args_as_cols(
-    list_args: float | str | Column | list | tuple | None,
-    is_col: bool = True,
-) -> list[Column]:
-    """
-    Convert `list_args` to a list of Columns.
-
-    :param list_args: (float | str | Column | list | tuple) a list or tuple
-        of arguments that can be strings or Columns.
-    :param is_col: (bool), flag to determine if the strings should be treated
-        as column names or literals.
-    :returns: (list[Column]), a list of Columns.
-    :raises: (TypeError), If the input is not a string, Column, list, or tuple.
-    :raises: (TypeError), If the elements of the list are
-        not strings or Columns.
-
-    Examples:
-    >>> from pyspark.sql import SparkSession
-    >>> spark = SparkSession.builder.getOrCreate()
-    >>> args_as_cols(None)
-    [Column<'NULL'>]
-    >>> args_as_cols([None])
-    [Column<'NULL'>]
-
-    >>> args_as_cols('column1')
-    [Column<'column1'>]
-
-    >>> args_as_cols(col('column1'))
-    [Column<'column1'>]
-
-    >>> args_as_cols(['column1', 'column2'])
-    [Column<'column1'>, Column<'column2'>]
-
-    >>> args_as_cols(('column1', 'column2'))
-    [Column<'column1'>, Column<'column2'>]
-
-    >>> args_as_cols(['column1', col('column2')])
-    [Column<'column1'>, Column<'column2'>]
-
-    >>> args_as_cols('column1', is_col=False)
-    [Column<'column1'>]
-
-    >>> spark.stop()
-
-    """
-    if list_args is None:
-        return [lit(None)]
-    if isinstance(list_args, str | float | Column):
-        return [to_col(list_args, is_col)]
-    if not isinstance(list_args, list | tuple):
-        raise TypeError(
-            "Argument `list_args` must be of type",
-            "float | str | Column | list | tuple",
-            f" tuple[str | Column, ...]] but got: {type(list_args)}",
-        )
-    list_args = tuple(list_args)  # Ensure immutability
-    if not all(
-        isinstance(arg, str | Column | float | type(None)) for arg in list_args
-    ):
-        raise TypeError(
-            "All elements of `list_args` must be of"
-            "type str | Column | float but got:",
-            f" {[type(arg) for arg in list_args]}",
-        )
-    return [to_col(arg, is_col) for arg in list_args]
 
 
 def _op_check(operator: str) -> None:
