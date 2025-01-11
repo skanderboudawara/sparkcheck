@@ -63,7 +63,8 @@ class ExpectationsFactory:
     @order_expectations_dict
     def _compile_dataframe_operation(df: DataFrame, check: dict) -> dict:
         """
-        This static method compiles a dataframe operation check into a dictionary.
+        This static method compiles a dataframe operation
+            check into a dictionary.
 
         :param df: (DataFrame), the DataFrame to check
         :param check: (dict), the check to compile
@@ -106,19 +107,30 @@ class ExpectationsFactory:
         for check in self.stack:
             check_type = check.get("check")
             if not check_type:
-                raise ValueError("Check type is missing in the check dictionary.")
+                raise ValueError(
+                    "Check type is missing in the check dictionary.",
+                )
 
             if check_type in DATAFRAME_OPERATIONS:
-                compiled_check = self._compile_dataframe_operation(self.df, check)
+                compiled_check = self._compile_dataframe_operation(
+                    self.df,
+                    check,
+                )
             elif check_type == "column":
                 if df_is_empty:
                     compiled_check = {
                         "check": check_type,
                         "has_failed": True,
-                        "message": "DataFrame is empty. No column checks can be performed.",
+                        "message": (
+                            "DataFrame is empty. No column checks can be "
+                            "performed."
+                        ),
                     }
                 else:
-                    compiled_check = self._compile_column_operation(self.df, check)
+                    compiled_check = self._compile_column_operation(
+                        self.df,
+                        check,
+                    )
             else:
                 raise ValueError(f"Unknown check type: {check_type}")
 

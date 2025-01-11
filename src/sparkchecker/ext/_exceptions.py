@@ -12,7 +12,8 @@ class SparkCheckerError(Exception):
     """
     A unified exception class for handling errors in Spark checks.
 
-    This class consolidates multiple exception types for better maintainability.
+    This class consolidates multiple exception types
+        for better maintainability.
     """
 
     INTERNAL_ERROR = "InternalError"
@@ -32,9 +33,11 @@ class SparkCheckerError(Exception):
         """
         Initialize a SparkCheckerError with a specific error type and details.
 
-        :param error_type: The type of error (e.g., INTERNAL_ERROR, ILLEGAL_CONSTRAINT_CONSTRUCTOR).
+        :param error_type: The type of error
+            (e.g., INTERNAL_ERROR, ILLEGAL_CONSTRAINT_CONSTRUCTOR).
         :param constraint: The related constraint or context for the error.
-        :param exception: The offending value or additional details about the error.
+        :param exception: The offending value or additional details
+            about the error.
         """
         message = self._generate_message(error_type, constraint, exception)
         super().__init__(message)
@@ -64,7 +67,8 @@ class SparkCheckerError(Exception):
                 )
             case SparkCheckerError.ILLEGAL_HAS_COLUMN_EXPECTATIONS:
                 return (
-                    f"Constraint object must be a string in has_columns but got: "
+                    f"Constraint object must be a string "
+                    "in has_columns but got:"
                     f"{type(exception)!r} = {exception!r}"
                 )
             case SparkCheckerError.ILLEGAL_THRESHOLD_MATH_OPERATOR:
@@ -75,17 +79,20 @@ class SparkCheckerError(Exception):
                 )
             case SparkCheckerError.CONSTRAINTS_OUT_OF_RANGE:
                 return (
-                    f"Each constraint in `{constraint}` must have 1 set of rules"
+                    f"Each constraint in `{constraint}` must "
+                    "have 1 set of rules"
                     "\nAn Example:"
                     "\nlower:"
                     "\n    value: 10"
                     "\n    strategy: 'fail'"
                     "\n    message: 'lower failed'"
-                    f"In your YAML file, we got {len(exception)} rules: {exception}"
+                    f"In your YAML file, we got {len(exception)} "
+                    f"rules: {exception}"
                 )
             case SparkCheckerError.ILLEGAL_COLUMN_TYPE:
                 return (
-                    f"`has_column` checks on `{constraint}` only take these values as types "
+                    f"`has_column` checks on `{constraint}` only take "
+                    "these values as types "
                     f"\n{', '.join(COLUMN_TYPES.keys())}"
                     f"\nGot: {exception}"
                 )

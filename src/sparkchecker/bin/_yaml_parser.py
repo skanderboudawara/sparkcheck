@@ -65,7 +65,9 @@ class ExpectationsYamlParser:
         :raises: (SparkCheckerError), if the constraint is not a dict
         """
         if isinstance(new_constraint, dict):
-            self._constraint, self._constraint_obj = next(iter(new_constraint.items()))
+            self._constraint, self._constraint_obj = next(
+                iter(new_constraint.items()),
+            )
         elif isinstance(new_constraint, str):
             self._constraint = new_constraint
             self._constraint_obj = None
@@ -82,14 +84,15 @@ class ExpectationsYamlParser:
 
         :param: None
         :return: None
-        :raises: (SparkCheckerError), if the expectation is not in the CONSTRAINT_CONSTRUCTOR
+        :raises: (SparkCheckerError), if the expectation is not
+            in the CONSTRAINT_CONSTRUCTOR
         """
         if self.constraint_obj is None:
             raise ValueError("Constraint object cannot be None")
         if not isinstance(self.constraint_obj, dict):
             raise TypeError(
-                f"Expected a dict for constraint_obj, \
-                but got: {type(self.constraint_obj)}",
+                "Expected a dict for constraint_obj, "
+                f"but got: {type(self.constraint_obj)}",
             )
         for expectation in self.constraint_obj:
             if expectation not in CONSTRAINT_CONSTRUCTOR:
@@ -102,19 +105,29 @@ class ExpectationsYamlParser:
             message,
             str,
         ):
-            raise TypeError("Message must be of type str but got: ", type(message))
-        if (strategy := self.constraint_obj.get("strategy")) and not isinstance(
+            raise TypeError(
+                "Message must be of type str but got: ",
+                type(message),
+            )
+        if (
+            strategy := self.constraint_obj.get("strategy")
+        ) and not isinstance(
             strategy,
             str,
         ):
-            raise TypeError("Strategy must be of type str but got: ", type(strategy))
-        if (strategy := self.constraint_obj.get("strategy")) and strategy not in {
+            raise TypeError(
+                "Strategy must be of type str but got: ",
+                type(strategy),
+            )
+        if (
+            strategy := self.constraint_obj.get("strategy")
+        ) and strategy not in {
             "fail",
             "warn",
         }:
             raise ValueError(
-                "Strategy must be one of 'fail' or 'warn' but got: ",
-                strategy,
+                "Strategy must be one of 'fail' or 'warn' but got: "
+                f"{strategy}",
             )
 
     def _verify_threshold_parsing(self) -> None:
@@ -125,7 +138,8 @@ class ExpectationsYamlParser:
         :return: None
         :raises: (ValueError), if the constraint is not a string
         :raises: (ValueError), if the constraint object is not a dict
-        :raises: (SparkCheckerError), if the expectation is not in the OPERATOR_MAP
+        :raises: (SparkCheckerError), if the expectation is
+            not in the OPERATOR_MAP
         """
         if not isinstance(self.constraint, str):
             raise ValueError("Constraint must be a string")
@@ -146,8 +160,8 @@ class ExpectationsYamlParser:
         :return: None
         :raises: (ValueError), if the constraint is not a string
         :raises: (ValueError), if the constraint object is not a dict
-        :raises: (SparkCheckerError), if the expectation is not in the OPERATOR_MAP
-            and COLUMN_OPERATIONS
+        :raises: (SparkCheckerError), if the expectation
+            is not in the OPERATOR_MAP and COLUMN_OPERATIONS
         """
         if not isinstance(self.constraint, str):
             raise ValueError("Constraint must be a string")
@@ -211,7 +225,8 @@ class ExpectationsYamlParser:
         :param: None
         :return: None
         :raises: (SparkCheckerError), if the constraint object is not a string
-        :raises: (SparkCheckerError), if the constraint object is not in COLUMN_TYPES
+        :raises: (SparkCheckerError), if the constraint object
+            is not in COLUMN_TYPES
         """
         parser_has_columns = parse("$.has_columns[*]")
         has_columns: list = parser_has_columns.find(self.data)
@@ -332,19 +347,24 @@ def read_yaml_file(file_path: str) -> dict:
 
 def replace_keys_in_json(json_data: dict, replacements: dict) -> dict:
     """
-    Replaces specified keys in a JSON-like dictionary with new keys based on a mapping.
+    Replaces specified keys in a JSON-like dictionary with
+        new keys based on a mapping.
 
     :param json_data (dict): The input JSON-like dictionary.
     :param replacements (dict): A dictionary mapping old keys to new keys.
     :returns: (dict)n The modified dictionary with keys replaced.
     """
     for old_key, new_key in replacements.items():
-        jsonpath_expr = parse(f"$..{old_key}")  # Match all occurrences of the old key
+        jsonpath_expr = parse(
+            f"$..{old_key}",
+        )  # Match all occurrences of the old key
 
         matches = jsonpath_expr.find(json_data)  # Find all matching nodes
         for match in matches:
             parent = match.context.value  # Parent object of the old key
             if isinstance(parent, dict):
-                parent[new_key] = parent.pop(old_key)  # Replace old key with new key
+                parent[new_key] = parent.pop(
+                    old_key,
+                )  # Replace old key with new key
 
     return json_data
