@@ -9,8 +9,8 @@ from pyspark.sql.types import DecimalType
 from sparkchecker.constants import OPERATOR_MAP
 
 
-def str_to_col(
-    column_name: str | bool | float | Column,
+def to_col(
+    column_name: str | bool | float | Column | None,
     is_col: bool = True,
 ) -> Column:
     """
@@ -26,30 +26,35 @@ def str_to_col(
     Examples:
     >>> from pyspark.sql import SparkSession
     >>> spark = SparkSession.builder.getOrCreate()
-    >>> str_to_col('column1')
+    >>> to_col(None)
+    Column<'NULL'>
+
+    >>> to_col('column1')
     Column<'column1'>
 
-    >>> str_to_col('column1', is_col=False)
+    >>> to_col('column1', is_col=False)
     Column<'column1'>
 
-    >>> str_to_col(123)
+    >>> to_col(123)
     Column<'123'>
 
-    >>> str_to_col(col('column1'))
+    >>> to_col(col('column1'))
     Column<'column1'>
 
-    >>> str_to_col(123.0)
+    >>> to_col(123.0)
     Column<'123.0'>
 
-    >>> str_to_col(123.0, is_col=False)
+    >>> to_col(123.0, is_col=False)
     Column<'123.0'>
 
-    >>> str_to_col(123.0, is_col=True)
+    >>> to_col(123.0, is_col=True)
     Column<'123.0'>
 
     >>> spark.stop()
 
     """
+    if column_name is None:
+        return lit(None)
     if isinstance(column_name, str):
         return col(column_name) if is_col else lit(column_name)
     if isinstance(column_name, float | int | bool):
@@ -63,7 +68,7 @@ def str_to_col(
     )
 
 
-def col_to_name(column: str | Column) -> str:
+def get_name(column: str | Column) -> str:
     """
     Convert a `column` to a column name.
 
@@ -74,10 +79,10 @@ def col_to_name(column: str | Column) -> str:
     Examples:
     >>> from pyspark.sql import SparkSession
     >>> spark = SparkSession.builder.getOrCreate()
-    >>> col_to_name('column1')
+    >>> get_name('column1')
     'column1'
 
-    >>> col_to_name(col('column1'))
+    >>> get_name(col('column1'))
     'column1'
 
     >>> spark.stop()
@@ -93,8 +98,8 @@ def col_to_name(column: str | Column) -> str:
     )
 
 
-def args_to_list_cols(
-    list_args: float | str | Column | list | tuple,
+def args_as_cols(
+    list_args: float | str | Column | list | tuple | None,
     is_col: bool = True,
 ) -> list[Column]:
     """
@@ -112,45 +117,55 @@ def args_to_list_cols(
     Examples:
     >>> from pyspark.sql import SparkSession
     >>> spark = SparkSession.builder.getOrCreate()
-    >>> args_to_list_cols('column1')
+    >>> args_as_cols(None)
+    [Column<'NULL'>]
+    >>> args_as_cols([None])
+    [Column<'NULL'>]
+
+    >>> args_as_cols('column1')
     [Column<'column1'>]
 
-    >>> args_to_list_cols(col('column1'))
+    >>> args_as_cols(col('column1'))
     [Column<'column1'>]
 
-    >>> args_to_list_cols(['column1', 'column2'])
+    >>> args_as_cols(['column1', 'column2'])
     [Column<'column1'>, Column<'column2'>]
 
-    >>> args_to_list_cols(('column1', 'column2'))
+    >>> args_as_cols(('column1', 'column2'))
     [Column<'column1'>, Column<'column2'>]
 
-    >>> args_to_list_cols(['column1', col('column2')])
+    >>> args_as_cols(['column1', col('column2')])
     [Column<'column1'>, Column<'column2'>]
 
-    >>> args_to_list_cols('column1', is_col=False)
+    >>> args_as_cols('column1', is_col=False)
     [Column<'column1'>]
 
     >>> spark.stop()
 
     """
+    if list_args is None:
+        return [lit(None)]
     if isinstance(list_args, str | float | Column):
-        return [str_to_col(list_args, is_col)]
+        return [to_col(list_args, is_col)]
     if not isinstance(list_args, list | tuple):
         raise TypeError(
             "Argument `list_args` must be of type",
             "float | str | Column | list | tuple",
             f" tuple[str | Column, ...]] but got: {type(list_args)}",
         )
-    if not all(isinstance(arg, str | Column | float) for arg in list_args):
+    list_args = tuple(list_args)  # Ensure immutability
+    if not all(
+        isinstance(arg, str | Column | float | type(None)) for arg in list_args
+    ):
         raise TypeError(
             "All elements of `list_args` must be of"
             "type str | Column | float but got:",
             f" {[type(arg) for arg in list_args]}",
         )
-    return [str_to_col(arg, is_col) for arg in list_args]
+    return [to_col(arg, is_col) for arg in list_args]
 
 
-def _check_operator(operator: str) -> None:
+def _op_check(operator: str) -> None:
     """
     Check if the operator is valid.
 
@@ -159,7 +174,7 @@ def _check_operator(operator: str) -> None:
     :raises: (ValueError), If the operator is not valid.
 
     Example:
-    >>> _check_operator('lower')
+    >>> _op_check('lower')
 
     """
     if operator not in OPERATOR_MAP:
@@ -170,7 +185,7 @@ def _check_operator(operator: str) -> None:
         )
 
 
-def parse_decimal_type(decimal_string: str) -> DecimalType:
+def to_decimal(decimal_string: str) -> DecimalType:
     """
     Parses a string like 'decimal(10,2)' and converts it
         to a DecimalType object.
@@ -181,13 +196,13 @@ def parse_decimal_type(decimal_string: str) -> DecimalType:
     :raises ValueError: If the input string is not in the correct format.
 
     Examples:
-    >>> parse_decimal_type('decimal(10,2)')
+    >>> to_decimal('decimal(10,2)')
     DecimalType(10,2)
 
-    >>> parse_decimal_type('decimal(5, 0)')
+    >>> to_decimal('decimal(5, 0)')
     DecimalType(5,0)
 
-    >>> parse_decimal_type('decimal(15, 5)')
+    >>> to_decimal('decimal(15, 5)')
     DecimalType(15,5)
 
     """
@@ -207,7 +222,7 @@ def parse_decimal_type(decimal_string: str) -> DecimalType:
     return DecimalType(precision=precision, scale=scale)
 
 
-def extract_base_path_and_filename(file_path: str) -> tuple[str, str]:
+def split_base_file(file_path: str) -> tuple[str, str]:
     r"""
     Extracts the base path and the filename from a given file path.
 
@@ -217,14 +232,14 @@ def extract_base_path_and_filename(file_path: str) -> tuple[str, str]:
         '_expectations_result.log' appended.
 
     Examples:
-    >>> extract_base_path_and_filename('/path/to/file.txt')[1] \
+    >>> split_base_file('/path/to/file.txt')[1] \
     ...     .replace('\\', '/')  # Normalize path for Windows
     '/path/to/file_sparkchecker_result.log'
 
-    >>> extract_base_path_and_filename('/path/to/file.txt')[0]
+    >>> split_base_file('/path/to/file.txt')[0]
     'file'
 
-    >>> extract_base_path_and_filename('file.txt')
+    >>> split_base_file('file.txt')
     ('file', 'file_sparkchecker_result.log')
 
     """
@@ -330,7 +345,7 @@ def _resolve_msg(default: str, msg: str | None) -> str:
     return msg if msg is not None else default
 
 
-def evaluate_first_fail(
+def eval_first_fail(
     df: DataFrame,
     column: str | Column,
     expectation: Column,
@@ -352,19 +367,19 @@ def evaluate_first_fail(
     >>> df = df.cache()
 
     >>> expectation = col('a') > 0
-    >>> evaluate_first_fail(df, 'a', expectation)
+    >>> eval_first_fail(df, 'a', expectation)
     (False, 0, {})
 
     >>> expectation = col('a') > 3
-    >>> evaluate_first_fail(df, 'a', expectation)
+    >>> eval_first_fail(df, 'a', expectation)
     (True, 2, {'a': 1})
 
     >>> expectation = col('a').isNotNull()
-    >>> evaluate_first_fail(df, 'a', expectation)
+    >>> eval_first_fail(df, 'a', expectation)
     (False, 0, {})
 
     >>> expectation = col('a').isNull()
-    >>> evaluate_first_fail(df, 'a', expectation)
+    >>> eval_first_fail(df, 'a', expectation)
     (True, 2, {'a': 1})
 
     >>> spark.stop()
@@ -380,7 +395,7 @@ def evaluate_first_fail(
             "Argument `df` must be of type DataFrame but got: ",
             type(df),
         )
-    column = str_to_col(column)
+    column = to_col(column)
     # We need to check the opposite of our expectations
     df = df.select(column).filter(~expectation)
     if not df.isEmpty():

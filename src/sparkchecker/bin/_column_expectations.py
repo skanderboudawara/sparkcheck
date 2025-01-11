@@ -13,13 +13,13 @@ from ..ext._decorators import (
     validate_expectation,
 )
 from ..ext._utils import (
-    _check_operator,
+    _op_check,
     _resolve_msg,
     _substitute,
-    args_to_list_cols,
-    col_to_name,
-    evaluate_first_fail,
-    str_to_col,
+    args_as_cols,
+    eval_first_fail,
+    get_name,
+    to_col,
 )
 from ._base import ColumnsExpectations
 
@@ -61,22 +61,22 @@ class NonNullColumn(ColumnsExpectations):
         :param: None
         :returns: None
         """
-        self.column = str_to_col(self.column)
+        self.column = to_col(self.column)
         return self.column.isNotNull()
 
-    def get_message(self, check: bool) -> None:
+    def get_message(self, has_failed: bool) -> None:
         """
         This method returns the message result formatted with the check.
 
-        :param check: (bool), the check
+        :param has_failed: (bool), True if the check failed, False if not
         :returns: (str), the message
         """
         default_msg = (
-            f"The column {col_to_name(self.column)} <$did not|did> "
+            f"The column {get_name(self.column)} <$did not|did> "
             f"meet the expectation of {type(self).__name__}"
         )
         self.message = _resolve_msg(default_msg, self.message)
-        self.message = _substitute(self.message, check, "<$did not|did>")
+        self.message = _substitute(self.message, has_failed, "<$did not|did>")
 
     @validate_expectation
     @check_column_exist
@@ -93,14 +93,14 @@ class NonNullColumn(ColumnsExpectations):
                 True,
                 self.message,
             ).eval_expectation(target)
-        check, count_cases, first_failed_row = evaluate_first_fail(
+        has_failed, count_cases, first_failed_row = eval_first_fail(
             target,
             self.column,
             self.constraint,
         )
-        self.get_message(check)
+        self.get_message(has_failed)
         return {
-            "has_failed": check,
+            "has_failed": has_failed,
             "got": count_cases,
             "message": self.message,
             "example": first_failed_row,
@@ -143,22 +143,22 @@ class NullColumn(ColumnsExpectations):
         :param: None
         :returns: None
         """
-        self.column = str_to_col(self.column)
+        self.column = to_col(self.column)
         return self.column.isNull()
 
-    def get_message(self, check: bool) -> None:
+    def get_message(self, has_failed: bool) -> None:
         """
         This method returns the message result formatted with the check.
 
-        :param check: (bool), the check
+        :param has_failed: (bool), True if the check failed, False if not
         :returns: (str), the message
         """
         default_msg = (
-            f"The column {col_to_name(self.column)} <$did not|did> "
+            f"The column {get_name(self.column)} <$did not|did> "
             f"meet the expectation of {type(self).__name__}"
         )
         self.message = _resolve_msg(default_msg, self.message)
-        self.message = _substitute(self.message, check, "<$did not|did>")
+        self.message = _substitute(self.message, has_failed, "<$did not|did>")
 
     @validate_expectation
     @check_column_exist
@@ -175,14 +175,14 @@ class NullColumn(ColumnsExpectations):
                 True,
                 self.message,
             ).eval_expectation(target)
-        check, count_cases, first_failed_row = evaluate_first_fail(
+        has_failed, count_cases, first_failed_row = eval_first_fail(
             target,
             self.column,
             self.constraint,
         )
-        self.get_message(check)
+        self.get_message(has_failed)
         return {
-            "has_failed": check,
+            "has_failed": has_failed,
             "got": count_cases,
             "message": self.message,
             "example": first_failed_row,
@@ -225,22 +225,22 @@ class RlikeColumn(ColumnsExpectations):
         :param: None
         :returns: None
         """
-        self.column = str_to_col(self.column)
+        self.column = to_col(self.column)
         return self.column.rlike(self.value)
 
-    def get_message(self, check: bool) -> None:
+    def get_message(self, has_failed: bool) -> None:
         """
         This method returns the message result formatted with the check.
 
-        :param check: (bool), the check
+        :param has_failed: (bool), True if the check failed, False if not
         :returns: (str), the message
         """
         default_msg = (
-            f"The column {col_to_name(self.column)} <$does|doesn't>"
+            f"The column {get_name(self.column)} <$did not|did> "
             f" respect the pattern `{self.value}`"
         )
         self.message = _resolve_msg(default_msg, self.message)
-        self.message = _substitute(self.message, check, "<$does|doesn't>")
+        self.message = _substitute(self.message, has_failed, "<$did not|did>")
 
     @validate_expectation
     @check_column_exist
@@ -251,14 +251,14 @@ class RlikeColumn(ColumnsExpectations):
         :param target: (DataFrame), the DataFrame to check
         :return: (dict), the expectation result
         """
-        check, count_cases, first_failed_row = evaluate_first_fail(
+        has_failed, count_cases, first_failed_row = eval_first_fail(
             target,
             self.column,
             self.constraint,
         )
-        self.get_message(check)
+        self.get_message(has_failed)
         return {
-            "has_failed": check,
+            "has_failed": has_failed,
             "got": count_cases,
             "message": self.message,
             "example": first_failed_row,
@@ -305,23 +305,23 @@ class IsInColumn(ColumnsExpectations):
 
         :returns: None
         """
-        self.value = args_to_list_cols(self.value, is_col=False)
-        self.column = str_to_col(self.column)
+        self.value = args_as_cols(self.value, is_col=False)
+        self.column = to_col(self.column)
         return self.column.isin(*self.value)
 
-    def get_message(self, check: bool) -> None:
+    def get_message(self, has_failed: bool) -> None:
         """
         This method returns the message result formatted with the check.
 
-        :param check: (bool), the check
+        :param has_failed: (bool), True if the check failed, False if not
         :returns: (str), the message
         """
         default_msg = str(
-            f"The column {col_to_name(self.column)} <$is|is not>"
+            f"The column {get_name(self.column)} <$is not|is>"
             f"in `{self.expected}`",
         )
         self.message = _resolve_msg(default_msg, self.message)
-        self.message = _substitute(self.message, check, "<$is|is not>")
+        self.message = _substitute(self.message, has_failed, "<$is not|is>")
 
     @validate_expectation
     @check_column_exist
@@ -332,15 +332,15 @@ class IsInColumn(ColumnsExpectations):
         :param target: (DataFrame), the DataFrame to check
         :return: (dict), the expectation result
         """
-        self.expected = ", ".join([col_to_name(c) for c in self.value])  # type: ignore
-        check, count_cases, first_failed_row = evaluate_first_fail(
+        self.expected = ", ".join([get_name(c) for c in self.value])  # type: ignore
+        has_failed, count_cases, first_failed_row = eval_first_fail(
             target,
             self.column,
             self.constraint,
         )
-        self.get_message(check)
+        self.get_message(has_failed)
         return {
-            "has_failed": not (check),
+            "has_failed": has_failed,
             "got": count_cases,
             "message": self.message,
             "example": first_failed_row,
@@ -370,7 +370,7 @@ class ColumnCompare(ColumnsExpectations):
         """
         self.column = column
         self.message = message
-        _check_operator(operator)
+        _op_check(operator)
         self.operator = operator
         if not isinstance(value, str | float | int | Column):
             raise TypeError(
@@ -389,22 +389,22 @@ class ColumnCompare(ColumnsExpectations):
         :param: None
         :returns: None
         """
-        self.column = str_to_col(self.column)
+        self.column = to_col(self.column)
         return OPERATOR_MAP[self.operator](self.column, self.value)
 
-    def get_message(self, check: bool) -> None:
+    def get_message(self, has_failed: bool) -> None:
         """
         This method returns the message result formatted with the check.
 
-        :param check: (bool), the check
+        :param has_failed: (bool), True if the check failed, False if not
         :returns: (str), the message
         """
         default_message = (
-            f"The column {col_to_name(self.column)} "
-            f"<$is|is not> {self.operator} <$to|than> `{self.expected}`"
+            f"The column {get_name(self.column)} "
+            f"<$is not|is> {self.operator} <$to|than> `{self.expected}`"
         )
         self.message = _resolve_msg(default_message, self.message)
-        self.message = _substitute(self.message, check, "<$is|is not>")
+        self.message = _substitute(self.message, has_failed, "<$is not|is>")
         self.message = _substitute(
             self.message,
             self.operator in {"equal", "different"},
@@ -421,19 +421,19 @@ class ColumnCompare(ColumnsExpectations):
         :return: (dict), the expectation result
         """
         self.expected = self.value
-        is_col = col_to_name(str(self.value))
-        self.value = str_to_col(self.value, is_col in target.columns)
+        is_col = get_name(str(self.value))
+        self.value = to_col(self.value, is_col in target.columns)
 
-        check, count_cases, first_failed_row = evaluate_first_fail(
+        has_failed, count_cases, first_failed_row = eval_first_fail(
             target,
             self.column,
             self.constraint,
         )
 
-        self.get_message(check)
+        self.get_message(has_failed)
 
         return {
-            "has_failed": not (check),
+            "has_failed": has_failed,
             "got": count_cases,
             "message": self.message,
             "example": first_failed_row,
