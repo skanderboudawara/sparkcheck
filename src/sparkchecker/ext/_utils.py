@@ -353,19 +353,19 @@ def evaluate_first_fail(
 
     >>> expectation = col('a') > 0
     >>> evaluate_first_fail(df, 'a', expectation)
-    (True, 0, {})
+    (False, 0, {})
 
     >>> expectation = col('a') > 3
     >>> evaluate_first_fail(df, 'a', expectation)
-    (False, 2, {'a': 1})
+    (True, 2, {'a': 1})
 
     >>> expectation = col('a').isNotNull()
     >>> evaluate_first_fail(df, 'a', expectation)
-    (True, 0, {})
+    (False, 0, {})
 
     >>> expectation = col('a').isNull()
     >>> evaluate_first_fail(df, 'a', expectation)
-    (False, 2, {'a': 1})
+    (True, 2, {'a': 1})
 
     >>> spark.stop()
 
@@ -385,7 +385,6 @@ def evaluate_first_fail(
     df = df.select(column).filter(~expectation)
     if not df.isEmpty():
         first_failed_row = cast(Row, df.first())
-        check = bool(not first_failed_row)
         count_cases = df.count()
-        return check, count_cases, first_failed_row.asDict()
-    return True, 0, {}
+        return True, count_cases, first_failed_row.asDict()
+    return False, 0, {}
