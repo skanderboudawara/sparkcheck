@@ -6,6 +6,7 @@ from src.sparkchecker.bin._column_expectations import (
     NullColumnExpectation,
     RegexLikeColumnExpectation,
     IsInColumnExpectation,
+    ColumnCompareExpectation,
 )
 from pyspark.sql.types import (
     StructType,
@@ -22,25 +23,27 @@ from pyspark.sql.functions import col, lit
 def df_test(spark_session):
     schema = StructType(
         [
-            StructField("name", StringType(), True),
-            StructField("country", StringType(), True),
-            StructField("crypto", StringType(), True),
-            StructField("hobby", StringType(), True),
-            StructField("age", IntegerType(), True),
-            StructField("height", DoubleType(), True),
-            StructField("is_student", BooleanType(), True),
-            StructField("pattern_ok", StringType(), True),
-            StructField("pattern_nok", StringType(), True),
-            StructField("only_AU", StringType(), True),
-            StructField("only_FR", StringType(), True),
-            StructField("only_DE", StringType(), True),
-            StructField("only_TN", StringType(), True),
+            StructField("name"       , StringType() , True),
+            StructField("country"    , StringType() , True),
+            StructField("crypto"     , StringType() , True),
+            StructField("hobby"      , StringType() , True),
+            StructField("age"        , IntegerType(), True),
+            StructField("height"     , DoubleType() , True),
+            StructField("is_student" , BooleanType(), True),
+            StructField("pattern_ok" , StringType() , True),
+            StructField("pattern_nok", StringType() , True),
+            StructField("only_AU"    , StringType() , True),
+            StructField("only_FR"    , StringType() , True),
+            StructField("only_DE"    , StringType() , True),
+            StructField("only_TN"    , StringType() , True),
+            StructField("only_NULL"  , StringType() , True),
         ]
     )
     data = [
-        ("Alice","AU",None,"swimming",25,1.60,True,r"[A-Z]{2}",r"[A-Z]{2}", "AU", "FR", "DE", "TN"),
-        ("Bob", "FR", None, None, 30, 1.75, True, r"[A-Z]{2}", r"[A-Z]{1}", "AU", "FR", "DE", "TN"),
-        ("Charlie","DE",None,"running",35,1.80,True,r"[A-Z]{2}",r"[A-Z]{3}", "AU", "FR", "DE", "TN"),
+    #   (name     , country, crypto, hobby     , age, height, is_student, pattern_ok , pattern_nok, only_AU, only_FR, only_DE, only_TN, only_NULL),  # noqa
+        ("Alice"  , "AU"   , None  , "swimming", 25 , 1.60  , True      , r"[A-Z]{2}", r"[A-Z]{2}", "AU"   , "FR"   , "DE"   , "TN"   , None     ),
+        ("Bob"    , "FR"   , None  , None      , 30 , 1.75  , True      , r"[A-Z]{2}", r"[A-Z]{1}", "AU"   , "FR"   , "DE"   , "TN"   , None     ),
+        ("Charlie", "DE"   , None  , "running" , 35 , 1.80  , True      , r"[A-Z]{2}", r"[A-Z]{3}", "AU"   , "FR"   , "DE"   , "TN"   , None     ),
     ]
 
     df = spark_session.createDataFrame(data, schema)
@@ -678,12 +681,12 @@ class TestIsInColumnExpectation(BaseClassColumnTest):
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": "IsInColumnExpectation: The column `hobby` is in `[NULL, running, swimming]`",
+                    "message": "IsInColumnExpectation: The column `hobby` is in `[NoneObject, running, swimming]`",
                 },
             ),
             ("hobby", ["swimming", "running"], None,
                 {
-                    "example": {"hobby": "NULL"},
+                    "example": {"hobby": "NoneObject"},
                     "got": 1,
                     "has_failed": True,
                     "message": "IsInColumnExpectation: The column `hobby` is not in `[running, swimming]`",
@@ -732,4 +735,164 @@ class TestIsInColumnExpectation(BaseClassColumnTest):
             "got": "Empty DataFrame",
             "has_failed": False,
             "message": "IsInColumnExpectation: The DataFrame is empty.",
+        }
+
+
+class TestColumnCompareExpectation(BaseClassColumnTest):
+
+    @pytest.mark.parametrize(
+        "column_name, value, operator, message",
+        [
+            ("age", 10, "higher", None),
+            ("age",  10, "higher", "hello world"),
+        ],
+    )
+    def test_init(self, column_name, value, operator, message):
+        ColumnCompareExpectation(column_name, value, operator, message)
+
+    @pytest.mark.parametrize(
+        "column_name, value, operator, message, exception, match",
+        [
+            ("age", 10, "lower", 1, TypeError, re.escape("ColumnCompareExpectation: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
+            ("age", 10, 1, None, TypeError, re.escape("ColumnCompareExpectation: the argument `operator` does not correspond to the expected types '[str]'. Got: int")),
+            ("age", 10, None, None, TypeError, re.escape("ColumnCompareExpectation: the argument `operator` does not correspond to the expected types '[str]'. Got: NoneType")),
+            ("age", ["A"], "lower", None, TypeError, re.escape("ColumnCompareExpectation: the argument `value` does not correspond to the expected types '[str | float | int | Column | bool | NoneType]'. Got: list")),
+            ("age", 10, "flower", None, ValueError, re.escape("ColumnCompareExpectation: Invalid operator: 'flower'. Must be one of: '[lower, lower_or_equal, equal, different, higher, higher_or_equal]'")),
+            (None, 10, "lower", None, TypeError, re.escape("ColumnCompareExpectation: the argument `column` does not correspond to the expected types '[str | Column]'. Got: NoneType")),
+        ],
+    )
+    def test_init_exceptions(
+        self, column_name, value, operator, message, exception, match
+    ):
+        with pytest.raises(exception, match=match):
+            ColumnCompareExpectation(column_name, value, operator, message)
+
+    def test_constraint(self, spark_session):
+        expectations = ColumnCompareExpectation("age", 10, "lower")
+        assert repr(expectations.constraint) == "Column<'(age < 10)'>"
+        expectations = ColumnCompareExpectation("age", 10, "higher")
+        assert repr(expectations.constraint) == "Column<'(age > 10)'>"
+        expectations = ColumnCompareExpectation("age", 10, "lower_or_equal")
+        assert repr(expectations.constraint) == "Column<'(age <= 10)'>"
+        expectations = ColumnCompareExpectation("age", 10, "higher_or_equal")
+        assert repr(expectations.constraint) == "Column<'(age >= 10)'>"
+        expectations = ColumnCompareExpectation("age", "NoneObject", "equal")
+        assert repr(expectations.constraint) == "Column<'(age = NoneObject)'>"
+        expectations = ColumnCompareExpectation("age", "NoneObject", "different")
+        assert repr(expectations.constraint) == "Column<'(NOT (age = NoneObject))'>"
+
+
+    @pytest.mark.parametrize(
+        "column_name, value, operator, custom_message, has_failed, expected_message",
+        [
+            ("age", 10, "higher", "custom message", True, "ColumnCompareExpectation: custom message"),
+            ("age", 10, "higher", "custom message", False, "ColumnCompareExpectation: custom message"),
+            ("age", 10, "higher", None, True, "ColumnCompareExpectation: The column `age` is not higher than `10`"),
+            ("age", 10, "higher", None, False, "ColumnCompareExpectation: The column `age` is higher than `10`"),
+            ("age", 10, "equal", None, True, "ColumnCompareExpectation: The column `age` is not equal to `10`"),
+            ("age", 10, "equal", None, False, "ColumnCompareExpectation: The column `age` is equal to `10`"),
+        ],
+    )
+    def test_get_message(
+        self,
+        spark_session,
+        column_name,
+        value,
+        operator,
+        custom_message,
+        has_failed,
+        expected_message,
+    ):
+        expectations = ColumnCompareExpectation(column_name, value, operator, custom_message)
+        expectations.expected = value
+        expectations.get_message(has_failed)
+        assert expectations.message == expected_message
+
+    @pytest.mark.parametrize(
+        "column_name, value, operator, custom_message, expected_result",
+        [
+            ("age", 10, "higher", None,
+                {
+                    "example": {},
+                    "got": 0,
+                    "has_failed": False,
+                    "message": r"ColumnCompareExpectation: The column `age` is higher than `10`",
+                },
+            ),
+            ("age", 10, "higher_or_equal", None,
+                {
+                    "example": {},
+                    "got": 0,
+                    "has_failed": False,
+                    "message": r"ColumnCompareExpectation: The column `age` is higher or equal than `10`",
+                },
+            ),
+            ("age", 50, "lower_or_equal", None,
+                {
+                    "example": {},
+                    "got": 0,
+                    "has_failed": False,
+                    "message": r"ColumnCompareExpectation: The column `age` is lower or equal than `50`",
+                },
+            ),
+            ("age", 10, "lower", None,
+                {
+                    "example": {"age": 25},
+                    "got": 3,
+                    "has_failed": True,
+                    "message": r"ColumnCompareExpectation: The column `age` is not lower than `10`",
+                },
+            ),
+            ("is_student", True, "equal", None,
+                {
+                    "example": {},
+                    "got": 0,
+                    "has_failed": False,
+                    "message": r"ColumnCompareExpectation: The column `is_student` is equal to `True`",
+                },
+            ),
+            ("only_NULL", None, "equal", None,
+                {
+                    "example": {},
+                    "got": 0,
+                    "has_failed": False,
+                    "message": r"ColumnCompareExpectation: The column `only_NULL` is equal to `None`",
+                },
+            ),
+            ("is_student", True, "different", None,
+                {
+                    "example": {"is_student": True},
+                    "got": 3,
+                    "has_failed": True,
+                    "message": r"ColumnCompareExpectation: The column `is_student` is not different to `True`",
+                },
+            ),
+        ],
+    )
+    def test_eval_expectation(
+        self,
+        df_test,
+        column_name,
+        value,
+        operator,
+        custom_message,
+        expected_result,
+    ):
+        expectations = ColumnCompareExpectation(column_name, value, operator, custom_message)
+        assert expectations.eval_expectation(df_test) == expected_result
+
+    def test_eval_expectation_exception(self, df_test):
+        expectations = ColumnCompareExpectation("age", "10", "lower")
+        with pytest.raises(ValueError, match="ColumnCompareExpectation: Column 'age' does not exist in the DataFrame"):
+            expectations.eval_expectation(df_test.drop("age"))
+        with pytest.raises(TypeError, match="ColumnCompareExpectation: The target must be a Spark DataFrame, but got 'int'"):
+            expectations.eval_expectation(1)
+
+    def test_eval_dataframe_empty(self, df_test_empty):
+        expectations = ColumnCompareExpectation("age", True, "equal")
+        expectation_result = expectations.eval_expectation(df_test_empty)
+        assert expectation_result == {
+            "got": "Empty DataFrame",
+            "has_failed": False,
+            "message": "ColumnCompareExpectation: The DataFrame is empty.",
         }

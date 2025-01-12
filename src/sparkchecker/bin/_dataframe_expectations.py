@@ -150,7 +150,7 @@ class CountThreshold(DataFrameExpectation):
         :raises: (ValueError), If the operator is not valid.
         """
         self.message = message
-        _op_check(operator)
+        _op_check(self, operator)
         self.value = value
         self.operator = operator
 
@@ -221,7 +221,7 @@ class PartitionsCount(DataFrameExpectation):
         :raises: (ValueError), If the operator is not valid.
         """
         self.message = message
-        _op_check(operator)
+        _op_check(self, operator)
         self.value = value
         self.operator = operator
 

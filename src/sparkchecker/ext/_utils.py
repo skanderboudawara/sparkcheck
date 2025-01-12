@@ -30,7 +30,7 @@ def to_col(
     >>> from pyspark.sql import SparkSession
     >>> spark = SparkSession.builder.getOrCreate()
     >>> to_col(None)
-    Column<'NULL'>
+    Column<'NoneObject'>
 
     >>> to_col('column1')
     Column<'column1'>
@@ -57,7 +57,7 @@ def to_col(
 
     """
     if column_name is None:
-        return lit(None)
+        return lit("NoneObject")
 
     # Handle string column names
     if isinstance(column_name, str):
@@ -100,7 +100,7 @@ def to_name(column: str | Column | bool | float | None) -> str:
     'column1'
 
     >>> to_name(None)
-    'NULL'
+    'NoneObject'
 
     >>> to_name(1)
     '1'
@@ -112,7 +112,7 @@ def to_name(column: str | Column | bool | float | None) -> str:
 
     """
     if column is None:
-        return "NULL"
+        return "NoneObject"
     if isinstance(column, str | bool | float | int):
         return str(column)
     if isinstance(column, Column):
@@ -123,7 +123,7 @@ def to_name(column: str | Column | bool | float | None) -> str:
     )
 
 
-def _op_check(operator: str) -> None:
+def _op_check(self: object, operator: str) -> None:
     """
     Check if the operator is valid.
 
@@ -132,14 +132,24 @@ def _op_check(operator: str) -> None:
     :raises: (ValueError), If the operator is not valid.
 
     Example:
-    >>> _op_check('lower')
+    >>> class HelloWorld:
+    ...     def __init__(self):
+    ...         pass
+    >>> data = HelloWorld()
+    >>> _op_check(data, 'lower')
+    >>> _op_check(data, 'flower')
+    Traceback (most recent call last):
+        ...
+    ValueError: HelloWorld: Invalid operator: 'flower'. Must be one of: \
+'[lower, lower_or_equal, equal, different, higher, higher_or_equal]'
 
     """
+    class_name = self.__class__.__name__
     if operator not in OPERATOR_MAP:
         valid_operators = ", ".join(OPERATOR_MAP.keys())
         raise ValueError(
-            f"Invalid operator: '{operator}'."
-            f"Must be one of: {valid_operators}",
+            f"{class_name}: Invalid operator: '{operator}'. "
+            f"Must be one of: '[{valid_operators}]'",
         )
 
 
