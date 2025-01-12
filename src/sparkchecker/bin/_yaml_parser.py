@@ -255,7 +255,7 @@ class ExpectationsYamlParser:
                 }
             else:
                 constraint = {"column": self.constraint}
-            self.append("exist", constraint)
+            self.append("has_columns", constraint)
 
     def _column_checks(self) -> None:
         """

@@ -16,17 +16,17 @@ from ._column_expectations import (
     RegexLikeColumnExpectation,
 )
 from ._dataframe_expectations import (
-    CountThreshold,
-    Exist,
-    IsEmpty,
-    PartitionsCount,
+    DataFrameCountThresholdExpectation,
+    DataFrameHasColumnsExpectation,
+    DataFrameIsEmptyExpectation,
+    DataFramePartitionsCountExpectation,
 )
 
 DATAFRAME_OPERATIONS: Mapping[str, type[DataFrameExpectation]] = {
-    "count": CountThreshold,
-    "partitions": PartitionsCount,
-    "is_empty": IsEmpty,
-    "exist": Exist,
+    "count": DataFrameCountThresholdExpectation,
+    "partitions": DataFramePartitionsCountExpectation,
+    "is_empty": DataFrameIsEmptyExpectation,
+    "has_columns": DataFrameHasColumnsExpectation,
 }
 COLUMN_INSTANCES: Mapping[str, type[ColumnsExpectations]] = {
     "not_null": NonNullColumnExpectation,

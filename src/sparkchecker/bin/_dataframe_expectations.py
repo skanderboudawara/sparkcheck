@@ -13,7 +13,7 @@ from ..ext._utils import _op_check, _resolve_msg, _substitute
 from ._base import DataFrameExpectation
 
 
-class IsEmpty(DataFrameExpectation):
+class DataFrameIsEmptyExpectation(DataFrameExpectation):
     @check_inputs
     def __init__(
         self,
@@ -72,7 +72,7 @@ class IsEmpty(DataFrameExpectation):
         }
 
 
-class IsNotEmpty(DataFrameExpectation):
+class DataFrameIsNotEmptyExpectation(DataFrameExpectation):
     @check_inputs
     def __init__(
         self,
@@ -130,7 +130,7 @@ class IsNotEmpty(DataFrameExpectation):
         }
 
 
-class CountThreshold(DataFrameExpectation):
+class DataFrameCountThresholdExpectation(DataFrameExpectation):
     @check_inputs
     def __init__(
         self,
@@ -201,7 +201,7 @@ class CountThreshold(DataFrameExpectation):
         }
 
 
-class PartitionsCount(DataFrameExpectation):
+class DataFramePartitionsCountExpectation(DataFrameExpectation):
     @check_inputs
     def __init__(
         self,
@@ -272,7 +272,7 @@ class PartitionsCount(DataFrameExpectation):
         }
 
 
-class Exist(DataFrameExpectation):
+class DataFrameHasColumnsExpectation(DataFrameExpectation):
     @check_inputs
     def __init__(
         self,
