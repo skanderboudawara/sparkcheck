@@ -1,7 +1,7 @@
 import inspect
 from collections.abc import Callable
 from functools import wraps
-from typing import Any
+from typing import Any, get_type_hints
 
 from pyspark.sql import DataFrame
 
@@ -114,46 +114,122 @@ def check_column_exist(method: Callable) -> Callable:
 
     @wraps(method)
     def _expectation(self: Any, target: DataFrame) -> Any:
+        class_name = self.__class__.__name__
         column_name = to_name(self.column)
         if column_name not in target.columns:
             target.printSchema()
             raise ValueError(
-                f"Column '{column_name}' does not exist in the DataFrame",
+                f"{class_name}: Column '{column_name}' does not exist "
+                "in the DataFrame",
             )
         return method(self, target)
 
     return _expectation
 
 
-def check_message(func: Callable) -> Callable:
+def check_inputs(func: Callable) -> Callable:
     """
-    A decorator that checks if the 'message' argument passed to the decorated
-        function is a string.
+    This decorator checks if the arguments passed to the decorated function
+        correspond to the expected types.
 
-    This decorator inspects the arguments passed to the decorated function
-        and ensures that if a 'message' argument is present, it is of
-        type 'str'. If 'message' is not a string, a TypeError is raised.
+    The expected types are inferred from the type hints of the function.
+
+    If an argument does not correspond to the expected type,
+        a TypeError is raised.
 
     :param func: (Callable), The function to be decorated.
-    :return: (Callable), The wrapped function with 'message' type validation.
-    :raises: (TypeError), If 'message' is present and is not of type 'str'.
+    :return: (Callable), The wrapped function with input type checking.
+    :raises: (TypeError), If an argument does not correspond to
+        the expected type.
     """
 
     @wraps(func)
-    def wrapper(*args: Any, **kwargs: Any) -> Any:
-        # Check if 'message' is in args or kwargs
-        sig = inspect.signature(func)
-        bound_args = sig.bind(*args, **kwargs)
+    def wrapper(self: Any, *args: Any, **kwargs: Any) -> Any:
+        class_name = self.__class__.__name__
+
+        # Get the function's signature and type hints
+        signature = inspect.signature(func)
+        type_hints = get_type_hints(func)
+
+        # Bind the arguments to the function signature
+        bound_args = signature.bind(self, *args, **kwargs)
         bound_args.apply_defaults()
-        message = bound_args.arguments.get("message")
 
-        # Validate 'message' is a string
-        if message is not None and not isinstance(message, str):
+        # Check each argument against its type hint
+        for arg_name, arg_value in bound_args.arguments.items():
+            if arg_name == "self":  # Skip `self`
+                continue
+
+            expected_type = type_hints.get(arg_name)
+            if (
+                expected_type is None or expected_type is Any
+            ):  # Skip type checking for Any
+                continue
+            if expected_type and not isinstance(arg_value, expected_type):
+                types_str = " | ".join(
+                    t.__name__
+                    for t in getattr(
+                        expected_type,
+                        "__args__",
+                        [expected_type],
+                    )
+                )
+                raise TypeError(
+                    f"{class_name}: the argument `{arg_name}` does not "
+                    f"correspond to the expected types '[{types_str}]'. "
+                    f"Got: {type(arg_value).__name__}",
+                )
+
+        return func(self, *args, **kwargs)
+
+    return wrapper
+
+
+def add_class_prefix(func: Callable) -> Callable:
+    """
+    This decorator adds the class name as a prefix to the 'message' attribute
+        of the class instance.
+
+    :param func: (Callable), The function to be decorated.
+    :return: (Callable), The wrapped function with the class name prefix.
+    """
+
+    @wraps(func)
+    def wrapper(self: Any, *args: Any, **kwargs: Any) -> Any:
+        # Call the original function and get its return value
+        result = func(self, *args, **kwargs)
+        # Get the class name dynamically
+        class_name = self.__class__.__name__
+        self.message = f"{class_name}: {self.message}"
+        return result
+
+    return wrapper
+
+
+def check_dataframe(method: Callable) -> Callable:
+    """
+    A decorator to check if the target is a Spark DataFrame and is not empty.
+
+    :param method: (Callable), The method to be decorated.
+    :return: (Callable), The wrapped method with DataFrame validation.
+    :raises: (TypeError), If the target is not a Spark DataFrame
+    """
+
+    @wraps(method)
+    def wrapper(self: Any, target: DataFrame) -> Any:
+        class_name = self.__class__.__name__
+        if not isinstance(target, DataFrame):
             raise TypeError(
-                "Expected 'message' to be of type 'str', "
-                f"but got '{type(message).__name__}'.",
+                f"{class_name}: The target must be a Spark DataFrame, "
+                f"but got '{type(target).__name__}'.",
             )
+        if target.isEmpty():
+            return {
+                "has_failed": False,
+                "got": "Empty DataFrame",
+                "message": f"{class_name}: The DataFrame is empty.",
+            }
 
-        return func(*args, **kwargs)
+        return method(self, target)
 
     return wrapper

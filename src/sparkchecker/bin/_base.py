@@ -5,13 +5,13 @@ from pyspark.sql import Column, DataFrame
 
 from ..ext._decorators import (
     check_column_exist,
-    check_message,
+    check_inputs,
     validate_expectation,
 )
 
 
 class ColumnsExpectations(ABC):  # pragma: no cover
-    @check_message
+    @check_inputs
     def __init__(
         self,
         col_name: str | Column,
@@ -35,7 +35,7 @@ class ColumnsExpectations(ABC):  # pragma: no cover
 
 
 class DataFrameExpectation(ABC):  # pragma: no cover
-    @check_message
+    @check_inputs
     def __init__(
         self,
         message: str | None = None,

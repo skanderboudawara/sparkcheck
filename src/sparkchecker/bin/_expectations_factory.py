@@ -9,11 +9,11 @@ from pyspark.sql import DataFrame
 from ..ext._decorators import order_expectations_dict
 from ._base import ColumnsExpectations, DataFrameExpectation
 from ._column_expectations import (
-    ColumnCompare,
-    IsInColumn,
-    NonNullColumn,
-    NullColumn,
-    RlikeColumn,
+    ColumnCompareExpectation,
+    IsInColumnExpectation,
+    NonNullColumnExpectation,
+    NullColumnExpectation,
+    RegexLikeColumnExpectation,
 )
 from ._dataframe_expectations import (
     CountThreshold,
@@ -29,16 +29,16 @@ DATAFRAME_OPERATIONS: Mapping[str, type[DataFrameExpectation]] = {
     "exist": Exist,
 }
 COLUMN_INSTANCES: Mapping[str, type[ColumnsExpectations]] = {
-    "not_null": NonNullColumn,
-    "is_null": NullColumn,
-    "pattern": RlikeColumn,
-    "in": IsInColumn,
-    "lower": ColumnCompare,
-    "lower_or_equal": ColumnCompare,
-    "equal": ColumnCompare,
-    "different": ColumnCompare,
-    "higher": ColumnCompare,
-    "higher_or_equal": ColumnCompare,
+    "not_null": NonNullColumnExpectation,
+    "is_null": NullColumnExpectation,
+    "pattern": RegexLikeColumnExpectation,
+    "in": IsInColumnExpectation,
+    "lower": ColumnCompareExpectation,
+    "lower_or_equal": ColumnCompareExpectation,
+    "equal": ColumnCompareExpectation,
+    "different": ColumnCompareExpectation,
+    "higher": ColumnCompareExpectation,
+    "higher_or_equal": ColumnCompareExpectation,
 }
 
 
