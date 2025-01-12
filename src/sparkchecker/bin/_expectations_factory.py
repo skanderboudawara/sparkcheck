@@ -16,17 +16,17 @@ from ._column_expectations import (
     ColRegexLikeCheck,
 )
 from ._dataframe_expectations import (
-    DfCountThresholdCheck,
-    DfHasColumnsCheck,
-    DfIsEmptyCheck,
-    DfPartitionsCountCheck,
+    DataFrameCountThresholdCheck,
+    DataFrameHasColumnsCheck,
+    DataFrameIsEmptyCheck,
+    DataFramePartitionsCountCheck,
 )
 
 DATAFRAME_CHECKS: Mapping[str, type[DataFrameExpectation]] = {
-    "count": DfCountThresholdCheck,
-    "partitions": DfPartitionsCountCheck,
-    "is_empty": DfIsEmptyCheck,
-    "has_columns": DfHasColumnsCheck,
+    "count": DataFrameCountThresholdCheck,
+    "partitions": DataFramePartitionsCountCheck,
+    "is_empty": DataFrameIsEmptyCheck,
+    "has_columns": DataFrameHasColumnsCheck,
 }
 COLUMN_CHECKS: Mapping[str, type[ColumnsExpectations]] = {
     "not_null": ColNonNullCheck,
