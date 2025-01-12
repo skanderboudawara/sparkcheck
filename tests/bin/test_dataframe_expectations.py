@@ -5,6 +5,7 @@ from src.sparkchecker.bin._dataframe_expectations import (
     DfIsEmptyCheck,
     DfCountThresholdCheck,
     DfPartitionsCountCheck,
+    DfHasColumnsCheck,
 )
 from pyspark.sql.types import (
     StructType,
@@ -16,7 +17,6 @@ from pyspark.sql.types import (
     DateType,
     TimestampType,
 )
-from pyspark.sql.functions import col, lit
 from datetime import datetime
 
 
@@ -347,6 +347,20 @@ class TestDfPartitionsCountCheck(TestDfExpectation):
                     "message": "DfPartitionsCountCheck: The DataFrame has 3 partitions, which is not equal to 1",
                 },
             ),
+            (1, "equal", "custom_message", 1,
+                {
+                    "got": 1,
+                    "has_failed": False,
+                    "message": "DfPartitionsCountCheck: custom_message",
+                },
+            ),
+            (1, "equal", "custom_message", 3,
+                {
+                    "got": 3,
+                    "has_failed": True,
+                    "message": "DfPartitionsCountCheck: custom_message",
+                },
+            ),
         ],
     )
     def test_eval_expectation(
@@ -366,4 +380,140 @@ class TestDfPartitionsCountCheck(TestDfExpectation):
     def test_eval_expectation_exception(self):
         expectations = DfPartitionsCountCheck(1, "lower", "name")
         with pytest.raises(TypeError, match="DfPartitionsCountCheck: The target must be a Spark DataFrame, but got 'int'"):
+            expectations.eval_expectation(1)
+
+class TestDfHasColumnsCheck(TestDfExpectation):
+
+    @pytest.mark.parametrize(
+        "column, value, message",
+        [
+            ("name", StringType(), None),
+            ("name", StringType(), "hello world"),
+            ("name", None, None),
+            ("name", None, "hello world"),
+        ],
+    )
+    def test_init(self, column, value, message):
+        DfHasColumnsCheck(column, value, message)
+
+    @pytest.mark.parametrize(
+        "column, value, message, exception, match",
+        [
+            ("name", StringType(), 1, TypeError, re.escape("DfHasColumnsCheck: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
+            (1, StringType(), None, TypeError, re.escape("DfHasColumnsCheck: the argument `column` does not correspond to the expected types '[str]'. Got: int")),
+            ("name", "string", "custom", TypeError, re.escape("DfHasColumnsCheck: the argument `value` does not correspond to the expected types '[DataType | NoneType]'. Got: str")),
+        ],
+    )
+    def test_init_exceptions(
+        self, column, value, message, exception, match
+    ):
+        with pytest.raises(exception, match=match):
+            DfHasColumnsCheck(column, value, message)
+
+    @pytest.mark.parametrize(
+        "value, custom_message, has_failed, expected_message",
+        [
+            (None, "custom message", True, "DfHasColumnsCheck: custom message"),
+            (None, "custom message", False, "DfHasColumnsCheck: custom message"),
+            (None, None, True, "DfHasColumnsCheck: Column 'name' doesn't exist in the DataFrame"),
+            (None, None, False, "DfHasColumnsCheck: Column 'name' does exist in the DataFrame"),
+            (StringType(), "custom message", True, "DfHasColumnsCheck: custom message"),
+            (StringType(), "custom message", False, "DfHasColumnsCheck: custom message"),
+            (StringType(), None, True, "DfHasColumnsCheck: Column 'name' exists in the DataFrame but it's not of type: StringType()"),
+            (StringType(), None, False, "DfHasColumnsCheck: Column 'name' exists in the DataFrame and it's of type: StringType()"),
+        ],
+    )
+    def test_get_message(
+        self,
+        value,
+        custom_message,
+        has_failed,
+        expected_message,
+    ):
+        expectations = DfHasColumnsCheck("name", value, custom_message)
+        expectations.get_message(has_failed)
+        assert expectations.message == expected_message
+
+    @pytest.mark.parametrize(
+        "column, value, custom_message, expected_result",
+        [
+            ("name", None, None,
+                {
+                    "got": "name",
+                    "has_failed": False,
+                    "message": "DfHasColumnsCheck: Column 'name' does exist in the DataFrame",
+                },
+            ),
+            ("not_name", None, None,
+                {
+                    "got": "name, age, height, is_student, birth_date, last_check_in",
+                    "has_failed": True,
+                    "message": "DfHasColumnsCheck: Column 'not_name' doesn't exist in the DataFrame",
+                },
+            ),
+            ("name", None, "custom_message",
+                {
+                    "got": "name",
+                    "has_failed": False,
+                    "message": "DfHasColumnsCheck: custom_message",
+                },
+            ),
+            ("not_name", None, "custom_message",
+                {
+                    "got": "name, age, height, is_student, birth_date, last_check_in",
+                    "has_failed": True,
+                    "message": "DfHasColumnsCheck: custom_message",
+                },
+            ),
+            ("name", StringType(), None,
+                {
+                    "got": StringType(),
+                    "has_failed": False,
+                    "message": "DfHasColumnsCheck: Column 'name' exists in the DataFrame and it's of type: StringType()",
+                },
+            ),
+            ("name", DoubleType(), None,
+                {
+                    "got": StringType(),
+                    "has_failed": True,
+                    "message": "DfHasColumnsCheck: Column 'name' exists in the DataFrame but it's not of type: DoubleType()",
+                },
+            ),
+            ("not_name", DoubleType(), None,
+                {
+                    "got": "name, age, height, is_student, birth_date, last_check_in",
+                    "has_failed": True,
+                    "message": "DfHasColumnsCheck: Column 'not_name' doesn't exist in the DataFrame",
+                },
+            ),
+            ("name", StringType(), "custom_message",
+                {
+                    "got": StringType(),
+                    "has_failed": False,
+                    "message": "DfHasColumnsCheck: custom_message",
+                },
+            ),
+            ("not_name", DoubleType(), "custom_message",
+                {
+                    "got": "name, age, height, is_student, birth_date, last_check_in",
+                    "has_failed": True,
+                    "message": "DfHasColumnsCheck: custom_message",
+                },
+            ),
+        ],
+    )
+    def test_eval_expectation(
+        self,
+        df_test,
+        value,
+        column,
+        custom_message,
+        expected_result,
+    ):
+        expectations = DfHasColumnsCheck(column, value, custom_message)
+        assert expectations.eval_expectation(df_test) == expected_result
+
+    def test_eval_expectation_exception(self):
+        expectations = DfHasColumnsCheck("name", StringType(), "name")
+        with pytest.raises(TypeError, match="DfHasColumnsCheck: The target must be a Spark DataFrame, but got 'int'"):
             expectations.eval_expectation(1)

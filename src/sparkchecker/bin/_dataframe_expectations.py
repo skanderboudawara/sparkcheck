@@ -205,8 +205,8 @@ class DfHasColumnsCheck(DataFrameExpectation):
     def __init__(
         self,
         column: str,
-        message: str | None = None,
         value: DataType | None = None,
+        message: str | None = None,
         **kwargs: Any,  # noqa: ARG002
     ) -> None:
         """
@@ -232,17 +232,19 @@ class DfHasColumnsCheck(DataFrameExpectation):
         """
         if self.value:
             default_message = (
-                f"Column {self.column} exists in the DataFrame"
-                f"and <$is|is not> of type: {self.value}"
+                f"Column '{self.column}' exists in the DataFrame "
+                f"<$but|and> it'<$s not|s> of type: {self.value}"
             )
             self.message = _resolve_msg(default_message, self.message)
-            self.message = _substitute(self.message, check, "<$is|is not>")
+            self.message = _substitute(self.message, check, "<$but|and>")
+            self.message = _substitute(self.message, check, "<$s not|s>")
         else:
             default_message = (
-                f"Column {self.column} <$does|doesn't> exist in the DataFrame"
+                f"Column '{self.column}' <$doesn't|does> exist "
+                "in the DataFrame"
             )
             self.message = _resolve_msg(default_message, self.message)
-            self.message = _substitute(self.message, check, "<$does|doesn't>")
+            self.message = _substitute(self.message, check, "<$doesn't|does>")
 
     @validate_expectation
     @check_dataframe
@@ -254,28 +256,32 @@ class DfHasColumnsCheck(DataFrameExpectation):
         :return: (dict), the expectation result
         :raises: (TypeError), If the target is not a DataFrame.
         """
-        check_exist = self.column in target.columns
-        self.get_message(check_exist)
+        check_exist = self.column not in target.columns
+        check_type = False
+        if self.value and not (check_exist):
+            data_type = target.schema[self.column].dataType
+            check_type = data_type != self.value
+        else:
+            # overwrite the value to None if the column does not exist
+            self.value = None
 
-        if not check_exist:
+        self.get_message(check_exist or check_type)
+        if check_exist:
             return {
                 "has_failed": check_exist,
                 "got": ", ".join(target.columns),
                 "message": self.message,
             }
 
-        if self.value:
-            data_type = target.schema[self.column].dataType
-            check_type = data_type == self.value
-            self.get_message(check_type)
+        if self.value and not (check_exist):
             return {
-                "has_failed": not (check_type),
+                "has_failed": check_type,
                 "got": data_type,
                 "message": self.message,
             }
 
         return {
-            "has_failed": not (check_exist),
+            "has_failed": check_exist,
             "got": self.column,
             "message": self.message,
         }
