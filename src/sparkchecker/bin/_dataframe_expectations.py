@@ -5,6 +5,7 @@ from pyspark.sql.types import DataType
 
 from ..constants import OPERATOR_MAP
 from ..ext._decorators import (
+    add_class_prefix,
     check_dataframe,
     check_inputs,
     validate_expectation,
@@ -17,8 +18,8 @@ class DfIsEmptyCheck(DataFrameExpectation):
     @check_inputs
     def __init__(
         self,
-        message: str | None = None,
         value: bool | None = None,
+        message: str | None = None,
         **kwargs: Any,  # noqa: ARG002
     ) -> None:
         """
@@ -30,10 +31,11 @@ class DfIsEmptyCheck(DataFrameExpectation):
         :raises: (TypeError), If the value is not a boolean.
         """
         self.message = message
-        if not value:
+        if value is None:
             value = True
         self.value = value
 
+    @add_class_prefix
     def get_message(self, check: bool) -> None:
         """
         This method returns the message result formatted with the check.
@@ -42,9 +44,9 @@ class DfIsEmptyCheck(DataFrameExpectation):
 
         :returns: (str), the message
         """
-        default_msg = "The DataFrame <$is|is not> empty"
+        default_msg = "The DataFrame <$is not|is> empty"
         self.message = _resolve_msg(default_msg, self.message)
-        self.message = _substitute(self.message, check, "<$is|is not>")
+        self.message = _substitute(self.message, check, "<$is not|is>")
 
     @validate_expectation
     @check_dataframe
@@ -56,64 +58,12 @@ class DfIsEmptyCheck(DataFrameExpectation):
         :return: (dict), the expectation result
         :raises: (TypeError), If the target is not a DataFrame.
         """
-        check = target.isEmpty()
-        has_failed = self.value != check
-        self.get_message(check)
+        has_failed = target.isEmpty()
+        has_failed = has_failed != self.value
+        self.get_message(has_failed if self.value else not has_failed)
         return {
             "has_failed": has_failed,
-            "got": check,
-            "message": self.message,
-        }
-
-
-class DataFrameIsNotEmptyExpectation(DataFrameExpectation):
-    @check_inputs
-    def __init__(
-        self,
-        message: str | None = None,
-        value: bool | None = None,
-        **kwargs: Any,  # noqa: ARG002
-    ) -> None:
-        """
-        This class checks if a DataFrame is empty.
-
-        :param message: (str), the message to display
-        :param value: (bool), the value to check
-        :return: None
-        :raises: (TypeError), If the value is not a boolean.
-        """
-        self.message = message
-        if not value:
-            value = True
-        self.value = value
-
-    def get_message(self, check: bool) -> None:
-        """
-        This method returns the message result formatted with the check.
-
-        :param check: (bool), the check
-        :returns: (str), the message
-        """
-        default_msg = "The DataFrame <$is|is not> not empty"
-        self.message = _resolve_msg(default_msg, self.message)
-        self.message = _substitute(self.message, check, "<$is|is not>")
-
-    @validate_expectation
-    @check_dataframe
-    def eval_expectation(self, target: DataFrame) -> dict:
-        """
-        This method returns the expectation result.
-
-        :param target: (DataFrame), the DataFrame to check
-        :return: (dict), the expectation result
-        :raises: (TypeError), If the target is not a DataFrame.
-        """
-        check = not (target.isEmpty())
-        has_failed = self.value != check
-        self.get_message(check)
-        return {
-            "has_failed": has_failed,
-            "got": check,
+            "got": has_failed,
             "message": self.message,
         }
 
@@ -142,6 +92,7 @@ class DfCountThresholdCheck(DataFrameExpectation):
         self.value = value
         self.operator = operator
 
+    @add_class_prefix
     def get_message(self, check: bool) -> None:
         """
         This method returns the message result formatted with the check.
@@ -150,11 +101,11 @@ class DfCountThresholdCheck(DataFrameExpectation):
         :returns: (str), the message
         """
         default_msg = (
-            f"The DataFrame has {self.result} rows, which <$is|isn't>"
+            f"The DataFrame has {self.result} rows, which <$is not|is>"
             f" {self.operator} <$to|than> {self.value}"
         )
         self.message = _resolve_msg(default_msg, self.message)
-        self.message = _substitute(self.message, check, "<$is|is not>")
+        self.message = _substitute(self.message, check, "<$is not|is>")
         self.message = _substitute(
             self.message,
             self.operator in {"equal", "different"},
@@ -173,11 +124,11 @@ class DfCountThresholdCheck(DataFrameExpectation):
         """
         count = target.count()
         # Convert the threshold to a literal value and apply the operator
-        check = OPERATOR_MAP[self.operator](count, self.value)
+        check = not (OPERATOR_MAP[self.operator](count, self.value))
         self.result = count
         self.get_message(check)
         return {
-            "has_failed": not (check),
+            "has_failed": check,
             "got": count,
             "message": self.message,
         }
@@ -207,6 +158,7 @@ class DfPartitionsCountCheck(DataFrameExpectation):
         self.value = value
         self.operator = operator
 
+    @add_class_prefix
     def get_message(self, check: bool) -> None:
         """
         This method returns the message result formatted with the check.
@@ -270,6 +222,7 @@ class DfHasColumnsCheck(DataFrameExpectation):
         self.value = value
         self.column = column
 
+    @add_class_prefix
     def get_message(self, check: bool) -> None:
         """
         This method returns the message result formatted with the check.

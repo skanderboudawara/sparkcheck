@@ -134,23 +134,21 @@ class TestColNonNullCheck(BaseClassColumnTest):
         )
 
     @pytest.mark.parametrize(
-        "column_name, value, custom_message, has_failed, expected_message",
+        "custom_message, has_failed, expected_message",
         [
-            ("name", True, "custom message", True, "ColNonNullCheck: custom message"),
-            ("name", True, "custom message", False, "ColNonNullCheck: custom message"),
-            ("name", True, None, True, "ColNonNullCheck: The column `name` did not meet the expectation of ColNonNullCheck"),
-            ("name", True, None, False, "ColNonNullCheck: The column `name` did meet the expectation of ColNonNullCheck"),
+            ("custom message", True, "ColNonNullCheck: custom message"),
+            ("custom message", False, "ColNonNullCheck: custom message"),
+            (None, True, "ColNonNullCheck: The column `name` did not meet the expectation of ColNonNullCheck"),
+            (None, False, "ColNonNullCheck: The column `name` did meet the expectation of ColNonNullCheck"),
         ],
     )
     def test_get_message(
         self,
-        column_name,
-        value,
         custom_message,
         has_failed,
         expected_message,
     ):
-        expectations = ColNonNullCheck(column_name, value, custom_message)
+        expectations = ColNonNullCheck("name", True, custom_message)
         expectations.get_message(has_failed)
         assert expectations.message == expected_message
 
@@ -295,23 +293,21 @@ class TestColNullCheck(BaseClassColumnTest):
         )
 
     @pytest.mark.parametrize(
-        "column_name, value, custom_message, has_failed, expected_message",
+        "custom_message, has_failed, expected_message",
         [
-            ("name", True, "custom message", True, "ColNullCheck: custom message"),
-            ("name", True, "custom message", False, "ColNullCheck: custom message"),
-            ("name", True, None, True, "ColNullCheck: The column `name` did not meet the expectation of ColNullCheck"),
-            ("name", True, None, False, "ColNullCheck: The column `name` did meet the expectation of ColNullCheck"),
+            ("custom message", True, "ColNullCheck: custom message"),
+            ("custom message", False, "ColNullCheck: custom message"),
+            (None, True, "ColNullCheck: The column `name` did not meet the expectation of ColNullCheck"),
+            (None, False, "ColNullCheck: The column `name` did meet the expectation of ColNullCheck"),
         ],
     )
     def test_get_message(
         self,
-        column_name,
-        value,
         custom_message,
         has_failed,
         expected_message,
     ):
-        expectations = ColNullCheck(column_name, value, custom_message)
+        expectations = ColNullCheck("name", True, custom_message)
         expectations.get_message(has_failed)
         assert expectations.message == expected_message
 
@@ -448,25 +444,23 @@ class TestColRegexLikeCheck(BaseClassColumnTest):
         assert repr(expectations.constraint) == "Column<'regexp(name, alice)'>"
 
     @pytest.mark.parametrize(
-        "column_name, value, custom_message, has_failed, expected_message",
+        "custom_message, has_failed, expected_message",
         [
-            ("name", r".*", "custom message", True, "ColRegexLikeCheck: custom message"),
-            ("name", r".*", "custom message", False, "ColRegexLikeCheck: custom message"),
-            ("name", r".*", None, True, "ColRegexLikeCheck: The column `name` did not respect the pattern `.*`"),
-            ("name", r".*", None, False, "ColRegexLikeCheck: The column `name` did respect the pattern `.*`"),
+            ("custom message", True, "ColRegexLikeCheck: custom message"),
+            ("custom message", False, "ColRegexLikeCheck: custom message"),
+            (None, True, "ColRegexLikeCheck: The column `name` did not respect the pattern `.*`"),
+            (None, False, "ColRegexLikeCheck: The column `name` did respect the pattern `.*`"),
         ],
     )
     def test_get_message(
         self,
         spark_session,
-        column_name,
-        value,
         custom_message,
         has_failed,
         expected_message,
     ):
-        expectations = ColRegexLikeCheck(column_name, value, custom_message)
-        expectations.value = lit(value)
+        expectations = ColRegexLikeCheck("name", r".*", custom_message)
+        expectations.value = lit(r".*")
         expectations.get_message(has_failed)
         assert expectations.message == expected_message
 
@@ -587,24 +581,22 @@ class TestColIsInCheck(BaseClassColumnTest):
         assert repr(expectations.constraint) == "Column<'(country IN (name, AU))'>"
 
     @pytest.mark.parametrize(
-        "column_name, value, custom_message, has_failed, expected_message",
+        "custom_message, has_failed, expected_message",
         [
-            ("country", ["AU"], "custom message", True, "ColIsInCheck: custom message"),
-            ("country", ["AU"], "custom message", False, "ColIsInCheck: custom message"),
-            ("country", ["AU"], None, True, "ColIsInCheck: The column `country` is not in `[AU]`"),
-            ("country", ["AU"], None, False, "ColIsInCheck: The column `country` is in `[AU]`"),
+            ("custom message", True, "ColIsInCheck: custom message"),
+            ("custom message", False, "ColIsInCheck: custom message"),
+            (None, True, "ColIsInCheck: The column `country` is not in `[AU]`"),
+            (None, False, "ColIsInCheck: The column `country` is in `[AU]`"),
         ],
     )
     def test_get_message(
         self,
         spark_session,
-        column_name,
-        value,
         custom_message,
         has_failed,
         expected_message,
     ):
-        expectations = ColIsInCheck(column_name, value, custom_message)
+        expectations = ColIsInCheck("country", ["AU"], custom_message)
         expectations.expected = "AU"
         expectations.get_message(has_failed)
         assert expectations.message == expected_message
@@ -783,28 +775,26 @@ class TestColCompareCheck(BaseClassColumnTest):
 
 
     @pytest.mark.parametrize(
-        "column_name, value, operator, custom_message, has_failed, expected_message",
+        "operator, custom_message, has_failed, expected_message",
         [
-            ("age", 10, "higher", "custom message", True, "ColCompareCheck: custom message"),
-            ("age", 10, "higher", "custom message", False, "ColCompareCheck: custom message"),
-            ("age", 10, "higher", None, True, "ColCompareCheck: The column `age` is not higher than `10`"),
-            ("age", 10, "higher", None, False, "ColCompareCheck: The column `age` is higher than `10`"),
-            ("age", 10, "equal", None, True, "ColCompareCheck: The column `age` is not equal to `10`"),
-            ("age", 10, "equal", None, False, "ColCompareCheck: The column `age` is equal to `10`"),
+            ("higher", "custom message", True, "ColCompareCheck: custom message"),
+            ("higher", "custom message", False, "ColCompareCheck: custom message"),
+            ("higher", None, True, "ColCompareCheck: The column `age` is not higher than `10`"),
+            ("higher", None, False, "ColCompareCheck: The column `age` is higher than `10`"),
+            ("equal", None, True, "ColCompareCheck: The column `age` is not equal to `10`"),
+            ("equal", None, False, "ColCompareCheck: The column `age` is equal to `10`"),
         ],
     )
     def test_get_message(
         self,
         spark_session,
-        column_name,
-        value,
         operator,
         custom_message,
         has_failed,
         expected_message,
     ):
-        expectations = ColCompareCheck(column_name, value, operator, custom_message)
-        expectations.expected = value
+        expectations = ColCompareCheck("age", 10, operator, custom_message)
+        expectations.expected = 10
         expectations.get_message(has_failed)
         assert expectations.message == expected_message
 
