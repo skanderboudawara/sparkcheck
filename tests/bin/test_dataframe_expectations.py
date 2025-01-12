@@ -2,10 +2,10 @@ import pytest
 import re
 from abc import ABC, abstractmethod
 from src.sparkchecker.bin._dataframe_expectations import (
-    DfIsEmptyCheck,
-    DfCountThresholdCheck,
-    DfPartitionsCountCheck,
-    DfHasColumnsCheck,
+    DataFrameIsEmptyCheck,
+    DataFrameCountThresholdCheck,
+    DataFramePartitionsCountCheck,
+    DataFrameHasColumnsCheck,
 )
 from pyspark.sql.types import (
     StructType,
@@ -76,7 +76,7 @@ class TestDfExpectation(ABC):
     def test_eval_expectation_exception(self):
         pass
 
-class TestDfIsEmptyCheck(TestDfExpectation):
+class TestDataFrameIsEmptyCheck(TestDfExpectation):
 
     @pytest.mark.parametrize(
         "value, message",
@@ -87,28 +87,28 @@ class TestDfIsEmptyCheck(TestDfExpectation):
         ],
     )
     def test_init(self, value, message):
-        DfIsEmptyCheck(value, message)
+        DataFrameIsEmptyCheck(value, message)
 
     @pytest.mark.parametrize(
         "value, message, exception, match",
         [
-            (True, 1, TypeError, re.escape("DfIsEmptyCheck: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
-            ("1", None, TypeError, re.escape("DfIsEmptyCheck: the argument `value` does not correspond to the expected types '[bool | NoneType]'. Got: str")),
+            (True, 1, TypeError, re.escape("DataFrameIsEmptyCheck: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
+            ("1", None, TypeError, re.escape("DataFrameIsEmptyCheck: the argument `value` does not correspond to the expected types '[bool | NoneType]'. Got: str")),
         ],
     )
     def test_init_exceptions(
         self, value, message, exception, match
     ):
         with pytest.raises(exception, match=match):
-            DfIsEmptyCheck(value, message)
+            DataFrameIsEmptyCheck(value, message)
 
     @pytest.mark.parametrize(
         "custom_message, has_failed, expected_message",
         [
-            ("custom message", True, "DfIsEmptyCheck: custom message"),
-            ("custom message", False, "DfIsEmptyCheck: custom message"),
-            (None, True, "DfIsEmptyCheck: The DataFrame is not empty"),
-            (None, False, "DfIsEmptyCheck: The DataFrame is empty"),
+            ("custom message", True, "DataFrameIsEmptyCheck: custom message"),
+            ("custom message", False, "DataFrameIsEmptyCheck: custom message"),
+            (None, True, "DataFrameIsEmptyCheck: The DataFrame is not empty"),
+            (None, False, "DataFrameIsEmptyCheck: The DataFrame is empty"),
         ],
     )
     def test_get_message(
@@ -117,7 +117,7 @@ class TestDfIsEmptyCheck(TestDfExpectation):
         has_failed,
         expected_message,
     ):
-        expectations = DfIsEmptyCheck(True, custom_message)
+        expectations = DataFrameIsEmptyCheck(True, custom_message)
         expectations.get_message(has_failed)
         assert expectations.message == expected_message
 
@@ -128,28 +128,28 @@ class TestDfIsEmptyCheck(TestDfExpectation):
                 {
                     "got": True,
                     "has_failed": True,
-                    "message": "DfIsEmptyCheck: The DataFrame is not empty",
+                    "message": "DataFrameIsEmptyCheck: The DataFrame is not empty",
                 },
             ),
             (True, None, True,
                 {
                     "got": False,
                     "has_failed": False,
-                    "message": "DfIsEmptyCheck: The DataFrame is empty",
+                    "message": "DataFrameIsEmptyCheck: The DataFrame is empty",
                 },
             ),
             (False, None, False,
                 {
                     "got": False,
                     "has_failed": False,
-                    "message": "DfIsEmptyCheck: The DataFrame is not empty",
+                    "message": "DataFrameIsEmptyCheck: The DataFrame is not empty",
                 },
             ),
             (False, None, True,
                 {
                     "got": True,
                     "has_failed": True,
-                    "message": "DfIsEmptyCheck: The DataFrame is empty",
+                    "message": "DataFrameIsEmptyCheck: The DataFrame is empty",
                 },
             ),
         ],
@@ -164,15 +164,15 @@ class TestDfIsEmptyCheck(TestDfExpectation):
         expected_result,
     ):
         df = df_test_empty if is_empty else df_test
-        expectations = DfIsEmptyCheck(value, custom_message)
+        expectations = DataFrameIsEmptyCheck(value, custom_message)
         assert expectations.eval_expectation(df) == expected_result
 
     def test_eval_expectation_exception(self):
-        expectations = DfIsEmptyCheck(True, "name")
-        with pytest.raises(TypeError, match="DfIsEmptyCheck: The target must be a Spark DataFrame, but got 'int'"):
+        expectations = DataFrameIsEmptyCheck(True, "name")
+        with pytest.raises(TypeError, match="DataFrameIsEmptyCheck: The target must be a Spark DataFrame, but got 'int'"):
             expectations.eval_expectation(1)
 
-class TestDfCountThresholdCheck(TestDfExpectation):
+class TestDataFrameCountThresholdCheck(TestDfExpectation):
 
     @pytest.mark.parametrize(
         "value, operator, message",
@@ -182,29 +182,29 @@ class TestDfCountThresholdCheck(TestDfExpectation):
         ],
     )
     def test_init(self, value, operator, message):
-        DfCountThresholdCheck(value, operator, message)
+        DataFrameCountThresholdCheck(value, operator, message)
 
     @pytest.mark.parametrize(
         "value, operator, message, exception, match",
         [
-            (1, "lower", 1, TypeError, re.escape("DfCountThresholdCheck: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
-            ("1", "lower", None, TypeError, re.escape("DfCountThresholdCheck: the argument `value` does not correspond to the expected types '[int]'. Got: str")),
-            (2, "flower", "1", ValueError, re.escape("DfCountThresholdCheck: Invalid operator: 'flower'. Must be one of: '[lower, lower_or_equal, equal, different, higher, higher_or_equal]")),
+            (1, "lower", 1, TypeError, re.escape("DataFrameCountThresholdCheck: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
+            ("1", "lower", None, TypeError, re.escape("DataFrameCountThresholdCheck: the argument `value` does not correspond to the expected types '[int]'. Got: str")),
+            (2, "flower", "1", ValueError, re.escape("DataFrameCountThresholdCheck: Invalid operator: 'flower'. Must be one of: '[lower, lower_or_equal, equal, different, higher, higher_or_equal]")),
         ],
     )
     def test_init_exceptions(
         self, value, operator, message, exception, match
     ):
         with pytest.raises(exception, match=match):
-            DfCountThresholdCheck(value, operator, message)
+            DataFrameCountThresholdCheck(value, operator, message)
 
     @pytest.mark.parametrize(
         "custom_message, has_failed, expected_message",
         [
-            ("custom message", True, "DfCountThresholdCheck: custom message"),
-            ("custom message", False, "DfCountThresholdCheck: custom message"),
-            (None, True, "DfCountThresholdCheck: The DataFrame has 10 rows, which is not lower than 1"),
-            (None, False, "DfCountThresholdCheck: The DataFrame has 10 rows, which is lower than 1"),
+            ("custom message", True, "DataFrameCountThresholdCheck: custom message"),
+            ("custom message", False, "DataFrameCountThresholdCheck: custom message"),
+            (None, True, "DataFrameCountThresholdCheck: The DataFrame has 10 rows, which is not lower than 1"),
+            (None, False, "DataFrameCountThresholdCheck: The DataFrame has 10 rows, which is lower than 1"),
         ],
     )
     def test_get_message(
@@ -213,7 +213,7 @@ class TestDfCountThresholdCheck(TestDfExpectation):
         has_failed,
         expected_message,
     ):
-        expectations = DfCountThresholdCheck(1, "lower", custom_message)
+        expectations = DataFrameCountThresholdCheck(1, "lower", custom_message)
         expectations.result = 10
         expectations.get_message(has_failed)
         assert expectations.message == expected_message
@@ -225,42 +225,42 @@ class TestDfCountThresholdCheck(TestDfExpectation):
                 {
                     "got": 3,
                     "has_failed": False,
-                    "message": "DfCountThresholdCheck: The DataFrame has 3 rows, which is higher than 1",
+                    "message": "DataFrameCountThresholdCheck: The DataFrame has 3 rows, which is higher than 1",
                 },
             ),
             (1, "lower", None, False,
                 {
                     "got": 3,
                     "has_failed": True,
-                    "message": "DfCountThresholdCheck: The DataFrame has 3 rows, which is not lower than 1",
+                    "message": "DataFrameCountThresholdCheck: The DataFrame has 3 rows, which is not lower than 1",
                 },
             ),
             (3, "equal", None, False,
                 {
                     "got": 3,
                     "has_failed": False,
-                    "message": "DfCountThresholdCheck: The DataFrame has 3 rows, which is equal to 3",
+                    "message": "DataFrameCountThresholdCheck: The DataFrame has 3 rows, which is equal to 3",
                 },
             ),
             (2, "different", None, False,
                 {
                     "got": 3,
                     "has_failed": False,
-                    "message": "DfCountThresholdCheck: The DataFrame has 3 rows, which is different to 2",
+                    "message": "DataFrameCountThresholdCheck: The DataFrame has 3 rows, which is different to 2",
                 },
             ),
             (0, "equal", None, True,
                 {
                     "got": 0,
                     "has_failed": False,
-                    "message": "DfCountThresholdCheck: The DataFrame has 0 rows, which is equal to 0",
+                    "message": "DataFrameCountThresholdCheck: The DataFrame has 0 rows, which is equal to 0",
                 },
             ),
             (1, "higher", None, True,
                 {
                     "got": 0,
                     "has_failed": True,
-                    "message": "DfCountThresholdCheck: The DataFrame has 0 rows, which is not higher than 1",
+                    "message": "DataFrameCountThresholdCheck: The DataFrame has 0 rows, which is not higher than 1",
                 },
             ),
         ],
@@ -276,15 +276,15 @@ class TestDfCountThresholdCheck(TestDfExpectation):
         expected_result,
     ):
         df = df_test_empty if is_empty else df_test
-        expectations = DfCountThresholdCheck(value, operator, custom_message)
+        expectations = DataFrameCountThresholdCheck(value, operator, custom_message)
         assert expectations.eval_expectation(df) == expected_result
 
     def test_eval_expectation_exception(self):
-        expectations = DfCountThresholdCheck(1, "lower", "name")
-        with pytest.raises(TypeError, match="DfCountThresholdCheck: The target must be a Spark DataFrame, but got 'int'"):
+        expectations = DataFrameCountThresholdCheck(1, "lower", "name")
+        with pytest.raises(TypeError, match="DataFrameCountThresholdCheck: The target must be a Spark DataFrame, but got 'int'"):
             expectations.eval_expectation(1)
 
-class TestDfPartitionsCountCheck(TestDfExpectation):
+class TestDataFramePartitionsCountCheck(TestDfExpectation):
 
     @pytest.mark.parametrize(
         "value, operator, message",
@@ -294,29 +294,29 @@ class TestDfPartitionsCountCheck(TestDfExpectation):
         ],
     )
     def test_init(self, value, operator, message):
-        DfPartitionsCountCheck(value, operator, message)
+        DataFramePartitionsCountCheck(value, operator, message)
 
     @pytest.mark.parametrize(
         "value, operator, message, exception, match",
         [
-            (1, "lower", 1, TypeError, re.escape("DfPartitionsCountCheck: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
-            ("1", "lower", None, TypeError, re.escape("DfPartitionsCountCheck: the argument `value` does not correspond to the expected types '[int]'. Got: str")),
-            (2, "flower", "1", ValueError, re.escape("DfPartitionsCountCheck: Invalid operator: 'flower'. Must be one of: '[lower, lower_or_equal, equal, different, higher, higher_or_equal]")),
+            (1, "lower", 1, TypeError, re.escape("DataFramePartitionsCountCheck: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
+            ("1", "lower", None, TypeError, re.escape("DataFramePartitionsCountCheck: the argument `value` does not correspond to the expected types '[int]'. Got: str")),
+            (2, "flower", "1", ValueError, re.escape("DataFramePartitionsCountCheck: Invalid operator: 'flower'. Must be one of: '[lower, lower_or_equal, equal, different, higher, higher_or_equal]")),
         ],
     )
     def test_init_exceptions(
         self, value, operator, message, exception, match
     ):
         with pytest.raises(exception, match=match):
-            DfPartitionsCountCheck(value, operator, message)
+            DataFramePartitionsCountCheck(value, operator, message)
 
     @pytest.mark.parametrize(
         "custom_message, has_failed, expected_message",
         [
-            ("custom message", True, "DfPartitionsCountCheck: custom message"),
-            ("custom message", False, "DfPartitionsCountCheck: custom message"),
-            (None, True, "DfPartitionsCountCheck: The DataFrame has 10 partitions, which is not lower than 1"),
-            (None, False, "DfPartitionsCountCheck: The DataFrame has 10 partitions, which is lower than 1"),
+            ("custom message", True, "DataFramePartitionsCountCheck: custom message"),
+            ("custom message", False, "DataFramePartitionsCountCheck: custom message"),
+            (None, True, "DataFramePartitionsCountCheck: The DataFrame has 10 partitions, which is not lower than 1"),
+            (None, False, "DataFramePartitionsCountCheck: The DataFrame has 10 partitions, which is lower than 1"),
         ],
     )
     def test_get_message(
@@ -325,7 +325,7 @@ class TestDfPartitionsCountCheck(TestDfExpectation):
         has_failed,
         expected_message,
     ):
-        expectations = DfPartitionsCountCheck(1, "lower", custom_message)
+        expectations = DataFramePartitionsCountCheck(1, "lower", custom_message)
         expectations.result = 10
         expectations.get_message(has_failed)
         assert expectations.message == expected_message
@@ -337,28 +337,28 @@ class TestDfPartitionsCountCheck(TestDfExpectation):
                 {
                     "got": 1,
                     "has_failed": False,
-                    "message": "DfPartitionsCountCheck: The DataFrame has 1 partitions, which is equal to 1",
+                    "message": "DataFramePartitionsCountCheck: The DataFrame has 1 partitions, which is equal to 1",
                 },
             ),
             (1, "equal", None, 3,
                 {
                     "got": 3,
                     "has_failed": True,
-                    "message": "DfPartitionsCountCheck: The DataFrame has 3 partitions, which is not equal to 1",
+                    "message": "DataFramePartitionsCountCheck: The DataFrame has 3 partitions, which is not equal to 1",
                 },
             ),
             (1, "equal", "custom_message", 1,
                 {
                     "got": 1,
                     "has_failed": False,
-                    "message": "DfPartitionsCountCheck: custom_message",
+                    "message": "DataFramePartitionsCountCheck: custom_message",
                 },
             ),
             (1, "equal", "custom_message", 3,
                 {
                     "got": 3,
                     "has_failed": True,
-                    "message": "DfPartitionsCountCheck: custom_message",
+                    "message": "DataFramePartitionsCountCheck: custom_message",
                 },
             ),
         ],
@@ -374,15 +374,15 @@ class TestDfPartitionsCountCheck(TestDfExpectation):
     ):
         df = df_test
         df = df.repartition(repartition) if repartition > 1 else df.coalesce(repartition)
-        expectations = DfPartitionsCountCheck(value, operator, custom_message)
+        expectations = DataFramePartitionsCountCheck(value, operator, custom_message)
         assert expectations.eval_expectation(df) == expected_result
 
     def test_eval_expectation_exception(self):
-        expectations = DfPartitionsCountCheck(1, "lower", "name")
-        with pytest.raises(TypeError, match="DfPartitionsCountCheck: The target must be a Spark DataFrame, but got 'int'"):
+        expectations = DataFramePartitionsCountCheck(1, "lower", "name")
+        with pytest.raises(TypeError, match="DataFramePartitionsCountCheck: The target must be a Spark DataFrame, but got 'int'"):
             expectations.eval_expectation(1)
 
-class TestDfHasColumnsCheck(TestDfExpectation):
+class TestDataFrameHasColumnsCheck(TestDfExpectation):
 
     @pytest.mark.parametrize(
         "column, value, message",
@@ -394,33 +394,33 @@ class TestDfHasColumnsCheck(TestDfExpectation):
         ],
     )
     def test_init(self, column, value, message):
-        DfHasColumnsCheck(column, value, message)
+        DataFrameHasColumnsCheck(column, value, message)
 
     @pytest.mark.parametrize(
         "column, value, message, exception, match",
         [
-            ("name", StringType(), 1, TypeError, re.escape("DfHasColumnsCheck: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
-            (1, StringType(), None, TypeError, re.escape("DfHasColumnsCheck: the argument `column` does not correspond to the expected types '[str]'. Got: int")),
-            ("name", "string", "custom", TypeError, re.escape("DfHasColumnsCheck: the argument `value` does not correspond to the expected types '[DataType | NoneType]'. Got: str")),
+            ("name", StringType(), 1, TypeError, re.escape("DataFrameHasColumnsCheck: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
+            (1, StringType(), None, TypeError, re.escape("DataFrameHasColumnsCheck: the argument `column` does not correspond to the expected types '[str]'. Got: int")),
+            ("name", "string", "custom", TypeError, re.escape("DataFrameHasColumnsCheck: the argument `value` does not correspond to the expected types '[DataType | NoneType]'. Got: str")),
         ],
     )
     def test_init_exceptions(
         self, column, value, message, exception, match
     ):
         with pytest.raises(exception, match=match):
-            DfHasColumnsCheck(column, value, message)
+            DataFrameHasColumnsCheck(column, value, message)
 
     @pytest.mark.parametrize(
         "value, custom_message, has_failed, expected_message",
         [
-            (None, "custom message", True, "DfHasColumnsCheck: custom message"),
-            (None, "custom message", False, "DfHasColumnsCheck: custom message"),
-            (None, None, True, "DfHasColumnsCheck: Column 'name' doesn't exist in the DataFrame"),
-            (None, None, False, "DfHasColumnsCheck: Column 'name' does exist in the DataFrame"),
-            (StringType(), "custom message", True, "DfHasColumnsCheck: custom message"),
-            (StringType(), "custom message", False, "DfHasColumnsCheck: custom message"),
-            (StringType(), None, True, "DfHasColumnsCheck: Column 'name' exists in the DataFrame but it's not of type: StringType()"),
-            (StringType(), None, False, "DfHasColumnsCheck: Column 'name' exists in the DataFrame and it's of type: StringType()"),
+            (None, "custom message", True, "DataFrameHasColumnsCheck: custom message"),
+            (None, "custom message", False, "DataFrameHasColumnsCheck: custom message"),
+            (None, None, True, "DataFrameHasColumnsCheck: Column 'name' doesn't exist in the DataFrame"),
+            (None, None, False, "DataFrameHasColumnsCheck: Column 'name' does exist in the DataFrame"),
+            (StringType(), "custom message", True, "DataFrameHasColumnsCheck: custom message"),
+            (StringType(), "custom message", False, "DataFrameHasColumnsCheck: custom message"),
+            (StringType(), None, True, "DataFrameHasColumnsCheck: Column 'name' exists in the DataFrame but it's not of type: StringType()"),
+            (StringType(), None, False, "DataFrameHasColumnsCheck: Column 'name' exists in the DataFrame and it's of type: StringType()"),
         ],
     )
     def test_get_message(
@@ -430,7 +430,7 @@ class TestDfHasColumnsCheck(TestDfExpectation):
         has_failed,
         expected_message,
     ):
-        expectations = DfHasColumnsCheck("name", value, custom_message)
+        expectations = DataFrameHasColumnsCheck("name", value, custom_message)
         expectations.get_message(has_failed)
         assert expectations.message == expected_message
 
@@ -441,63 +441,63 @@ class TestDfHasColumnsCheck(TestDfExpectation):
                 {
                     "got": "name",
                     "has_failed": False,
-                    "message": "DfHasColumnsCheck: Column 'name' does exist in the DataFrame",
+                    "message": "DataFrameHasColumnsCheck: Column 'name' does exist in the DataFrame",
                 },
             ),
             ("not_name", None, None,
                 {
                     "got": "name, age, height, is_student, birth_date, last_check_in",
                     "has_failed": True,
-                    "message": "DfHasColumnsCheck: Column 'not_name' doesn't exist in the DataFrame",
+                    "message": "DataFrameHasColumnsCheck: Column 'not_name' doesn't exist in the DataFrame",
                 },
             ),
             ("name", None, "custom_message",
                 {
                     "got": "name",
                     "has_failed": False,
-                    "message": "DfHasColumnsCheck: custom_message",
+                    "message": "DataFrameHasColumnsCheck: custom_message",
                 },
             ),
             ("not_name", None, "custom_message",
                 {
                     "got": "name, age, height, is_student, birth_date, last_check_in",
                     "has_failed": True,
-                    "message": "DfHasColumnsCheck: custom_message",
+                    "message": "DataFrameHasColumnsCheck: custom_message",
                 },
             ),
             ("name", StringType(), None,
                 {
                     "got": StringType(),
                     "has_failed": False,
-                    "message": "DfHasColumnsCheck: Column 'name' exists in the DataFrame and it's of type: StringType()",
+                    "message": "DataFrameHasColumnsCheck: Column 'name' exists in the DataFrame and it's of type: StringType()",
                 },
             ),
             ("name", DoubleType(), None,
                 {
                     "got": StringType(),
                     "has_failed": True,
-                    "message": "DfHasColumnsCheck: Column 'name' exists in the DataFrame but it's not of type: DoubleType()",
+                    "message": "DataFrameHasColumnsCheck: Column 'name' exists in the DataFrame but it's not of type: DoubleType()",
                 },
             ),
             ("not_name", DoubleType(), None,
                 {
                     "got": "name, age, height, is_student, birth_date, last_check_in",
                     "has_failed": True,
-                    "message": "DfHasColumnsCheck: Column 'not_name' doesn't exist in the DataFrame",
+                    "message": "DataFrameHasColumnsCheck: Column 'not_name' doesn't exist in the DataFrame",
                 },
             ),
             ("name", StringType(), "custom_message",
                 {
                     "got": StringType(),
                     "has_failed": False,
-                    "message": "DfHasColumnsCheck: custom_message",
+                    "message": "DataFrameHasColumnsCheck: custom_message",
                 },
             ),
             ("not_name", DoubleType(), "custom_message",
                 {
                     "got": "name, age, height, is_student, birth_date, last_check_in",
                     "has_failed": True,
-                    "message": "DfHasColumnsCheck: custom_message",
+                    "message": "DataFrameHasColumnsCheck: custom_message",
                 },
             ),
         ],
@@ -510,10 +510,10 @@ class TestDfHasColumnsCheck(TestDfExpectation):
         custom_message,
         expected_result,
     ):
-        expectations = DfHasColumnsCheck(column, value, custom_message)
+        expectations = DataFrameHasColumnsCheck(column, value, custom_message)
         assert expectations.eval_expectation(df_test) == expected_result
 
     def test_eval_expectation_exception(self):
-        expectations = DfHasColumnsCheck("name", StringType(), "name")
-        with pytest.raises(TypeError, match="DfHasColumnsCheck: The target must be a Spark DataFrame, but got 'int'"):
+        expectations = DataFrameHasColumnsCheck("name", StringType(), "name")
+        with pytest.raises(TypeError, match="DataFrameHasColumnsCheck: The target must be a Spark DataFrame, but got 'int'"):
             expectations.eval_expectation(1)

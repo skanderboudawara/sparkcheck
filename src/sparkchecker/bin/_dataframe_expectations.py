@@ -14,7 +14,7 @@ from ..ext._utils import _op_check, _resolve_msg, _substitute
 from ._base import DataFrameExpectation
 
 
-class DfIsEmptyCheck(DataFrameExpectation):
+class DataFrameIsEmptyCheck(DataFrameExpectation):
     @check_inputs
     def __init__(
         self,
@@ -68,7 +68,7 @@ class DfIsEmptyCheck(DataFrameExpectation):
         }
 
 
-class DfCountThresholdCheck(DataFrameExpectation):
+class DataFrameCountThresholdCheck(DataFrameExpectation):
     @check_inputs
     def __init__(
         self,
@@ -134,7 +134,7 @@ class DfCountThresholdCheck(DataFrameExpectation):
         }
 
 
-class DfPartitionsCountCheck(DataFrameExpectation):
+class DataFramePartitionsCountCheck(DataFrameExpectation):
     @check_inputs
     def __init__(
         self,
@@ -200,7 +200,7 @@ class DfPartitionsCountCheck(DataFrameExpectation):
         }
 
 
-class DfHasColumnsCheck(DataFrameExpectation):
+class DataFrameHasColumnsCheck(DataFrameExpectation):
     @check_inputs
     def __init__(
         self,
