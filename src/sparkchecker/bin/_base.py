@@ -4,7 +4,9 @@ from typing import Any
 from pyspark.sql import Column, DataFrame
 
 from ..ext._decorators import (
+    add_class_prefix,
     check_column_exist,
+    check_dataframe,
     check_inputs,
     validate_expectation,
 )
@@ -27,10 +29,12 @@ class ColumnsExpectations(ABC):  # pragma: no cover
 
     @abstractmethod
     @validate_expectation
+    @check_dataframe
     @check_column_exist
     def eval_expectation(self, target: DataFrame) -> dict: ...
 
     @abstractmethod
+    @add_class_prefix
     def get_message(self, check: bool) -> None: ...
 
 
@@ -44,7 +48,10 @@ class DataFrameExpectation(ABC):  # pragma: no cover
         self.message = message
 
     @abstractmethod
+    @add_class_prefix
     def get_message(self, check: bool) -> None: ...
 
     @abstractmethod
+    @validate_expectation
+    @check_dataframe
     def eval_expectation(self, target: DataFrame) -> dict: ...
