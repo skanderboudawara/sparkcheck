@@ -200,6 +200,8 @@ def add_class_prefix(func: Callable) -> Callable:
         result = func(self, *args, **kwargs)
         # Get the class name dynamically
         class_name = self.__class__.__name__
+        if self.message.startswith(class_name):
+            return result
         self.message = f"{class_name}: {self.message}"
         return result
 
