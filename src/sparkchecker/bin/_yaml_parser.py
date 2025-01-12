@@ -5,7 +5,6 @@ This class is used to construct constraints.
 """
 
 import yaml
-from jsonpath_ng import parse
 
 from sparkchecker.constants import (
     COLUMN_OPERATIONS,
@@ -181,8 +180,7 @@ class ExpectationsYamlParser:
         :param: None
         :return: None
         """
-        parser_count = parse("$.count")
-        count: dict = parser_count.find(self.data)[0].value[0]
+        count: dict = self.data.get("count", [{}])[0]
         if count:
             self.set_constraint(count)
             self._verify_constructor_parsing()
@@ -196,8 +194,7 @@ class ExpectationsYamlParser:
         :param: None
         :return: None
         """
-        parser_partitions = parse("$.partitions")
-        partitions: dict = parser_partitions.find(self.data)[0].value[0]
+        partitions: dict = self.data.get("partitions", [{}])[0]
         if partitions:
             self.set_constraint(partitions)
             self._verify_constructor_parsing()
@@ -211,8 +208,7 @@ class ExpectationsYamlParser:
         :param: None
         :return: None
         """
-        parser_is_empty = parse("$.is_empty")
-        is_empty: dict = parser_is_empty.find(self.data)[0].value
+        is_empty: dict = self.data.get("is_empty", {})
         if is_empty:
             self.set_constraint({"is_empty": is_empty})
             self._verify_constructor_parsing()
@@ -228,10 +224,9 @@ class ExpectationsYamlParser:
         :raises: (SparkCheckerError), if the constraint object
             is not in COLUMN_TYPES
         """
-        parser_has_columns = parse("$.has_columns[*]")
-        has_columns: list = parser_has_columns.find(self.data)
+        has_columns: list = self.data.get("has_columns", [])
         for column in has_columns:
-            self.set_constraint(column.value)
+            self.set_constraint(column)
             if self.constraint_obj:
                 if not isinstance(self.constraint_obj, str):
                     raise SparkCheckerError(
@@ -265,10 +260,9 @@ class ExpectationsYamlParser:
         :return: None
         :raises: (ValueError), if the constraint object is not a dict
         """
-        column_check = parse("$.checks[*]")
-        column_check = column_check.find(self.data)
+        column_check = self.data.get("checks", {})
         for column in column_check:
-            column_name, list_of_checks = next(iter(column.value.items()))
+            column_name, list_of_checks = next(iter(column.items()))
             for check in list_of_checks:
                 self.set_constraint(check)
                 self._verify_column_checks_parsing()
@@ -354,17 +348,17 @@ def replace_keys_in_json(json_data: dict, replacements: dict) -> dict:
     :param replacements (dict): A dictionary mapping old keys to new keys.
     :returns: (dict)n The modified dictionary with keys replaced.
     """
-    for old_key, new_key in replacements.items():
-        jsonpath_expr = parse(
-            f"$..{old_key}",
-        )  # Match all occurrences of the old key
-
-        matches = jsonpath_expr.find(json_data)  # Find all matching nodes
-        for match in matches:
-            parent = match.context.value  # Parent object of the old key
-            if isinstance(parent, dict):
-                parent[new_key] = parent.pop(
-                    old_key,
-                )  # Replace old key with new key
-
+    if isinstance(json_data, dict):
+        # Replace keys in the current dictionary
+        return {
+            replacements.get(key, key): replace_keys_in_json(
+                value,
+                replacements,
+            )
+            for key, value in json_data.items()
+        }
+    if isinstance(json_data, list):
+        # Recursively process each item in the list
+        return [replace_keys_in_json(item, replacements) for item in json_data]
+    # Return the value as is if it's neither a dict nor a list
     return json_data
