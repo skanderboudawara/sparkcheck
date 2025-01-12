@@ -43,7 +43,7 @@ from ..ext._utils import (
 from ._base import ColumnsExpectations
 
 
-class NonNullColumnExpectation(ColumnsExpectations):
+class ColumnNonNullExpectation(ColumnsExpectations):
 
     @check_inputs
     def __init__(
@@ -103,7 +103,7 @@ class NonNullColumnExpectation(ColumnsExpectations):
         :return: (dict), the expectation result
         """
         if not self.value:
-            return NullColumnExpectation(
+            return ColumnNullExpectation(
                 self.column,
                 True,
                 self.message,
@@ -122,7 +122,7 @@ class NonNullColumnExpectation(ColumnsExpectations):
         }
 
 
-class NullColumnExpectation(ColumnsExpectations):
+class ColumnNullExpectation(ColumnsExpectations):
     @check_inputs
     def __init__(
         self,
@@ -181,7 +181,7 @@ class NullColumnExpectation(ColumnsExpectations):
         :return: (dict), the expectation result
         """
         if not self.value:
-            return NonNullColumnExpectation(
+            return ColumnNonNullExpectation(
                 self.column,
                 True,
                 self.message,
@@ -200,7 +200,7 @@ class NullColumnExpectation(ColumnsExpectations):
         }
 
 
-class RegexLikeColumnExpectation(ColumnsExpectations):
+class ColumnRegexLikeExpectation(ColumnsExpectations):
     @check_inputs
     def __init__(
         self,
@@ -277,7 +277,7 @@ class RegexLikeColumnExpectation(ColumnsExpectations):
         }
 
 
-class IsInColumnExpectation(ColumnsExpectations):
+class ColumnIsInExpectation(ColumnsExpectations):
     @check_inputs
     def __init__(
         self,

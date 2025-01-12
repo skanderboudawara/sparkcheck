@@ -10,10 +10,10 @@ from ..ext._decorators import order_expectations_dict
 from ._base import ColumnsExpectations, DataFrameExpectation
 from ._column_expectations import (
     ColumnCompareExpectation,
-    IsInColumnExpectation,
-    NonNullColumnExpectation,
-    NullColumnExpectation,
-    RegexLikeColumnExpectation,
+    ColumnIsInExpectation,
+    ColumnNonNullExpectation,
+    ColumnNullExpectation,
+    ColumnRegexLikeExpectation,
 )
 from ._dataframe_expectations import (
     DataFrameCountThresholdExpectation,
@@ -29,10 +29,10 @@ DATAFRAME_OPERATIONS: Mapping[str, type[DataFrameExpectation]] = {
     "has_columns": DataFrameHasColumnsExpectation,
 }
 COLUMN_INSTANCES: Mapping[str, type[ColumnsExpectations]] = {
-    "not_null": NonNullColumnExpectation,
-    "is_null": NullColumnExpectation,
-    "pattern": RegexLikeColumnExpectation,
-    "in": IsInColumnExpectation,
+    "not_null": ColumnNonNullExpectation,
+    "is_null": ColumnNullExpectation,
+    "pattern": ColumnRegexLikeExpectation,
+    "in": ColumnIsInExpectation,
     "lower": ColumnCompareExpectation,
     "lower_or_equal": ColumnCompareExpectation,
     "equal": ColumnCompareExpectation,
