@@ -168,10 +168,10 @@ class DfPartitionsCountCheck(DataFrameExpectation):
         """
         default_msg = (
             f"The DataFrame has {self.result} partitions, which "
-            f"<$is|isn't> {self.operator} <$to|than> {self.value}"
+            f"<$is not|is> {self.operator} <$to|than> {self.value}"
         )
         self.message = _resolve_msg(default_msg, self.message)
-        self.message = _substitute(self.message, check, "<$is|is not>")
+        self.message = _substitute(self.message, check, "<$is not|is>")
         self.message = _substitute(
             self.message,
             self.operator in {"equal", "different"},
@@ -190,11 +190,11 @@ class DfPartitionsCountCheck(DataFrameExpectation):
         """
         rdd_count = target.rdd.getNumPartitions()
         # Convert the threshold to a literal value and apply the operator
-        check = OPERATOR_MAP[self.operator](rdd_count, self.value)
+        check = not (OPERATOR_MAP[self.operator](rdd_count, self.value))
         self.result = rdd_count
         self.get_message(check)
         return {
-            "has_failed": not (check),
+            "has_failed": check,
             "got": rdd_count,
             "message": self.message,
         }

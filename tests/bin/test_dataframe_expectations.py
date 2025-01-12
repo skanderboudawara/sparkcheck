@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from src.sparkchecker.bin._dataframe_expectations import (
     DfIsEmptyCheck,
     DfCountThresholdCheck,
+    DfPartitionsCountCheck,
 )
 from pyspark.sql.types import (
     StructType,
@@ -53,8 +54,29 @@ def df_test_empty(spark_session):
     df = spark_session.createDataFrame([], schema)
     return df
 
+class TestDfExpectation(ABC):
 
-class TestDfIsEmptyCheck:
+    @abstractmethod
+    def test_init(self):
+        pass
+
+    @abstractmethod
+    def test_init_exceptions(self):
+        pass
+
+    @abstractmethod
+    def test_get_message(self):
+        pass
+
+    @abstractmethod
+    def test_eval_expectation(self):
+        pass
+
+    @abstractmethod
+    def test_eval_expectation_exception(self):
+        pass
+
+class TestDfIsEmptyCheck(TestDfExpectation):
 
     @pytest.mark.parametrize(
         "value, message",
@@ -150,8 +172,7 @@ class TestDfIsEmptyCheck:
         with pytest.raises(TypeError, match="DfIsEmptyCheck: The target must be a Spark DataFrame, but got 'int'"):
             expectations.eval_expectation(1)
 
-
-class TestDfCountThresholdCheck:
+class TestDfCountThresholdCheck(TestDfExpectation):
 
     @pytest.mark.parametrize(
         "value, operator, message",
@@ -261,4 +282,88 @@ class TestDfCountThresholdCheck:
     def test_eval_expectation_exception(self):
         expectations = DfCountThresholdCheck(1, "lower", "name")
         with pytest.raises(TypeError, match="DfCountThresholdCheck: The target must be a Spark DataFrame, but got 'int'"):
+            expectations.eval_expectation(1)
+
+class TestDfPartitionsCountCheck(TestDfExpectation):
+
+    @pytest.mark.parametrize(
+        "value, operator, message",
+        [
+            (1, "lower", None),
+            (1, "lower", "hello world"),
+        ],
+    )
+    def test_init(self, value, operator, message):
+        DfPartitionsCountCheck(value, operator, message)
+
+    @pytest.mark.parametrize(
+        "value, operator, message, exception, match",
+        [
+            (1, "lower", 1, TypeError, re.escape("DfPartitionsCountCheck: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
+            ("1", "lower", None, TypeError, re.escape("DfPartitionsCountCheck: the argument `value` does not correspond to the expected types '[int]'. Got: str")),
+            (2, "flower", "1", ValueError, re.escape("DfPartitionsCountCheck: Invalid operator: 'flower'. Must be one of: '[lower, lower_or_equal, equal, different, higher, higher_or_equal]")),
+        ],
+    )
+    def test_init_exceptions(
+        self, value, operator, message, exception, match
+    ):
+        with pytest.raises(exception, match=match):
+            DfPartitionsCountCheck(value, operator, message)
+
+    @pytest.mark.parametrize(
+        "custom_message, has_failed, expected_message",
+        [
+            ("custom message", True, "DfPartitionsCountCheck: custom message"),
+            ("custom message", False, "DfPartitionsCountCheck: custom message"),
+            (None, True, "DfPartitionsCountCheck: The DataFrame has 10 partitions, which is not lower than 1"),
+            (None, False, "DfPartitionsCountCheck: The DataFrame has 10 partitions, which is lower than 1"),
+        ],
+    )
+    def test_get_message(
+        self,
+        custom_message,
+        has_failed,
+        expected_message,
+    ):
+        expectations = DfPartitionsCountCheck(1, "lower", custom_message)
+        expectations.result = 10
+        expectations.get_message(has_failed)
+        assert expectations.message == expected_message
+
+    @pytest.mark.parametrize(
+        "value, operator, custom_message, repartition, expected_result",
+        [
+            (1, "equal", None, 1,
+                {
+                    "got": 1,
+                    "has_failed": False,
+                    "message": "DfPartitionsCountCheck: The DataFrame has 1 partitions, which is equal to 1",
+                },
+            ),
+            (1, "equal", None, 3,
+                {
+                    "got": 3,
+                    "has_failed": True,
+                    "message": "DfPartitionsCountCheck: The DataFrame has 3 partitions, which is not equal to 1",
+                },
+            ),
+        ],
+    )
+    def test_eval_expectation(
+        self,
+        df_test,
+        value,
+        operator,
+        custom_message,
+        repartition,
+        expected_result,
+    ):
+        df = df_test
+        df = df.repartition(repartition) if repartition > 1 else df.coalesce(repartition)
+        expectations = DfPartitionsCountCheck(value, operator, custom_message)
+        assert expectations.eval_expectation(df) == expected_result
+
+    def test_eval_expectation_exception(self):
+        expectations = DfPartitionsCountCheck(1, "lower", "name")
+        with pytest.raises(TypeError, match="DfPartitionsCountCheck: The target must be a Spark DataFrame, but got 'int'"):
             expectations.eval_expectation(1)
