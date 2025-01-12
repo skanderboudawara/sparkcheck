@@ -223,7 +223,11 @@ def check_dataframe(method: Callable) -> Callable:
                 f"{class_name}: The target must be a Spark DataFrame, "
                 f"but got '{type(target).__name__}'.",
             )
-        if target.isEmpty():
+        if (
+            # Add this checks only for Column Class
+            class_name.lower().startswith("col")
+            and target.isEmpty()
+        ):
             return {
                 "has_failed": False,
                 "got": "Empty DataFrame",
