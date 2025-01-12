@@ -352,8 +352,8 @@ class IsInColumnExpectation(ColumnsExpectations):
         :return: (dict), the expectation result
         """
         self._prepare_isin_list(target)
-        # To make NULL as list constraint
-        target = target.select(self.column).fillna("NULL")
+        # To make NoneObject as list constraint
+        target = target.select(self.column).fillna("NoneObject")
         has_failed, count_cases, first_failed_row = eval_first_fail(
             target,
             self.column,
@@ -373,7 +373,7 @@ class ColumnCompareExpectation(ColumnsExpectations):
     def __init__(
         self,
         column: str | Column,
-        value: str | float | int | Column | bool,
+        value: str | float | int | Column | bool | None,
         operator: str,
         message: str | None = None,
         **kwargs: Any,  # noqa: ARG002
@@ -392,7 +392,7 @@ class ColumnCompareExpectation(ColumnsExpectations):
         """
         self.column = column
         self.message = message
-        _op_check(operator)
+        _op_check(self, operator)
         self.operator = operator
         self.value = value
 
@@ -405,7 +405,10 @@ class ColumnCompareExpectation(ColumnsExpectations):
         :returns: None
         """
         self.column = to_col(self.column)
-        return OPERATOR_MAP[self.operator](self.column, self.value)
+        return OPERATOR_MAP[self.operator](
+            self.column,
+            self.value,  # type: ignore
+        )
 
     @add_class_prefix
     def get_message(self, has_failed: bool) -> None:
