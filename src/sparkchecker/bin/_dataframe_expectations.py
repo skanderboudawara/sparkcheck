@@ -4,13 +4,17 @@ from pyspark.sql import DataFrame
 from pyspark.sql.types import DataType
 
 from ..constants import OPERATOR_MAP
-from ..ext._decorators import check_message, validate_expectation
+from ..ext._decorators import (
+    check_dataframe,
+    check_inputs,
+    validate_expectation,
+)
 from ..ext._utils import _op_check, _resolve_msg, _substitute
 from ._base import DataFrameExpectation
 
 
 class IsEmpty(DataFrameExpectation):
-    @check_message
+    @check_inputs
     def __init__(
         self,
         message: str | None = None,
@@ -28,12 +32,6 @@ class IsEmpty(DataFrameExpectation):
         self.message = message
         if not value:
             value = True
-        if value and not isinstance(value, bool):
-            raise TypeError(
-                "Argument for DataFrame isEmpty must be of "
-                "type bool but got: ",
-                type(value),
-            )
         self.value = value
 
     def get_message(self, check: bool) -> None:
@@ -49,6 +47,7 @@ class IsEmpty(DataFrameExpectation):
         self.message = _substitute(self.message, check, "<$is|is not>")
 
     @validate_expectation
+    @check_dataframe
     def eval_expectation(self, target: DataFrame) -> dict:
         """
         This method returns the expectation result.
@@ -74,7 +73,7 @@ class IsEmpty(DataFrameExpectation):
 
 
 class IsNotEmpty(DataFrameExpectation):
-    @check_message
+    @check_inputs
     def __init__(
         self,
         message: str | None = None,
@@ -92,12 +91,6 @@ class IsNotEmpty(DataFrameExpectation):
         self.message = message
         if not value:
             value = True
-        if value and not isinstance(value, bool):
-            raise TypeError(
-                "Argument for DataFrame isEmpty must be of "
-                "type bool but got: ",
-                type(value),
-            )
         self.value = value
 
     def get_message(self, check: bool) -> None:
@@ -112,6 +105,7 @@ class IsNotEmpty(DataFrameExpectation):
         self.message = _substitute(self.message, check, "<$is|is not>")
 
     @validate_expectation
+    @check_dataframe
     def eval_expectation(self, target: DataFrame) -> dict:
         """
         This method returns the expectation result.
@@ -137,7 +131,7 @@ class IsNotEmpty(DataFrameExpectation):
 
 
 class CountThreshold(DataFrameExpectation):
-    @check_message
+    @check_inputs
     def __init__(
         self,
         value: int,
@@ -157,12 +151,6 @@ class CountThreshold(DataFrameExpectation):
         """
         self.message = message
         _op_check(operator)
-        if not isinstance(value, int):
-            raise TypeError(
-                "Argument for DataFrame count must be of "
-                "type int but got: ",
-                type(value),
-            )
         self.value = value
         self.operator = operator
 
@@ -186,6 +174,7 @@ class CountThreshold(DataFrameExpectation):
         )
 
     @validate_expectation
+    @check_dataframe
     def eval_expectation(self, target: DataFrame) -> dict:
         """
         This method returns the expectation result.
@@ -213,7 +202,7 @@ class CountThreshold(DataFrameExpectation):
 
 
 class PartitionsCount(DataFrameExpectation):
-    @check_message
+    @check_inputs
     def __init__(
         self,
         value: int,
@@ -233,11 +222,6 @@ class PartitionsCount(DataFrameExpectation):
         """
         self.message = message
         _op_check(operator)
-        if not isinstance(value, int):
-            raise TypeError(
-                f"Argument for DataFrame column must be of type DataType"
-                f" but got: {type(value)} for {value!r}",
-            )
         self.value = value
         self.operator = operator
 
@@ -261,6 +245,7 @@ class PartitionsCount(DataFrameExpectation):
         )
 
     @validate_expectation
+    @check_dataframe
     def eval_expectation(self, target: DataFrame) -> dict:
         """
         This method returns the expectation result.
@@ -288,7 +273,7 @@ class PartitionsCount(DataFrameExpectation):
 
 
 class Exist(DataFrameExpectation):
-    @check_message
+    @check_inputs
     def __init__(
         self,
         column: str,
@@ -306,12 +291,6 @@ class Exist(DataFrameExpectation):
         :raises: (TypeError), If the value is not a DataType.
         """
         self.message = message
-        if value and not isinstance(value, DataType):
-            raise TypeError(
-                "Argument for DataFrame Partitions must be of "
-                "type int but got: ",
-                type(value),
-            )
         self.value = value
         self.column = column
 
@@ -337,6 +316,7 @@ class Exist(DataFrameExpectation):
             self.message = _substitute(self.message, check, "<$does|doesn't>")
 
     @validate_expectation
+    @check_dataframe
     def eval_expectation(self, target: DataFrame) -> dict:
         """
         This method returns the expectation result.

@@ -1,5 +1,22 @@
 """
 This module contains the column expectations classes.
+
+Dev rules:
+- Suffix the class name with `Expectation` to make it clear that it is an
+    expectation class.
+- The class should inherit from `ColumnsExpectations` to ensure that it
+    has the necessary methods.
+- The class should have a `constraint` property that returns the constraint
+    to apply to the DataFrame.
+- The class should have a `get_message` method that formats the message
+    based on the check result.
+- The class should have an `eval_expectation` method that returns the
+    expectation result.
+- The class should have a `check_inputs` decorator to check the class input
+- The class should have a `check_column_exist` decorator to check if the
+    column exists in the DataFrame.
+- The class should have a `validate_expectation` decorator to validate the
+    expectation keys
 """
 
 from typing import Any
@@ -9,8 +26,10 @@ from pyspark.sql.functions import regexp
 
 from ..constants import OPERATOR_MAP
 from ..ext._decorators import (
+    add_class_prefix,
     check_column_exist,
-    check_message,
+    check_dataframe,
+    check_inputs,
     validate_expectation,
 )
 from ..ext._utils import (
@@ -24,9 +43,9 @@ from ..ext._utils import (
 from ._base import ColumnsExpectations
 
 
-class NonNullColumn(ColumnsExpectations):
+class NonNullColumnExpectation(ColumnsExpectations):
 
-    @check_message
+    @check_inputs
     def __init__(
         self,
         column: str | Column,
@@ -45,12 +64,6 @@ class NonNullColumn(ColumnsExpectations):
         """
         self.column = column
         self.message = message
-        if not isinstance(value, bool):
-            raise TypeError(
-                f"Argument `value` for {type(self).__name__} must "
-                "be of type bool but got: ",
-                type(value),
-            )
         self.value = value
 
     @property
@@ -64,6 +77,7 @@ class NonNullColumn(ColumnsExpectations):
         self.column = to_col(self.column)
         return self.column.isNotNull()
 
+    @add_class_prefix
     def get_message(self, has_failed: bool) -> None:
         """
         This method returns the message result formatted with the check.
@@ -79,6 +93,7 @@ class NonNullColumn(ColumnsExpectations):
         self.message = _substitute(self.message, has_failed, "<$did not|did>")
 
     @validate_expectation
+    @check_dataframe
     @check_column_exist
     def eval_expectation(self, target: DataFrame) -> dict:
         """
@@ -88,7 +103,7 @@ class NonNullColumn(ColumnsExpectations):
         :return: (dict), the expectation result
         """
         if not self.value:
-            return NullColumn(
+            return NullColumnExpectation(
                 self.column,
                 True,
                 self.message,
@@ -107,8 +122,8 @@ class NonNullColumn(ColumnsExpectations):
         }
 
 
-class NullColumn(ColumnsExpectations):
-    @check_message
+class NullColumnExpectation(ColumnsExpectations):
+    @check_inputs
     def __init__(
         self,
         column: str | Column,
@@ -127,12 +142,6 @@ class NullColumn(ColumnsExpectations):
         """
         self.column = column
         self.message = message
-        if not isinstance(value, bool):
-            raise TypeError(
-                f"Argument `value` for {type(self).__name__} must "
-                "be of type bool but got: ",
-                type(value),
-            )
         self.value = value
 
     @property
@@ -146,6 +155,7 @@ class NullColumn(ColumnsExpectations):
         self.column = to_col(self.column)
         return self.column.isNull()
 
+    @add_class_prefix
     def get_message(self, has_failed: bool) -> None:
         """
         This method returns the message result formatted with the check.
@@ -161,6 +171,7 @@ class NullColumn(ColumnsExpectations):
         self.message = _substitute(self.message, has_failed, "<$did not|did>")
 
     @validate_expectation
+    @check_dataframe
     @check_column_exist
     def eval_expectation(self, target: DataFrame) -> dict:
         """
@@ -170,7 +181,7 @@ class NullColumn(ColumnsExpectations):
         :return: (dict), the expectation result
         """
         if not self.value:
-            return NonNullColumn(
+            return NonNullColumnExpectation(
                 self.column,
                 True,
                 self.message,
@@ -189,8 +200,8 @@ class NullColumn(ColumnsExpectations):
         }
 
 
-class RlikeColumn(ColumnsExpectations):
-    @check_message
+class RegexLikeColumnExpectation(ColumnsExpectations):
+    @check_inputs
     def __init__(
         self,
         column: str | Column,
@@ -209,12 +220,6 @@ class RlikeColumn(ColumnsExpectations):
         """
         self.column = column
         self.message = message
-        if not isinstance(value, str):
-            raise TypeError(
-                f"Argument `value` for {type(self).__name__} must "
-                "be of type str but got: ",
-                type(value),
-            )
         self.value = value
 
     @property
@@ -228,6 +233,7 @@ class RlikeColumn(ColumnsExpectations):
         self.column = to_col(self.column)
         return regexp(self.column, self.value)
 
+    @add_class_prefix
     def get_message(self, has_failed: bool) -> None:
         """
         This method returns the message result formatted with the check.
@@ -243,6 +249,7 @@ class RlikeColumn(ColumnsExpectations):
         self.message = _substitute(self.message, has_failed, "<$did not|did>")
 
     @validate_expectation
+    @check_dataframe
     @check_column_exist
     def eval_expectation(self, target: DataFrame) -> dict:
         """
@@ -270,8 +277,8 @@ class RlikeColumn(ColumnsExpectations):
         }
 
 
-class IsInColumn(ColumnsExpectations):
-    @check_message
+class IsInColumnExpectation(ColumnsExpectations):
+    @check_inputs
     def __init__(
         self,
         column: str | Column,
@@ -292,11 +299,6 @@ class IsInColumn(ColumnsExpectations):
         """
         self.column = column
         self.message = message
-        if not value:
-            raise TypeError(
-                f"Argument `value` for {type(self).__name__} "
-                "must not be empty",
-            )
         self.value = value if isinstance(value, list | tuple) else [value]
 
     @property
@@ -311,6 +313,7 @@ class IsInColumn(ColumnsExpectations):
         self.column = to_col(self.column)
         return self.column.isin(*self.value)
 
+    @add_class_prefix
     def get_message(self, has_failed: bool) -> None:
         """
         This method returns the message result formatted with the check.
@@ -339,6 +342,7 @@ class IsInColumn(ColumnsExpectations):
         self.value = [to_col(c, c in target.columns) for c in self.value]
 
     @validate_expectation
+    @check_dataframe
     @check_column_exist
     def eval_expectation(self, target: DataFrame) -> dict:
         """
@@ -364,12 +368,12 @@ class IsInColumn(ColumnsExpectations):
         }
 
 
-class ColumnCompare(ColumnsExpectations):
-    @check_message
+class ColumnCompareExpectation(ColumnsExpectations):
+    @check_inputs
     def __init__(
         self,
         column: str | Column,
-        value: str | float | Column,
+        value: str | float | int | Column | bool,
         operator: str,
         message: str | None = None,
         **kwargs: Any,  # noqa: ARG002
@@ -378,24 +382,18 @@ class ColumnCompare(ColumnsExpectations):
         This class compares a column to a value.
 
         :param column: (str | Column), the column to compare
-        :param value: (str | float), the value to compare
+        :param value: (str | float | int | int | Column | bool),
+            the value to compare
         :param operator: (str), the operator to use
         :param message: (str | None), the message to display
         :return: None
-        :raises: (TypeError), If the value is not of type str | float
+        :raises: (TypeError), If the value is not of type str | float | int
         :raises: (ValueError), If the operator is not valid.
         """
         self.column = column
         self.message = message
         _op_check(operator)
         self.operator = operator
-        if not isinstance(value, str | float | int | Column):
-            raise TypeError(
-                "Argument for in `value` for {type(self).__name__} must"
-                "must be of type "
-                "str | float | int | Column but got: ",
-                type(value),
-            )
         self.value = value
 
     @property
@@ -409,6 +407,7 @@ class ColumnCompare(ColumnsExpectations):
         self.column = to_col(self.column)
         return OPERATOR_MAP[self.operator](self.column, self.value)
 
+    @add_class_prefix
     def get_message(self, has_failed: bool) -> None:
         """
         This method returns the message result formatted with the check.
@@ -418,7 +417,8 @@ class ColumnCompare(ColumnsExpectations):
         """
         default_message = (
             f"The column `{to_name(self.column)}` "
-            f"<$is not|is> {self.operator} <$to|than> `{self.expected}`"
+            f"<$is not|is> {self.operator.replace('_', ' ')} "
+            f"<$to|than> `{self.expected}`"
         )
         self.message = _resolve_msg(default_message, self.message)
         self.message = _substitute(self.message, has_failed, "<$is not|is>")
@@ -429,6 +429,7 @@ class ColumnCompare(ColumnsExpectations):
         )
 
     @validate_expectation
+    @check_dataframe
     @check_column_exist
     def eval_expectation(self, target: DataFrame) -> dict:
         """
