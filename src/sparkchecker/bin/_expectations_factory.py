@@ -9,36 +9,36 @@ from pyspark.sql import DataFrame
 from ..ext._decorators import order_expectations_dict
 from ._base import ColumnsExpectations, DataFrameExpectation
 from ._column_expectations import (
-    ColumnCompareExpectation,
-    ColumnIsInExpectation,
-    ColumnNonNullExpectation,
-    ColumnNullExpectation,
-    ColumnRegexLikeExpectation,
+    ColCompareCheck,
+    ColIsInCheck,
+    ColNonNullCheck,
+    ColNullCheck,
+    ColRegexLikeCheck,
 )
 from ._dataframe_expectations import (
-    DataFrameCountThresholdExpectation,
-    DataFrameHasColumnsExpectation,
-    DataFrameIsEmptyExpectation,
-    DataFramePartitionsCountExpectation,
+    DfCountThresholdCheck,
+    DfHasColumnsCheck,
+    DfIsEmptyCheck,
+    DfPartitionsCountCheck,
 )
 
-DATAFRAME_OPERATIONS: Mapping[str, type[DataFrameExpectation]] = {
-    "count": DataFrameCountThresholdExpectation,
-    "partitions": DataFramePartitionsCountExpectation,
-    "is_empty": DataFrameIsEmptyExpectation,
-    "has_columns": DataFrameHasColumnsExpectation,
+DATAFRAME_CHECKS: Mapping[str, type[DataFrameExpectation]] = {
+    "count": DfCountThresholdCheck,
+    "partitions": DfPartitionsCountCheck,
+    "is_empty": DfIsEmptyCheck,
+    "has_columns": DfHasColumnsCheck,
 }
-COLUMN_INSTANCES: Mapping[str, type[ColumnsExpectations]] = {
-    "not_null": ColumnNonNullExpectation,
-    "is_null": ColumnNullExpectation,
-    "pattern": ColumnRegexLikeExpectation,
-    "in": ColumnIsInExpectation,
-    "lower": ColumnCompareExpectation,
-    "lower_or_equal": ColumnCompareExpectation,
-    "equal": ColumnCompareExpectation,
-    "different": ColumnCompareExpectation,
-    "higher": ColumnCompareExpectation,
-    "higher_or_equal": ColumnCompareExpectation,
+COLUMN_CHECKS: Mapping[str, type[ColumnsExpectations]] = {
+    "not_null": ColNonNullCheck,
+    "is_null": ColNullCheck,
+    "pattern": ColRegexLikeCheck,
+    "in": ColIsInCheck,
+    "lower": ColCompareCheck,
+    "lower_or_equal": ColCompareCheck,
+    "equal": ColCompareCheck,
+    "different": ColCompareCheck,
+    "higher": ColCompareCheck,
+    "higher_or_equal": ColCompareCheck,
 }
 
 
@@ -70,7 +70,7 @@ class ExpectationsFactory:
         :param check: (dict), the check to compile
         :return: (dict), the compiled check
         """
-        expectation_instance = DATAFRAME_OPERATIONS[check["check"]](**check)
+        expectation_instance = DATAFRAME_CHECKS[check["check"]](**check)
         expectation = expectation_instance.eval_expectation(target=df)
         check.update(expectation)
         return check
@@ -85,7 +85,7 @@ class ExpectationsFactory:
         :param check: (dict), the check to compile
         :return: (dict), the compiled check
         """
-        expectation_instance = COLUMN_INSTANCES[check["operator"]](**check)
+        expectation_instance = COLUMN_CHECKS[check["operator"]](**check)
         expectation = expectation_instance.eval_expectation(target=df)
         check.update(expectation)
         return check
@@ -111,7 +111,7 @@ class ExpectationsFactory:
                     "Check type is missing in the check dictionary.",
                 )
 
-            if check_type in DATAFRAME_OPERATIONS:
+            if check_type in DATAFRAME_CHECKS:
                 compiled_check = self._compile_dataframe_operation(
                     self.df,
                     check,

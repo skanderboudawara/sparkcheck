@@ -2,11 +2,11 @@ import pytest
 import re
 from abc import ABC, abstractmethod
 from src.sparkchecker.bin._column_expectations import (
-    ColumnNonNullExpectation,
-    ColumnNullExpectation,
-    ColumnRegexLikeExpectation,
-    ColumnIsInExpectation,
-    ColumnCompareExpectation,
+    ColNonNullCheck,
+    ColNullCheck,
+    ColRegexLikeCheck,
+    ColIsInCheck,
+    ColCompareCheck,
 )
 from pyspark.sql.types import (
     StructType,
@@ -91,7 +91,7 @@ class BaseClassColumnTest(ABC):
         pass
 
 
-class TestColumnNonNullExpectation(BaseClassColumnTest):
+class TestColNonNullCheck(BaseClassColumnTest):
 
     @pytest.mark.parametrize(
         "column_name, value, message",
@@ -102,21 +102,21 @@ class TestColumnNonNullExpectation(BaseClassColumnTest):
         ],
     )
     def test_init(self, column_name, value, message):
-        ColumnNonNullExpectation(column_name, value, message)
+        ColNonNullCheck(column_name, value, message)
 
     @pytest.mark.parametrize(
         "column_name, value, message, exception, match",
         [
-            ("name", True, 1, TypeError, re.escape("ColumnNonNullExpectation: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
-            ("name", 1, None, TypeError, re.escape("ColumnNonNullExpectation: the argument `value` does not correspond to the expected types '[bool]'. Got: int")),
-            (None, True, None, TypeError, re.escape("ColumnNonNullExpectation: the argument `column` does not correspond to the expected types '[str | Column]'. Got: NoneType")),
+            ("name", True, 1, TypeError, re.escape("ColNonNullCheck: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
+            ("name", 1, None, TypeError, re.escape("ColNonNullCheck: the argument `value` does not correspond to the expected types '[bool]'. Got: int")),
+            (None, True, None, TypeError, re.escape("ColNonNullCheck: the argument `column` does not correspond to the expected types '[str | Column]'. Got: NoneType")),
         ],
     )
     def test_init_exceptions(
         self, column_name, value, message, exception, match
     ):
         with pytest.raises(exception, match=match):
-            ColumnNonNullExpectation(column_name, value, message)
+            ColNonNullCheck(column_name, value, message)
 
     @pytest.mark.parametrize(
         "column_name, value, expected_constraint",
@@ -129,17 +129,17 @@ class TestColumnNonNullExpectation(BaseClassColumnTest):
         self, spark_session, column_name, value, expected_constraint
     ):
         assert (
-            repr(ColumnNonNullExpectation(column_name, value).constraint)
+            repr(ColNonNullCheck(column_name, value).constraint)
             == expected_constraint
         )
 
     @pytest.mark.parametrize(
         "column_name, value, custom_message, has_failed, expected_message",
         [
-            ("name", True, "custom message", True, "ColumnNonNullExpectation: custom message"),
-            ("name", True, "custom message", False, "ColumnNonNullExpectation: custom message"),
-            ("name", True, None, True, "ColumnNonNullExpectation: The column `name` did not meet the expectation of ColumnNonNullExpectation"),
-            ("name", True, None, False, "ColumnNonNullExpectation: The column `name` did meet the expectation of ColumnNonNullExpectation"),
+            ("name", True, "custom message", True, "ColNonNullCheck: custom message"),
+            ("name", True, "custom message", False, "ColNonNullCheck: custom message"),
+            ("name", True, None, True, "ColNonNullCheck: The column `name` did not meet the expectation of ColNonNullCheck"),
+            ("name", True, None, False, "ColNonNullCheck: The column `name` did meet the expectation of ColNonNullCheck"),
         ],
     )
     def test_get_message(
@@ -150,7 +150,7 @@ class TestColumnNonNullExpectation(BaseClassColumnTest):
         has_failed,
         expected_message,
     ):
-        expectations = ColumnNonNullExpectation(column_name, value, custom_message)
+        expectations = ColNonNullCheck(column_name, value, custom_message)
         expectations.get_message(has_failed)
         assert expectations.message == expected_message
 
@@ -162,7 +162,7 @@ class TestColumnNonNullExpectation(BaseClassColumnTest):
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": "ColumnNonNullExpectation: The column `name` did meet the expectation of ColumnNonNullExpectation",
+                    "message": "ColNonNullCheck: The column `name` did meet the expectation of ColNonNullCheck",
                 },
             ),
             ("name", False, None,
@@ -170,7 +170,7 @@ class TestColumnNonNullExpectation(BaseClassColumnTest):
                     "example": {"name": "Alice"},
                     "got": 3,
                     "has_failed": True,
-                    "message": "ColumnNullExpectation: The column `name` did not meet the expectation of ColumnNullExpectation",
+                    "message": "ColNullCheck: The column `name` did not meet the expectation of ColNullCheck",
                 },
             ),
             ("name", True, "custom message",
@@ -178,7 +178,7 @@ class TestColumnNonNullExpectation(BaseClassColumnTest):
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": "ColumnNonNullExpectation: custom message",
+                    "message": "ColNonNullCheck: custom message",
                 },
             ),
             ("name", False, "custom message",
@@ -186,7 +186,7 @@ class TestColumnNonNullExpectation(BaseClassColumnTest):
                     "example": {"name": "Alice"},
                     "got": 3,
                     "has_failed": True,
-                    "message": "ColumnNullExpectation: custom message",
+                    "message": "ColNullCheck: custom message",
                 },
             ),
             ("hobby", False, None,
@@ -194,7 +194,7 @@ class TestColumnNonNullExpectation(BaseClassColumnTest):
                     "example": {"hobby": "swimming"},
                     "got": 2,
                     "has_failed": True,
-                    "message": "ColumnNullExpectation: The column `hobby` did not meet the expectation of ColumnNullExpectation",
+                    "message": "ColNullCheck: The column `hobby` did not meet the expectation of ColNullCheck",
                 },
             ),
             ("hobby", True, None,
@@ -202,7 +202,7 @@ class TestColumnNonNullExpectation(BaseClassColumnTest):
                     "example": {"hobby": None},
                     "got": 1,
                     "has_failed": True,
-                    "message": "ColumnNonNullExpectation: The column `hobby` did not meet the expectation of ColumnNonNullExpectation",
+                    "message": "ColNonNullCheck: The column `hobby` did not meet the expectation of ColNonNullCheck",
                 },
             ),
             ("crypto", False, None,
@@ -210,7 +210,7 @@ class TestColumnNonNullExpectation(BaseClassColumnTest):
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": "ColumnNullExpectation: The column `crypto` did meet the expectation of ColumnNullExpectation",
+                    "message": "ColNullCheck: The column `crypto` did meet the expectation of ColNullCheck",
                 },
             ),
             ("crypto", True, None,
@@ -218,7 +218,7 @@ class TestColumnNonNullExpectation(BaseClassColumnTest):
                     "example": {"crypto": None},
                     "got": 3,
                     "has_failed": True,
-                    "message": "ColumnNonNullExpectation: The column `crypto` did not meet the expectation of ColumnNonNullExpectation",
+                    "message": "ColNonNullCheck: The column `crypto` did not meet the expectation of ColNonNullCheck",
                 },
             ),
         ],
@@ -231,28 +231,28 @@ class TestColumnNonNullExpectation(BaseClassColumnTest):
         custom_message,
         expected_result,
     ):
-        expectations = ColumnNonNullExpectation(column_name, value, custom_message)
+        expectations = ColNonNullCheck(column_name, value, custom_message)
         assert expectations.eval_expectation(df_test) == expected_result
 
     def test_eval_expectation_exception(self, df_test):
-        expectations = ColumnNonNullExpectation("name", True)
-        with pytest.raises(ValueError, match="ColumnNonNullExpectation: Column 'name' does not exist in the DataFrame"):
+        expectations = ColNonNullCheck("name", True)
+        with pytest.raises(ValueError, match="ColNonNullCheck: Column 'name' does not exist in the DataFrame"):
             expectations.eval_expectation(df_test.drop("name"))
-        with pytest.raises(TypeError, match="ColumnNonNullExpectation: The target must be a Spark DataFrame, but got 'int'"):
+        with pytest.raises(TypeError, match="ColNonNullCheck: The target must be a Spark DataFrame, but got 'int'"):
             expectations.eval_expectation(1)
 
     def test_eval_dataframe_empty(self, df_test_empty):
-        expectations = ColumnNonNullExpectation("name", True)
+        expectations = ColNonNullCheck("name", True)
         expectation_result = expectations.eval_expectation(df_test_empty)
         assert expectation_result == {
             "got": "Empty DataFrame",
             "has_failed": False,
-            "message": "ColumnNonNullExpectation: The DataFrame is empty.",
+            "message": "ColNonNullCheck: The DataFrame is empty.",
         }
 
 
 
-class TestColumnNullExpectation(BaseClassColumnTest):
+class TestColNullCheck(BaseClassColumnTest):
 
     @pytest.mark.parametrize(
         "column_name, value, message",
@@ -263,21 +263,21 @@ class TestColumnNullExpectation(BaseClassColumnTest):
         ],
     )
     def test_init(self, column_name, value, message):
-        ColumnNullExpectation(column_name, value, message)
+        ColNullCheck(column_name, value, message)
 
     @pytest.mark.parametrize(
         "column_name, value, message, exception, match",
         [
-            ("name", True, 1, TypeError, re.escape("ColumnNullExpectation: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
-            ("name", 1, None, TypeError, re.escape("ColumnNullExpectation: the argument `value` does not correspond to the expected types '[bool]'. Got: int")),
-            (None, True, None, TypeError, re.escape("ColumnNullExpectation: the argument `column` does not correspond to the expected types '[str | Column]'. Got: NoneType")),
+            ("name", True, 1, TypeError, re.escape("ColNullCheck: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
+            ("name", 1, None, TypeError, re.escape("ColNullCheck: the argument `value` does not correspond to the expected types '[bool]'. Got: int")),
+            (None, True, None, TypeError, re.escape("ColNullCheck: the argument `column` does not correspond to the expected types '[str | Column]'. Got: NoneType")),
         ],
     )
     def test_init_exceptions(
         self, column_name, value, message, exception, match
     ):
         with pytest.raises(exception, match=match):
-            ColumnNullExpectation(column_name, value, message)
+            ColNullCheck(column_name, value, message)
 
     @pytest.mark.parametrize(
         "column_name, value, expected_constraint",
@@ -290,17 +290,17 @@ class TestColumnNullExpectation(BaseClassColumnTest):
         self, spark_session, column_name, value, expected_constraint
     ):
         assert (
-            repr(ColumnNullExpectation(column_name, value).constraint)
+            repr(ColNullCheck(column_name, value).constraint)
             == expected_constraint
         )
 
     @pytest.mark.parametrize(
         "column_name, value, custom_message, has_failed, expected_message",
         [
-            ("name", True, "custom message", True, "ColumnNullExpectation: custom message"),
-            ("name", True, "custom message", False, "ColumnNullExpectation: custom message"),
-            ("name", True, None, True, "ColumnNullExpectation: The column `name` did not meet the expectation of ColumnNullExpectation"),
-            ("name", True, None, False, "ColumnNullExpectation: The column `name` did meet the expectation of ColumnNullExpectation"),
+            ("name", True, "custom message", True, "ColNullCheck: custom message"),
+            ("name", True, "custom message", False, "ColNullCheck: custom message"),
+            ("name", True, None, True, "ColNullCheck: The column `name` did not meet the expectation of ColNullCheck"),
+            ("name", True, None, False, "ColNullCheck: The column `name` did meet the expectation of ColNullCheck"),
         ],
     )
     def test_get_message(
@@ -311,7 +311,7 @@ class TestColumnNullExpectation(BaseClassColumnTest):
         has_failed,
         expected_message,
     ):
-        expectations = ColumnNullExpectation(column_name, value, custom_message)
+        expectations = ColNullCheck(column_name, value, custom_message)
         expectations.get_message(has_failed)
         assert expectations.message == expected_message
 
@@ -323,7 +323,7 @@ class TestColumnNullExpectation(BaseClassColumnTest):
                     "example": {"name": "Alice"},
                     "got": 3,
                     "has_failed": True,
-                    "message": "ColumnNullExpectation: The column `name` did not meet the expectation of ColumnNullExpectation",
+                    "message": "ColNullCheck: The column `name` did not meet the expectation of ColNullCheck",
                 },
             ),
             ("name", False, None,
@@ -331,7 +331,7 @@ class TestColumnNullExpectation(BaseClassColumnTest):
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": "ColumnNonNullExpectation: The column `name` did meet the expectation of ColumnNonNullExpectation",
+                    "message": "ColNonNullCheck: The column `name` did meet the expectation of ColNonNullCheck",
                 },
             ),
             ("name", False, "custom message",
@@ -339,7 +339,7 @@ class TestColumnNullExpectation(BaseClassColumnTest):
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": "ColumnNonNullExpectation: custom message",
+                    "message": "ColNonNullCheck: custom message",
                 },
             ),
             ("name", True, "custom message",
@@ -347,7 +347,7 @@ class TestColumnNullExpectation(BaseClassColumnTest):
                     "example": {"name": "Alice"},
                     "got": 3,
                     "has_failed": True,
-                    "message": "ColumnNullExpectation: custom message",
+                    "message": "ColNullCheck: custom message",
                 },
             ),
             ("hobby", False, None,
@@ -355,7 +355,7 @@ class TestColumnNullExpectation(BaseClassColumnTest):
                     "example": {"hobby": None},
                     "got": 1,
                     "has_failed": True,
-                    "message": "ColumnNonNullExpectation: The column `hobby` did not meet the expectation of ColumnNonNullExpectation",
+                    "message": "ColNonNullCheck: The column `hobby` did not meet the expectation of ColNonNullCheck",
                 },
             ),
             ("hobby", True, None,
@@ -363,7 +363,7 @@ class TestColumnNullExpectation(BaseClassColumnTest):
                     "example": {"hobby": "swimming"},
                     "got": 2,
                     "has_failed": True,
-                    "message": "ColumnNullExpectation: The column `hobby` did not meet the expectation of ColumnNullExpectation",
+                    "message": "ColNullCheck: The column `hobby` did not meet the expectation of ColNullCheck",
                 },
             ),
             ("crypto", False, None,
@@ -371,7 +371,7 @@ class TestColumnNullExpectation(BaseClassColumnTest):
                     "example": {"crypto": None},
                     "got": 3,
                     "has_failed": True,
-                    "message": "ColumnNonNullExpectation: The column `crypto` did not meet the expectation of ColumnNonNullExpectation",
+                    "message": "ColNonNullCheck: The column `crypto` did not meet the expectation of ColNonNullCheck",
                 },
             ),
             ("crypto", True, None,
@@ -379,7 +379,7 @@ class TestColumnNullExpectation(BaseClassColumnTest):
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": "ColumnNullExpectation: The column `crypto` did meet the expectation of ColumnNullExpectation",
+                    "message": "ColNullCheck: The column `crypto` did meet the expectation of ColNullCheck",
                 },
             ),
         ],
@@ -392,27 +392,27 @@ class TestColumnNullExpectation(BaseClassColumnTest):
         custom_message,
         expected_result,
     ):
-        expectations = ColumnNullExpectation(column_name, value, custom_message)
+        expectations = ColNullCheck(column_name, value, custom_message)
         assert expectations.eval_expectation(df_test) == expected_result
 
     def test_eval_expectation_exception(self, df_test):
-        expectations = ColumnNullExpectation("name", True)
-        with pytest.raises(ValueError, match="ColumnNullExpectation: Column 'name' does not exist in the DataFrame"):
+        expectations = ColNullCheck("name", True)
+        with pytest.raises(ValueError, match="ColNullCheck: Column 'name' does not exist in the DataFrame"):
             expectations.eval_expectation(df_test.drop("name"))
-        with pytest.raises(TypeError, match="ColumnNullExpectation: The target must be a Spark DataFrame, but got 'int'"):
+        with pytest.raises(TypeError, match="ColNullCheck: The target must be a Spark DataFrame, but got 'int'"):
             expectations.eval_expectation(1)
 
     def test_eval_dataframe_empty(self, df_test_empty):
-        expectations = ColumnNullExpectation("name", True)
+        expectations = ColNullCheck("name", True)
         expectation_result = expectations.eval_expectation(df_test_empty)
         assert expectation_result == {
             "got": "Empty DataFrame",
             "has_failed": False,
-            "message": "ColumnNullExpectation: The DataFrame is empty.",
+            "message": "ColNullCheck: The DataFrame is empty.",
         }
 
 
-class TestColumnRegexLikeExpectation(BaseClassColumnTest):
+class TestColRegexLikeCheck(BaseClassColumnTest):
 
     @pytest.mark.parametrize(
         "column_name, value, message",
@@ -422,38 +422,38 @@ class TestColumnRegexLikeExpectation(BaseClassColumnTest):
         ],
     )
     def test_init(self, column_name, value, message):
-        ColumnRegexLikeExpectation(column_name, value, message)
+        ColRegexLikeCheck(column_name, value, message)
 
     @pytest.mark.parametrize(
         "column_name, value, message, exception, match",
         [
-            ("name", "regexp", 1, TypeError, re.escape("ColumnRegexLikeExpectation: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
-            ("name", 1, None, TypeError, re.escape("ColumnRegexLikeExpectation: the argument `value` does not correspond to the expected types '[str | Column]'. Got: int")),
-            ("name", None, None, TypeError, re.escape("ColumnRegexLikeExpectation: the argument `value` does not correspond to the expected types '[str | Column]'. Got: NoneType")),
-            (None, True, None, TypeError, re.escape("ColumnRegexLikeExpectation: the argument `column` does not correspond to the expected types '[str | Column]'. Got: NoneType")),
+            ("name", "regexp", 1, TypeError, re.escape("ColRegexLikeCheck: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
+            ("name", 1, None, TypeError, re.escape("ColRegexLikeCheck: the argument `value` does not correspond to the expected types '[str | Column]'. Got: int")),
+            ("name", None, None, TypeError, re.escape("ColRegexLikeCheck: the argument `value` does not correspond to the expected types '[str | Column]'. Got: NoneType")),
+            (None, True, None, TypeError, re.escape("ColRegexLikeCheck: the argument `column` does not correspond to the expected types '[str | Column]'. Got: NoneType")),
         ],
     )
     def test_init_exceptions(
         self, column_name, value, message, exception, match
     ):
         with pytest.raises(exception, match=match):
-            ColumnRegexLikeExpectation(column_name, value, message)
+            ColRegexLikeCheck(column_name, value, message)
 
     def test_constraint(self, spark_session):
-        expectations = ColumnRegexLikeExpectation("name", ".*")
+        expectations = ColRegexLikeCheck("name", ".*")
         expectations.value = lit(r".*")
         assert repr(expectations.constraint) == "Column<'regexp(name, .*)'>"
-        expectations = ColumnRegexLikeExpectation("name", "alice")
+        expectations = ColRegexLikeCheck("name", "alice")
         expectations.value = col("alice")
         assert repr(expectations.constraint) == "Column<'regexp(name, alice)'>"
 
     @pytest.mark.parametrize(
         "column_name, value, custom_message, has_failed, expected_message",
         [
-            ("name", r".*", "custom message", True, "ColumnRegexLikeExpectation: custom message"),
-            ("name", r".*", "custom message", False, "ColumnRegexLikeExpectation: custom message"),
-            ("name", r".*", None, True, "ColumnRegexLikeExpectation: The column `name` did not respect the pattern `.*`"),
-            ("name", r".*", None, False, "ColumnRegexLikeExpectation: The column `name` did respect the pattern `.*`"),
+            ("name", r".*", "custom message", True, "ColRegexLikeCheck: custom message"),
+            ("name", r".*", "custom message", False, "ColRegexLikeCheck: custom message"),
+            ("name", r".*", None, True, "ColRegexLikeCheck: The column `name` did not respect the pattern `.*`"),
+            ("name", r".*", None, False, "ColRegexLikeCheck: The column `name` did respect the pattern `.*`"),
         ],
     )
     def test_get_message(
@@ -465,7 +465,7 @@ class TestColumnRegexLikeExpectation(BaseClassColumnTest):
         has_failed,
         expected_message,
     ):
-        expectations = ColumnRegexLikeExpectation(column_name, value, custom_message)
+        expectations = ColRegexLikeCheck(column_name, value, custom_message)
         expectations.value = lit(value)
         expectations.get_message(has_failed)
         assert expectations.message == expected_message
@@ -478,7 +478,7 @@ class TestColumnRegexLikeExpectation(BaseClassColumnTest):
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": r"ColumnRegexLikeExpectation: The column `name` did respect the pattern `.*`",
+                    "message": r"ColRegexLikeCheck: The column `name` did respect the pattern `.*`",
                 },
             ),
             ("name", r"/d", None,
@@ -486,7 +486,7 @@ class TestColumnRegexLikeExpectation(BaseClassColumnTest):
                     "example": {"name": "Alice"},
                     "got": 3,
                     "has_failed": True,
-                    "message": r"ColumnRegexLikeExpectation: The column `name` did not respect the pattern `/d`",
+                    "message": r"ColRegexLikeCheck: The column `name` did not respect the pattern `/d`",
                 },
             ),
             ("name", r".*", "custom message",
@@ -494,7 +494,7 @@ class TestColumnRegexLikeExpectation(BaseClassColumnTest):
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": "ColumnRegexLikeExpectation: custom message",
+                    "message": "ColRegexLikeCheck: custom message",
                 },
             ),
             ("name",r"/d","custom message",
@@ -502,7 +502,7 @@ class TestColumnRegexLikeExpectation(BaseClassColumnTest):
                     "example": {"name": "Alice"},
                     "got": 3,
                     "has_failed": True,
-                    "message": "ColumnRegexLikeExpectation: custom message",
+                    "message": "ColRegexLikeCheck: custom message",
                 },
             ),
             ("country", "pattern_ok", None,
@@ -510,7 +510,7 @@ class TestColumnRegexLikeExpectation(BaseClassColumnTest):
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": r"ColumnRegexLikeExpectation: The column `country` did respect the pattern `pattern_ok`",
+                    "message": r"ColRegexLikeCheck: The column `country` did respect the pattern `pattern_ok`",
                 },
             ),
             ("country", "pattern_nok", None,
@@ -518,7 +518,7 @@ class TestColumnRegexLikeExpectation(BaseClassColumnTest):
                     "example": {"country": "DE"},
                     "got": 1,
                     "has_failed": True,
-                    "message": r"ColumnRegexLikeExpectation: The column `country` did not respect the pattern `pattern_nok`",
+                    "message": r"ColRegexLikeCheck: The column `country` did not respect the pattern `pattern_nok`",
                 },
             ),
         ],
@@ -531,27 +531,27 @@ class TestColumnRegexLikeExpectation(BaseClassColumnTest):
         custom_message,
         expected_result,
     ):
-        expectations = ColumnRegexLikeExpectation(column_name, value, custom_message)
+        expectations = ColRegexLikeCheck(column_name, value, custom_message)
         assert expectations.eval_expectation(df_test) == expected_result
 
     def test_eval_expectation_exception(self, df_test):
-        expectations = ColumnRegexLikeExpectation("name", "crypto")
-        with pytest.raises(ValueError, match="ColumnRegexLikeExpectation: Column 'name' does not exist in the DataFrame"):
+        expectations = ColRegexLikeCheck("name", "crypto")
+        with pytest.raises(ValueError, match="ColRegexLikeCheck: Column 'name' does not exist in the DataFrame"):
             expectations.eval_expectation(df_test.drop("name"))
-        with pytest.raises(TypeError, match="ColumnRegexLikeExpectation: The target must be a Spark DataFrame, but got 'int'"):
+        with pytest.raises(TypeError, match="ColRegexLikeCheck: The target must be a Spark DataFrame, but got 'int'"):
             expectations.eval_expectation(1)
 
     def test_eval_dataframe_empty(self, df_test_empty):
-        expectations = ColumnRegexLikeExpectation("name", "crypto")
+        expectations = ColRegexLikeCheck("name", "crypto")
         expectation_result = expectations.eval_expectation(df_test_empty)
         assert expectation_result == {
             "got": "Empty DataFrame",
             "has_failed": False,
-            "message": "ColumnRegexLikeExpectation: The DataFrame is empty.",
+            "message": "ColRegexLikeCheck: The DataFrame is empty.",
         }
 
 
-class TestColumnIsInExpectation(BaseClassColumnTest):
+class TestColIsInCheck(BaseClassColumnTest):
 
     @pytest.mark.parametrize(
         "column_name, value, message",
@@ -561,38 +561,38 @@ class TestColumnIsInExpectation(BaseClassColumnTest):
         ],
     )
     def test_init(self, column_name, value, message):
-        ColumnIsInExpectation(column_name, value, message)
+        ColIsInCheck(column_name, value, message)
 
     @pytest.mark.parametrize(
         "column_name, value, message, exception, match",
         [
-            ("country", ["AU"], 1, TypeError, re.escape("ColumnIsInExpectation: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
-            (None, None, None, TypeError, re.escape("ColumnIsInExpectation: the argument `column` does not correspond to the expected types '[str | Column]'. Got: NoneType")),
+            ("country", ["AU"], 1, TypeError, re.escape("ColIsInCheck: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
+            (None, None, None, TypeError, re.escape("ColIsInCheck: the argument `column` does not correspond to the expected types '[str | Column]'. Got: NoneType")),
         ],
     )
     def test_init_exceptions(
         self, column_name, value, message, exception, match
     ):
         with pytest.raises(exception, match=match):
-            ColumnIsInExpectation(column_name, value, message)
+            ColIsInCheck(column_name, value, message)
 
     def test_constraint(self, spark_session):
-        expectations = ColumnIsInExpectation("country", ["AU"])
+        expectations = ColIsInCheck("country", ["AU"])
         assert repr(expectations.constraint) == "Column<'(country IN (AU))'>"
-        expectations = ColumnIsInExpectation("country", ["AU", None])
+        expectations = ColIsInCheck("country", ["AU", None])
         assert repr(expectations.constraint) == "Column<'(country IN (AU, NULL))'>"
-        expectations = ColumnIsInExpectation("country", [col("name"), "AU"])
+        expectations = ColIsInCheck("country", [col("name"), "AU"])
         assert repr(expectations.constraint) == "Column<'(country IN (name, AU))'>"
-        expectations = ColumnIsInExpectation("country", [col("name"), lit("AU")])
+        expectations = ColIsInCheck("country", [col("name"), lit("AU")])
         assert repr(expectations.constraint) == "Column<'(country IN (name, AU))'>"
 
     @pytest.mark.parametrize(
         "column_name, value, custom_message, has_failed, expected_message",
         [
-            ("country", ["AU"], "custom message", True, "ColumnIsInExpectation: custom message"),
-            ("country", ["AU"], "custom message", False, "ColumnIsInExpectation: custom message"),
-            ("country", ["AU"], None, True, "ColumnIsInExpectation: The column `country` is not in `[AU]`"),
-            ("country", ["AU"], None, False, "ColumnIsInExpectation: The column `country` is in `[AU]`"),
+            ("country", ["AU"], "custom message", True, "ColIsInCheck: custom message"),
+            ("country", ["AU"], "custom message", False, "ColIsInCheck: custom message"),
+            ("country", ["AU"], None, True, "ColIsInCheck: The column `country` is not in `[AU]`"),
+            ("country", ["AU"], None, False, "ColIsInCheck: The column `country` is in `[AU]`"),
         ],
     )
     def test_get_message(
@@ -604,7 +604,7 @@ class TestColumnIsInExpectation(BaseClassColumnTest):
         has_failed,
         expected_message,
     ):
-        expectations = ColumnIsInExpectation(column_name, value, custom_message)
+        expectations = ColIsInCheck(column_name, value, custom_message)
         expectations.expected = "AU"
         expectations.get_message(has_failed)
         assert expectations.message == expected_message
@@ -617,7 +617,7 @@ class TestColumnIsInExpectation(BaseClassColumnTest):
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": r"ColumnIsInExpectation: The column `country` is in `[AU, DE, FR]`",
+                    "message": r"ColIsInCheck: The column `country` is in `[AU, DE, FR]`",
                 },
             ),
             ("country", ["AU", "DE"], None,
@@ -625,7 +625,7 @@ class TestColumnIsInExpectation(BaseClassColumnTest):
                     "example": {"country": "FR"},
                     "got": 1,
                     "has_failed": True,
-                    "message": r"ColumnIsInExpectation: The column `country` is not in `[AU, DE]`",
+                    "message": r"ColIsInCheck: The column `country` is not in `[AU, DE]`",
                 },
             ),
             ("country", ["AU", "DE", "FR"], "custom message",
@@ -633,7 +633,7 @@ class TestColumnIsInExpectation(BaseClassColumnTest):
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": "ColumnIsInExpectation: custom message",
+                    "message": "ColIsInCheck: custom message",
                 },
             ),
             ("country", ["only_AU", "only_DE", "only_FR"], None,
@@ -641,7 +641,7 @@ class TestColumnIsInExpectation(BaseClassColumnTest):
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": "ColumnIsInExpectation: The column `country` is in `[only_AU, only_DE, only_FR]`",
+                    "message": "ColIsInCheck: The column `country` is in `[only_AU, only_DE, only_FR]`",
                 },
             ),
             ("country", ["only_AU", "only_DE", "only_FR", "only_TN"], None,
@@ -649,7 +649,7 @@ class TestColumnIsInExpectation(BaseClassColumnTest):
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": "ColumnIsInExpectation: The column `country` is in `[only_AU, only_DE, only_FR, only_TN]`",
+                    "message": "ColIsInCheck: The column `country` is in `[only_AU, only_DE, only_FR, only_TN]`",
                 },
             ),
             ("country", ["only_AU", "only_DE", "FR"], None,
@@ -657,7 +657,7 @@ class TestColumnIsInExpectation(BaseClassColumnTest):
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": "ColumnIsInExpectation: The column `country` is in `[FR, only_AU, only_DE]`",
+                    "message": "ColIsInCheck: The column `country` is in `[FR, only_AU, only_DE]`",
                 },
             ),
             ("country", ["only_AU", "only_DE", "only_TN"], None,
@@ -665,7 +665,7 @@ class TestColumnIsInExpectation(BaseClassColumnTest):
                     "example": {"country": "FR"},
                     "got": 1,
                     "has_failed": True,
-                    "message": "ColumnIsInExpectation: The column `country` is not in `[only_AU, only_DE, only_TN]`",
+                    "message": "ColIsInCheck: The column `country` is not in `[only_AU, only_DE, only_TN]`",
                 },
             ),
             ("country", ["AU", "DE"], "custom message",
@@ -673,7 +673,7 @@ class TestColumnIsInExpectation(BaseClassColumnTest):
                     "example": {"country": "FR"},
                     "got": 1,
                     "has_failed": True,
-                    "message": "ColumnIsInExpectation: custom message",
+                    "message": "ColIsInCheck: custom message",
                 },
             ),
             ("hobby", ["swimming", "running", None], None,
@@ -681,7 +681,7 @@ class TestColumnIsInExpectation(BaseClassColumnTest):
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": "ColumnIsInExpectation: The column `hobby` is in `[NoneObject, running, swimming]`",
+                    "message": "ColIsInCheck: The column `hobby` is in `[NoneObject, running, swimming]`",
                 },
             ),
             ("hobby", ["swimming", "running"], None,
@@ -689,7 +689,7 @@ class TestColumnIsInExpectation(BaseClassColumnTest):
                     "example": {"hobby": "NoneObject"},
                     "got": 1,
                     "has_failed": True,
-                    "message": "ColumnIsInExpectation: The column `hobby` is not in `[running, swimming]`",
+                    "message": "ColIsInCheck: The column `hobby` is not in `[running, swimming]`",
                 },
             ),
             ("is_student", [True], None,
@@ -697,7 +697,7 @@ class TestColumnIsInExpectation(BaseClassColumnTest):
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": "ColumnIsInExpectation: The column `is_student` is in `[True]`",
+                    "message": "ColIsInCheck: The column `is_student` is in `[True]`",
                 },
             ),
             ("is_student", True, None,
@@ -705,7 +705,7 @@ class TestColumnIsInExpectation(BaseClassColumnTest):
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": "ColumnIsInExpectation: The column `is_student` is in `[True]`",
+                    "message": "ColIsInCheck: The column `is_student` is in `[True]`",
                 },
             ),
         ],
@@ -718,27 +718,27 @@ class TestColumnIsInExpectation(BaseClassColumnTest):
         custom_message,
         expected_result,
     ):
-        expectations = ColumnIsInExpectation(column_name, value, custom_message)
+        expectations = ColIsInCheck(column_name, value, custom_message)
         assert expectations.eval_expectation(df_test) == expected_result
 
     def test_eval_expectation_exception(self, df_test):
-        expectations = ColumnIsInExpectation("country", "crypto")
-        with pytest.raises(ValueError, match="ColumnIsInExpectation: Column 'country' does not exist in the DataFrame"):
+        expectations = ColIsInCheck("country", "crypto")
+        with pytest.raises(ValueError, match="ColIsInCheck: Column 'country' does not exist in the DataFrame"):
             expectations.eval_expectation(df_test.drop("country"))
-        with pytest.raises(TypeError, match="ColumnIsInExpectation: The target must be a Spark DataFrame, but got 'int'"):
+        with pytest.raises(TypeError, match="ColIsInCheck: The target must be a Spark DataFrame, but got 'int'"):
             expectations.eval_expectation(1)
 
     def test_eval_dataframe_empty(self, df_test_empty):
-        expectations = ColumnIsInExpectation("name", True)
+        expectations = ColIsInCheck("name", True)
         expectation_result = expectations.eval_expectation(df_test_empty)
         assert expectation_result == {
             "got": "Empty DataFrame",
             "has_failed": False,
-            "message": "ColumnIsInExpectation: The DataFrame is empty.",
+            "message": "ColIsInCheck: The DataFrame is empty.",
         }
 
 
-class TestColumnCompareExpectation(BaseClassColumnTest):
+class TestColCompareCheck(BaseClassColumnTest):
 
     @pytest.mark.parametrize(
         "column_name, value, operator, message",
@@ -748,49 +748,49 @@ class TestColumnCompareExpectation(BaseClassColumnTest):
         ],
     )
     def test_init(self, column_name, value, operator, message):
-        ColumnCompareExpectation(column_name, value, operator, message)
+        ColCompareCheck(column_name, value, operator, message)
 
     @pytest.mark.parametrize(
         "column_name, value, operator, message, exception, match",
         [
-            ("age", 10, "lower", 1, TypeError, re.escape("ColumnCompareExpectation: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
-            ("age", 10, 1, None, TypeError, re.escape("ColumnCompareExpectation: the argument `operator` does not correspond to the expected types '[str]'. Got: int")),
-            ("age", 10, None, None, TypeError, re.escape("ColumnCompareExpectation: the argument `operator` does not correspond to the expected types '[str]'. Got: NoneType")),
-            ("age", ["A"], "lower", None, TypeError, re.escape("ColumnCompareExpectation: the argument `value` does not correspond to the expected types '[str | float | int | Column | bool | NoneType]'. Got: list")),
-            ("age", 10, "flower", None, ValueError, re.escape("ColumnCompareExpectation: Invalid operator: 'flower'. Must be one of: '[lower, lower_or_equal, equal, different, higher, higher_or_equal]'")),
-            (None, 10, "lower", None, TypeError, re.escape("ColumnCompareExpectation: the argument `column` does not correspond to the expected types '[str | Column]'. Got: NoneType")),
+            ("age", 10, "lower", 1, TypeError, re.escape("ColCompareCheck: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
+            ("age", 10, 1, None, TypeError, re.escape("ColCompareCheck: the argument `operator` does not correspond to the expected types '[str]'. Got: int")),
+            ("age", 10, None, None, TypeError, re.escape("ColCompareCheck: the argument `operator` does not correspond to the expected types '[str]'. Got: NoneType")),
+            ("age", ["A"], "lower", None, TypeError, re.escape("ColCompareCheck: the argument `value` does not correspond to the expected types '[str | float | int | Column | bool | NoneType]'. Got: list")),
+            ("age", 10, "flower", None, ValueError, re.escape("ColCompareCheck: Invalid operator: 'flower'. Must be one of: '[lower, lower_or_equal, equal, different, higher, higher_or_equal]'")),
+            (None, 10, "lower", None, TypeError, re.escape("ColCompareCheck: the argument `column` does not correspond to the expected types '[str | Column]'. Got: NoneType")),
         ],
     )
     def test_init_exceptions(
         self, column_name, value, operator, message, exception, match
     ):
         with pytest.raises(exception, match=match):
-            ColumnCompareExpectation(column_name, value, operator, message)
+            ColCompareCheck(column_name, value, operator, message)
 
     def test_constraint(self, spark_session):
-        expectations = ColumnCompareExpectation("age", 10, "lower")
+        expectations = ColCompareCheck("age", 10, "lower")
         assert repr(expectations.constraint) == "Column<'(age < 10)'>"
-        expectations = ColumnCompareExpectation("age", 10, "higher")
+        expectations = ColCompareCheck("age", 10, "higher")
         assert repr(expectations.constraint) == "Column<'(age > 10)'>"
-        expectations = ColumnCompareExpectation("age", 10, "lower_or_equal")
+        expectations = ColCompareCheck("age", 10, "lower_or_equal")
         assert repr(expectations.constraint) == "Column<'(age <= 10)'>"
-        expectations = ColumnCompareExpectation("age", 10, "higher_or_equal")
+        expectations = ColCompareCheck("age", 10, "higher_or_equal")
         assert repr(expectations.constraint) == "Column<'(age >= 10)'>"
-        expectations = ColumnCompareExpectation("age", "NoneObject", "equal")
+        expectations = ColCompareCheck("age", "NoneObject", "equal")
         assert repr(expectations.constraint) == "Column<'(age = NoneObject)'>"
-        expectations = ColumnCompareExpectation("age", "NoneObject", "different")
+        expectations = ColCompareCheck("age", "NoneObject", "different")
         assert repr(expectations.constraint) == "Column<'(NOT (age = NoneObject))'>"
 
 
     @pytest.mark.parametrize(
         "column_name, value, operator, custom_message, has_failed, expected_message",
         [
-            ("age", 10, "higher", "custom message", True, "ColumnCompareExpectation: custom message"),
-            ("age", 10, "higher", "custom message", False, "ColumnCompareExpectation: custom message"),
-            ("age", 10, "higher", None, True, "ColumnCompareExpectation: The column `age` is not higher than `10`"),
-            ("age", 10, "higher", None, False, "ColumnCompareExpectation: The column `age` is higher than `10`"),
-            ("age", 10, "equal", None, True, "ColumnCompareExpectation: The column `age` is not equal to `10`"),
-            ("age", 10, "equal", None, False, "ColumnCompareExpectation: The column `age` is equal to `10`"),
+            ("age", 10, "higher", "custom message", True, "ColCompareCheck: custom message"),
+            ("age", 10, "higher", "custom message", False, "ColCompareCheck: custom message"),
+            ("age", 10, "higher", None, True, "ColCompareCheck: The column `age` is not higher than `10`"),
+            ("age", 10, "higher", None, False, "ColCompareCheck: The column `age` is higher than `10`"),
+            ("age", 10, "equal", None, True, "ColCompareCheck: The column `age` is not equal to `10`"),
+            ("age", 10, "equal", None, False, "ColCompareCheck: The column `age` is equal to `10`"),
         ],
     )
     def test_get_message(
@@ -803,7 +803,7 @@ class TestColumnCompareExpectation(BaseClassColumnTest):
         has_failed,
         expected_message,
     ):
-        expectations = ColumnCompareExpectation(column_name, value, operator, custom_message)
+        expectations = ColCompareCheck(column_name, value, operator, custom_message)
         expectations.expected = value
         expectations.get_message(has_failed)
         assert expectations.message == expected_message
@@ -816,7 +816,7 @@ class TestColumnCompareExpectation(BaseClassColumnTest):
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": r"ColumnCompareExpectation: The column `age` is higher than `10`",
+                    "message": r"ColCompareCheck: The column `age` is higher than `10`",
                 },
             ),
             ("age", 10, "higher_or_equal", None,
@@ -824,7 +824,7 @@ class TestColumnCompareExpectation(BaseClassColumnTest):
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": r"ColumnCompareExpectation: The column `age` is higher or equal than `10`",
+                    "message": r"ColCompareCheck: The column `age` is higher or equal than `10`",
                 },
             ),
             ("age", 50, "lower_or_equal", None,
@@ -832,7 +832,7 @@ class TestColumnCompareExpectation(BaseClassColumnTest):
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": r"ColumnCompareExpectation: The column `age` is lower or equal than `50`",
+                    "message": r"ColCompareCheck: The column `age` is lower or equal than `50`",
                 },
             ),
             ("age", 10, "lower", None,
@@ -840,7 +840,7 @@ class TestColumnCompareExpectation(BaseClassColumnTest):
                     "example": {"age": 25},
                     "got": 3,
                     "has_failed": True,
-                    "message": r"ColumnCompareExpectation: The column `age` is not lower than `10`",
+                    "message": r"ColCompareCheck: The column `age` is not lower than `10`",
                 },
             ),
             ("is_student", True, "equal", None,
@@ -848,7 +848,7 @@ class TestColumnCompareExpectation(BaseClassColumnTest):
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": r"ColumnCompareExpectation: The column `is_student` is equal to `True`",
+                    "message": r"ColCompareCheck: The column `is_student` is equal to `True`",
                 },
             ),
             ("only_NULL", None, "equal", None,
@@ -856,7 +856,7 @@ class TestColumnCompareExpectation(BaseClassColumnTest):
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": r"ColumnCompareExpectation: The column `only_NULL` is equal to `None`",
+                    "message": r"ColCompareCheck: The column `only_NULL` is equal to `None`",
                 },
             ),
             ("is_student", True, "different", None,
@@ -864,7 +864,7 @@ class TestColumnCompareExpectation(BaseClassColumnTest):
                     "example": {"is_student": True},
                     "got": 3,
                     "has_failed": True,
-                    "message": r"ColumnCompareExpectation: The column `is_student` is not different to `True`",
+                    "message": r"ColCompareCheck: The column `is_student` is not different to `True`",
                 },
             ),
         ],
@@ -878,21 +878,21 @@ class TestColumnCompareExpectation(BaseClassColumnTest):
         custom_message,
         expected_result,
     ):
-        expectations = ColumnCompareExpectation(column_name, value, operator, custom_message)
+        expectations = ColCompareCheck(column_name, value, operator, custom_message)
         assert expectations.eval_expectation(df_test) == expected_result
 
     def test_eval_expectation_exception(self, df_test):
-        expectations = ColumnCompareExpectation("age", "10", "lower")
-        with pytest.raises(ValueError, match="ColumnCompareExpectation: Column 'age' does not exist in the DataFrame"):
+        expectations = ColCompareCheck("age", "10", "lower")
+        with pytest.raises(ValueError, match="ColCompareCheck: Column 'age' does not exist in the DataFrame"):
             expectations.eval_expectation(df_test.drop("age"))
-        with pytest.raises(TypeError, match="ColumnCompareExpectation: The target must be a Spark DataFrame, but got 'int'"):
+        with pytest.raises(TypeError, match="ColCompareCheck: The target must be a Spark DataFrame, but got 'int'"):
             expectations.eval_expectation(1)
 
     def test_eval_dataframe_empty(self, df_test_empty):
-        expectations = ColumnCompareExpectation("age", True, "equal")
+        expectations = ColCompareCheck("age", True, "equal")
         expectation_result = expectations.eval_expectation(df_test_empty)
         assert expectation_result == {
             "got": "Empty DataFrame",
             "has_failed": False,
-            "message": "ColumnCompareExpectation: The DataFrame is empty.",
+            "message": "ColCompareCheck: The DataFrame is empty.",
         }
