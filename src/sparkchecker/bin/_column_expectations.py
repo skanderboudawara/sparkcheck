@@ -43,7 +43,7 @@ from ..ext._utils import (
 from ._base import ColumnsExpectations
 
 
-class ColumnNonNullExpectation(ColumnsExpectations):
+class ColNonNullCheck(ColumnsExpectations):
 
     @check_inputs
     def __init__(
@@ -103,7 +103,7 @@ class ColumnNonNullExpectation(ColumnsExpectations):
         :return: (dict), the expectation result
         """
         if not self.value:
-            return ColumnNullExpectation(
+            return ColNullCheck(
                 self.column,
                 True,
                 self.message,
@@ -122,7 +122,7 @@ class ColumnNonNullExpectation(ColumnsExpectations):
         }
 
 
-class ColumnNullExpectation(ColumnsExpectations):
+class ColNullCheck(ColumnsExpectations):
     @check_inputs
     def __init__(
         self,
@@ -181,7 +181,7 @@ class ColumnNullExpectation(ColumnsExpectations):
         :return: (dict), the expectation result
         """
         if not self.value:
-            return ColumnNonNullExpectation(
+            return ColNonNullCheck(
                 self.column,
                 True,
                 self.message,
@@ -200,7 +200,7 @@ class ColumnNullExpectation(ColumnsExpectations):
         }
 
 
-class ColumnRegexLikeExpectation(ColumnsExpectations):
+class ColRegexLikeCheck(ColumnsExpectations):
     @check_inputs
     def __init__(
         self,
@@ -277,7 +277,7 @@ class ColumnRegexLikeExpectation(ColumnsExpectations):
         }
 
 
-class ColumnIsInExpectation(ColumnsExpectations):
+class ColIsInCheck(ColumnsExpectations):
     @check_inputs
     def __init__(
         self,
@@ -368,7 +368,7 @@ class ColumnIsInExpectation(ColumnsExpectations):
         }
 
 
-class ColumnCompareExpectation(ColumnsExpectations):
+class ColCompareCheck(ColumnsExpectations):
     @check_inputs
     def __init__(
         self,

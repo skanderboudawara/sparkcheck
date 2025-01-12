@@ -13,7 +13,7 @@ from ..ext._utils import _op_check, _resolve_msg, _substitute
 from ._base import DataFrameExpectation
 
 
-class DataFrameIsEmptyExpectation(DataFrameExpectation):
+class DfIsEmptyCheck(DataFrameExpectation):
     @check_inputs
     def __init__(
         self,
@@ -56,12 +56,6 @@ class DataFrameIsEmptyExpectation(DataFrameExpectation):
         :return: (dict), the expectation result
         :raises: (TypeError), If the target is not a DataFrame.
         """
-        if not isinstance(target, DataFrame):
-            raise TypeError(
-                "Argument for DataFrame isEmpty must be of "
-                "type DataFrame but got: ",
-                type(target),
-            )
         check = target.isEmpty()
         has_failed = self.value != check
         self.get_message(check)
@@ -114,12 +108,6 @@ class DataFrameIsNotEmptyExpectation(DataFrameExpectation):
         :return: (dict), the expectation result
         :raises: (TypeError), If the target is not a DataFrame.
         """
-        if not isinstance(target, DataFrame):
-            raise TypeError(
-                "Argument for DataFrame isEmpty must be of "
-                "type DataFrame but got: ",
-                type(target),
-            )
         check = not (target.isEmpty())
         has_failed = self.value != check
         self.get_message(check)
@@ -130,7 +118,7 @@ class DataFrameIsNotEmptyExpectation(DataFrameExpectation):
         }
 
 
-class DataFrameCountThresholdExpectation(DataFrameExpectation):
+class DfCountThresholdCheck(DataFrameExpectation):
     @check_inputs
     def __init__(
         self,
@@ -183,12 +171,6 @@ class DataFrameCountThresholdExpectation(DataFrameExpectation):
         :return: (dict), the expectation result
         :raises: (TypeError), If the target is not a DataFrame.
         """
-        if not isinstance(target, DataFrame):
-            raise TypeError(
-                "Argument for DataFrame isEmpty must be of "
-                "type DataFrame but got: ",
-                type(target),
-            )
         count = target.count()
         # Convert the threshold to a literal value and apply the operator
         check = OPERATOR_MAP[self.operator](count, self.value)
@@ -201,7 +183,7 @@ class DataFrameCountThresholdExpectation(DataFrameExpectation):
         }
 
 
-class DataFramePartitionsCountExpectation(DataFrameExpectation):
+class DfPartitionsCountCheck(DataFrameExpectation):
     @check_inputs
     def __init__(
         self,
@@ -254,12 +236,6 @@ class DataFramePartitionsCountExpectation(DataFrameExpectation):
         :return: (dict), the expectation result
         :raises: (TypeError), If the target is not a DataFrame.
         """
-        if not isinstance(target, DataFrame):
-            raise TypeError(
-                "Argument for DataFrame isEmpty must be of "
-                "type DataFrame but got: ",
-                type(target),
-            )
         rdd_count = target.rdd.getNumPartitions()
         # Convert the threshold to a literal value and apply the operator
         check = OPERATOR_MAP[self.operator](rdd_count, self.value)
@@ -272,7 +248,7 @@ class DataFramePartitionsCountExpectation(DataFrameExpectation):
         }
 
 
-class DataFrameHasColumnsExpectation(DataFrameExpectation):
+class DfHasColumnsCheck(DataFrameExpectation):
     @check_inputs
     def __init__(
         self,
@@ -325,12 +301,6 @@ class DataFrameHasColumnsExpectation(DataFrameExpectation):
         :return: (dict), the expectation result
         :raises: (TypeError), If the target is not a DataFrame.
         """
-        if not isinstance(target, DataFrame):
-            raise TypeError(
-                "Argument for DataFrame isEmpty must be of "
-                "type DataFrame but got: ",
-                type(target),
-            )
         check_exist = self.column in target.columns
         self.get_message(check_exist)
 
