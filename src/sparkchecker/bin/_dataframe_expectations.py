@@ -1,3 +1,23 @@
+"""
+This module contains the DataFrame expectations classes.
+
+The classes in this module are used to check the DataFrame properties.
+
+Dev rules:
+- The classes in this module should inherit from the DataFrameExpectation
+    class.
+- The classes in this module should implement the abstract methods from the
+    DataFrameExpectation class.
+- The eval_expectation in this module should be decorated with the
+    @validate_expectation decorator.
+- The eval_expectation in this module should be decorated with the
+    @check_dataframe decorator.
+- The get_message in this module should be decorated with the @add_class_prefix
+    decorator.
+- The __init__ in this module should be decorated with the @check_inputs
+    decorator.
+"""
+
 from typing import Any
 
 from pyspark.sql import DataFrame
