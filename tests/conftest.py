@@ -13,6 +13,5 @@ def spark_session():
         .config("spark.driver.memory", "512m")
         .getOrCreate()
     )
-    spark.catalog.clearCache()
     yield spark
-    spark.stop()
+    spark.catalog.clearCache()
