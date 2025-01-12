@@ -90,7 +90,8 @@ lint.ignore = [
 ]
 
 lint.fixable = ["ALL"]
-lint.exclude = ["*setup.py", "*tests*"]
+lint.exclude = ["*conftest.py"]
+include = ["pyproject.toml", "src/**/*.py", "tests/**/*.py"]
 output-format = "grouped"
 preview = true
 fix = true
@@ -118,6 +119,10 @@ known-local-folder = ["src"]
 
 [tool.ruff.lint.per-file-ignores]
 "*bin*" = ["INP001"]
+"test_*.py" = [
+    "E501", "ANN001", "D101", "D102", "D103", "PT001", "ARG001", "N803", "N802", "ANN201", "ANN202",
+    "ANN204", "D100", "RET504", "DTZ005", "DTZ007", "DTZ002", "N806", "DTZ001", "ARG002",
+    "PLR0914", "S101", "PT004", "ANN002", "ANN003", "ANN206", "N801", "ARG003", "E402", "SLF001"]
 
 [tool.mypy]
 mypy_path = "src"

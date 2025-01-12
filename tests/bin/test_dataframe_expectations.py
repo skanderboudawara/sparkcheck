@@ -1,23 +1,25 @@
-import pytest
 import re
 from abc import ABC, abstractmethod
-from src.sparkchecker.bin._dataframe_expectations import (
-    DataFrameIsEmptyCheck,
-    DataFrameCountThresholdCheck,
-    DataFramePartitionsCountCheck,
-    DataFrameHasColumnsCheck,
-)
+from datetime import datetime
+
+import pytest
 from pyspark.sql.types import (
-    StructType,
-    StructField,
-    StringType,
-    DoubleType,
-    IntegerType,
     BooleanType,
     DateType,
+    DoubleType,
+    IntegerType,
+    StringType,
+    StructField,
+    StructType,
     TimestampType,
 )
-from datetime import datetime
+
+from src.sparkchecker.bin._dataframe_expectations import (
+    DataFrameCountThresholdCheck,
+    DataFrameHasColumnsCheck,
+    DataFrameIsEmptyCheck,
+    DataFramePartitionsCountCheck,
+)
 
 
 @pytest.fixture
@@ -30,7 +32,7 @@ def df_test(spark_session):
             StructField("is_student"   , BooleanType()  , True),
             StructField("birth_date"   , DateType()     , True),
             StructField("last_check_in", TimestampType(), True),
-        ]
+        ],
     )
 
     data = [
@@ -43,16 +45,18 @@ def df_test(spark_session):
     df = spark_session.createDataFrame(data, schema)
     return df
 
+
 @pytest.fixture
 def df_test_empty(spark_session):
     schema = StructType(
         [
             StructField("name", StringType(), True),
-        ]
+        ],
     )
 
     df = spark_session.createDataFrame([], schema)
     return df
+
 
 class TestDfExpectation(ABC):
 
@@ -76,10 +80,11 @@ class TestDfExpectation(ABC):
     def test_eval_expectation_exception(self):
         pass
 
+
 class TestDataFrameIsEmptyCheck(TestDfExpectation):
 
     @pytest.mark.parametrize(
-        "value, message",
+        ("value", "message"),
         [
             (True, None),
             (False, None),
@@ -90,20 +95,20 @@ class TestDataFrameIsEmptyCheck(TestDfExpectation):
         DataFrameIsEmptyCheck(value, message)
 
     @pytest.mark.parametrize(
-        "value, message, exception, match",
+        ("value", "message", "exception", "match"),
         [
             (True, 1, TypeError, re.escape("DataFrameIsEmptyCheck: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
             ("1", None, TypeError, re.escape("DataFrameIsEmptyCheck: the argument `value` does not correspond to the expected types '[bool | NoneType]'. Got: str")),
         ],
     )
     def test_init_exceptions(
-        self, value, message, exception, match
+        self, value, message, exception, match,
     ):
         with pytest.raises(exception, match=match):
             DataFrameIsEmptyCheck(value, message)
 
     @pytest.mark.parametrize(
-        "custom_message, has_failed, expected_message",
+        ("custom_message", "has_failed", "expected_message"),
         [
             ("custom message", True, "DataFrameIsEmptyCheck: custom message"),
             ("custom message", False, "DataFrameIsEmptyCheck: custom message"),
@@ -122,7 +127,7 @@ class TestDataFrameIsEmptyCheck(TestDfExpectation):
         assert expectations.message == expected_message
 
     @pytest.mark.parametrize(
-        "value, custom_message, is_empty, expected_result",
+        ("value", "custom_message", "is_empty", "expected_result"),
         [
             (True, None, False,
                 {
@@ -172,10 +177,11 @@ class TestDataFrameIsEmptyCheck(TestDfExpectation):
         with pytest.raises(TypeError, match="DataFrameIsEmptyCheck: The target must be a Spark DataFrame, but got 'int'"):
             expectations.eval_expectation(1)
 
+
 class TestDataFrameCountThresholdCheck(TestDfExpectation):
 
     @pytest.mark.parametrize(
-        "value, operator, message",
+        ("value", "operator", "message"),
         [
             (1, "lower", None),
             (1, "lower", "hello world"),
@@ -185,7 +191,7 @@ class TestDataFrameCountThresholdCheck(TestDfExpectation):
         DataFrameCountThresholdCheck(value, operator, message)
 
     @pytest.mark.parametrize(
-        "value, operator, message, exception, match",
+        ("value", "operator", "message", "exception", "match"),
         [
             (1, "lower", 1, TypeError, re.escape("DataFrameCountThresholdCheck: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
             ("1", "lower", None, TypeError, re.escape("DataFrameCountThresholdCheck: the argument `value` does not correspond to the expected types '[int]'. Got: str")),
@@ -193,13 +199,13 @@ class TestDataFrameCountThresholdCheck(TestDfExpectation):
         ],
     )
     def test_init_exceptions(
-        self, value, operator, message, exception, match
+        self, value, operator, message, exception, match,
     ):
         with pytest.raises(exception, match=match):
             DataFrameCountThresholdCheck(value, operator, message)
 
     @pytest.mark.parametrize(
-        "custom_message, has_failed, expected_message",
+        ("custom_message", "has_failed", "expected_message"),
         [
             ("custom message", True, "DataFrameCountThresholdCheck: custom message"),
             ("custom message", False, "DataFrameCountThresholdCheck: custom message"),
@@ -219,7 +225,7 @@ class TestDataFrameCountThresholdCheck(TestDfExpectation):
         assert expectations.message == expected_message
 
     @pytest.mark.parametrize(
-        "value, operator, custom_message, is_empty, expected_result",
+        ("value", "operator", "custom_message", "is_empty", "expected_result"),
         [
             (1, "higher", None, False,
                 {
@@ -284,10 +290,11 @@ class TestDataFrameCountThresholdCheck(TestDfExpectation):
         with pytest.raises(TypeError, match="DataFrameCountThresholdCheck: The target must be a Spark DataFrame, but got 'int'"):
             expectations.eval_expectation(1)
 
+
 class TestDataFramePartitionsCountCheck(TestDfExpectation):
 
     @pytest.mark.parametrize(
-        "value, operator, message",
+        ("value", "operator", "message"),
         [
             (1, "lower", None),
             (1, "lower", "hello world"),
@@ -297,7 +304,7 @@ class TestDataFramePartitionsCountCheck(TestDfExpectation):
         DataFramePartitionsCountCheck(value, operator, message)
 
     @pytest.mark.parametrize(
-        "value, operator, message, exception, match",
+        ("value", "operator", "message", "exception", "match"),
         [
             (1, "lower", 1, TypeError, re.escape("DataFramePartitionsCountCheck: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
             ("1", "lower", None, TypeError, re.escape("DataFramePartitionsCountCheck: the argument `value` does not correspond to the expected types '[int]'. Got: str")),
@@ -305,13 +312,13 @@ class TestDataFramePartitionsCountCheck(TestDfExpectation):
         ],
     )
     def test_init_exceptions(
-        self, value, operator, message, exception, match
+        self, value, operator, message, exception, match,
     ):
         with pytest.raises(exception, match=match):
             DataFramePartitionsCountCheck(value, operator, message)
 
     @pytest.mark.parametrize(
-        "custom_message, has_failed, expected_message",
+        ("custom_message", "has_failed", "expected_message"),
         [
             ("custom message", True, "DataFramePartitionsCountCheck: custom message"),
             ("custom message", False, "DataFramePartitionsCountCheck: custom message"),
@@ -331,7 +338,7 @@ class TestDataFramePartitionsCountCheck(TestDfExpectation):
         assert expectations.message == expected_message
 
     @pytest.mark.parametrize(
-        "value, operator, custom_message, repartition, expected_result",
+        ("value", "operator", "custom_message", "repartition", "expected_result"),
         [
             (1, "equal", None, 1,
                 {
@@ -382,10 +389,11 @@ class TestDataFramePartitionsCountCheck(TestDfExpectation):
         with pytest.raises(TypeError, match="DataFramePartitionsCountCheck: The target must be a Spark DataFrame, but got 'int'"):
             expectations.eval_expectation(1)
 
+
 class TestDataFrameHasColumnsCheck(TestDfExpectation):
 
     @pytest.mark.parametrize(
-        "column, value, message",
+        ("column", "value", "message"),
         [
             ("name", StringType(), None),
             ("name", StringType(), "hello world"),
@@ -397,7 +405,7 @@ class TestDataFrameHasColumnsCheck(TestDfExpectation):
         DataFrameHasColumnsCheck(column, value, message)
 
     @pytest.mark.parametrize(
-        "column, value, message, exception, match",
+        ("column", "value", "message", "exception", "match"),
         [
             ("name", StringType(), 1, TypeError, re.escape("DataFrameHasColumnsCheck: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
             (1, StringType(), None, TypeError, re.escape("DataFrameHasColumnsCheck: the argument `column` does not correspond to the expected types '[str]'. Got: int")),
@@ -405,13 +413,13 @@ class TestDataFrameHasColumnsCheck(TestDfExpectation):
         ],
     )
     def test_init_exceptions(
-        self, column, value, message, exception, match
+        self, column, value, message, exception, match,
     ):
         with pytest.raises(exception, match=match):
             DataFrameHasColumnsCheck(column, value, message)
 
     @pytest.mark.parametrize(
-        "value, custom_message, has_failed, expected_message",
+        ("value", "custom_message", "has_failed", "expected_message"),
         [
             (None, "custom message", True, "DataFrameHasColumnsCheck: custom message"),
             (None, "custom message", False, "DataFrameHasColumnsCheck: custom message"),
@@ -435,7 +443,7 @@ class TestDataFrameHasColumnsCheck(TestDfExpectation):
         assert expectations.message == expected_message
 
     @pytest.mark.parametrize(
-        "column, value, custom_message, expected_result",
+        ("column", "value", "custom_message", "expected_result"),
         [
             ("name", None, None,
                 {

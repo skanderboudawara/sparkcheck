@@ -1,22 +1,24 @@
-import pytest
 import re
 from abc import ABC, abstractmethod
+
+import pytest
+from pyspark.sql.functions import col, lit
+from pyspark.sql.types import (
+    BooleanType,
+    DoubleType,
+    IntegerType,
+    StringType,
+    StructField,
+    StructType,
+)
+
 from src.sparkchecker.bin._column_expectations import (
+    ColCompareCheck,
+    ColIsInCheck,
     ColNonNullCheck,
     ColNullCheck,
     ColRegexLikeCheck,
-    ColIsInCheck,
-    ColCompareCheck,
 )
-from pyspark.sql.types import (
-    StructType,
-    StructField,
-    StringType,
-    DoubleType,
-    IntegerType,
-    BooleanType,
-)
-from pyspark.sql.functions import col, lit
 
 
 @pytest.fixture
@@ -37,7 +39,7 @@ def df_test(spark_session):
             StructField("only_DE"    , StringType() , True),
             StructField("only_TN"    , StringType() , True),
             StructField("only_NULL"  , StringType() , True),
-        ]
+        ],
     )
     data = [
     #   (name     , country, crypto, hobby     , age, height, is_student, pattern_ok , pattern_nok, only_AU, only_FR, only_DE, only_TN, only_NULL),  # noqa
@@ -49,16 +51,18 @@ def df_test(spark_session):
     df = spark_session.createDataFrame(data, schema)
     return df
 
+
 @pytest.fixture
 def df_test_empty(spark_session):
     schema = StructType(
         [
             StructField("name", StringType(), True),
-        ]
+        ],
     )
 
     df = spark_session.createDataFrame([], schema)
     return df
+
 
 class BaseClassColumnTest(ABC):
 
@@ -94,7 +98,7 @@ class BaseClassColumnTest(ABC):
 class TestColNonNullCheck(BaseClassColumnTest):
 
     @pytest.mark.parametrize(
-        "column_name, value, message",
+        ("column_name", "value", "message"),
         [
             ("name", True, None),
             ("name", False, None),
@@ -105,7 +109,7 @@ class TestColNonNullCheck(BaseClassColumnTest):
         ColNonNullCheck(column_name, value, message)
 
     @pytest.mark.parametrize(
-        "column_name, value, message, exception, match",
+        ("column_name", "value", "message", "exception", "match"),
         [
             ("name", True, 1, TypeError, re.escape("ColNonNullCheck: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
             ("name", 1, None, TypeError, re.escape("ColNonNullCheck: the argument `value` does not correspond to the expected types '[bool]'. Got: int")),
@@ -113,20 +117,20 @@ class TestColNonNullCheck(BaseClassColumnTest):
         ],
     )
     def test_init_exceptions(
-        self, column_name, value, message, exception, match
+        self, column_name, value, message, exception, match,
     ):
         with pytest.raises(exception, match=match):
             ColNonNullCheck(column_name, value, message)
 
     @pytest.mark.parametrize(
-        "column_name, value, expected_constraint",
+        ("column_name", "value", "expected_constraint"),
         [
             ("name", True, "Column<'(name IS NOT NULL)'>"),
             ("name", False, "Column<'(name IS NOT NULL)'>"),
         ],
     )
     def test_constraint(
-        self, spark_session, column_name, value, expected_constraint
+        self, spark_session, column_name, value, expected_constraint,
     ):
         assert (
             repr(ColNonNullCheck(column_name, value).constraint)
@@ -134,7 +138,7 @@ class TestColNonNullCheck(BaseClassColumnTest):
         )
 
     @pytest.mark.parametrize(
-        "custom_message, has_failed, expected_message",
+        ("custom_message", "has_failed", "expected_message"),
         [
             ("custom message", True, "ColNonNullCheck: custom message"),
             ("custom message", False, "ColNonNullCheck: custom message"),
@@ -153,7 +157,7 @@ class TestColNonNullCheck(BaseClassColumnTest):
         assert expectations.message == expected_message
 
     @pytest.mark.parametrize(
-        "column_name, value, custom_message, expected_result",
+        ("column_name", "value", "custom_message", "expected_result"),
         [
             ("name", True, None,
                 {
@@ -249,11 +253,10 @@ class TestColNonNullCheck(BaseClassColumnTest):
         }
 
 
-
 class TestColNullCheck(BaseClassColumnTest):
 
     @pytest.mark.parametrize(
-        "column_name, value, message",
+        ("column_name", "value", "message"),
         [
             ("name", True, None),
             ("name", False, None),
@@ -264,7 +267,7 @@ class TestColNullCheck(BaseClassColumnTest):
         ColNullCheck(column_name, value, message)
 
     @pytest.mark.parametrize(
-        "column_name, value, message, exception, match",
+        ("column_name", "value", "message", "exception", "match"),
         [
             ("name", True, 1, TypeError, re.escape("ColNullCheck: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
             ("name", 1, None, TypeError, re.escape("ColNullCheck: the argument `value` does not correspond to the expected types '[bool]'. Got: int")),
@@ -272,20 +275,20 @@ class TestColNullCheck(BaseClassColumnTest):
         ],
     )
     def test_init_exceptions(
-        self, column_name, value, message, exception, match
+        self, column_name, value, message, exception, match,
     ):
         with pytest.raises(exception, match=match):
             ColNullCheck(column_name, value, message)
 
     @pytest.mark.parametrize(
-        "column_name, value, expected_constraint",
+        ("column_name", "value", "expected_constraint"),
         [
             ("name", True, "Column<'(name IS NULL)'>"),
             ("name", False, "Column<'(name IS NULL)'>"),
         ],
     )
     def test_constraint(
-        self, spark_session, column_name, value, expected_constraint
+        self, spark_session, column_name, value, expected_constraint,
     ):
         assert (
             repr(ColNullCheck(column_name, value).constraint)
@@ -293,7 +296,7 @@ class TestColNullCheck(BaseClassColumnTest):
         )
 
     @pytest.mark.parametrize(
-        "custom_message, has_failed, expected_message",
+        ("custom_message", "has_failed", "expected_message"),
         [
             ("custom message", True, "ColNullCheck: custom message"),
             ("custom message", False, "ColNullCheck: custom message"),
@@ -312,7 +315,7 @@ class TestColNullCheck(BaseClassColumnTest):
         assert expectations.message == expected_message
 
     @pytest.mark.parametrize(
-        "column_name, value, custom_message, expected_result",
+        ("column_name", "value", "custom_message", "expected_result"),
         [
             ("name", True, None,
                 {
@@ -411,7 +414,7 @@ class TestColNullCheck(BaseClassColumnTest):
 class TestColRegexLikeCheck(BaseClassColumnTest):
 
     @pytest.mark.parametrize(
-        "column_name, value, message",
+        ("column_name", "value", "message"),
         [
             ("name", "regexp", None),
             ("name", "regexp", "hello world"),
@@ -421,7 +424,7 @@ class TestColRegexLikeCheck(BaseClassColumnTest):
         ColRegexLikeCheck(column_name, value, message)
 
     @pytest.mark.parametrize(
-        "column_name, value, message, exception, match",
+        ("column_name", "value", "message", "exception", "match"),
         [
             ("name", "regexp", 1, TypeError, re.escape("ColRegexLikeCheck: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
             ("name", 1, None, TypeError, re.escape("ColRegexLikeCheck: the argument `value` does not correspond to the expected types '[str | Column]'. Got: int")),
@@ -430,7 +433,7 @@ class TestColRegexLikeCheck(BaseClassColumnTest):
         ],
     )
     def test_init_exceptions(
-        self, column_name, value, message, exception, match
+        self, column_name, value, message, exception, match,
     ):
         with pytest.raises(exception, match=match):
             ColRegexLikeCheck(column_name, value, message)
@@ -444,7 +447,7 @@ class TestColRegexLikeCheck(BaseClassColumnTest):
         assert repr(expectations.constraint) == "Column<'regexp(name, alice)'>"
 
     @pytest.mark.parametrize(
-        "custom_message, has_failed, expected_message",
+        ("custom_message", "has_failed", "expected_message"),
         [
             ("custom message", True, "ColRegexLikeCheck: custom message"),
             ("custom message", False, "ColRegexLikeCheck: custom message"),
@@ -465,7 +468,7 @@ class TestColRegexLikeCheck(BaseClassColumnTest):
         assert expectations.message == expected_message
 
     @pytest.mark.parametrize(
-        "column_name, value, custom_message, expected_result",
+        ("column_name", "value", "custom_message", "expected_result"),
         [
             ("name", r".*", None,
                 {
@@ -491,7 +494,7 @@ class TestColRegexLikeCheck(BaseClassColumnTest):
                     "message": "ColRegexLikeCheck: custom message",
                 },
             ),
-            ("name",r"/d","custom message",
+            ("name", r"/d", "custom message",
                 {
                     "example": {"name": "Alice"},
                     "got": 3,
@@ -548,7 +551,7 @@ class TestColRegexLikeCheck(BaseClassColumnTest):
 class TestColIsInCheck(BaseClassColumnTest):
 
     @pytest.mark.parametrize(
-        "column_name, value, message",
+        ("column_name", "value", "message"),
         [
             ("country", ["AU", "FR"], None),
             ("country",  ["AU", "FR"], "hello world"),
@@ -558,14 +561,14 @@ class TestColIsInCheck(BaseClassColumnTest):
         ColIsInCheck(column_name, value, message)
 
     @pytest.mark.parametrize(
-        "column_name, value, message, exception, match",
+        ("column_name", "value", "message", "exception", "match"),
         [
             ("country", ["AU"], 1, TypeError, re.escape("ColIsInCheck: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
             (None, None, None, TypeError, re.escape("ColIsInCheck: the argument `column` does not correspond to the expected types '[str | Column]'. Got: NoneType")),
         ],
     )
     def test_init_exceptions(
-        self, column_name, value, message, exception, match
+        self, column_name, value, message, exception, match,
     ):
         with pytest.raises(exception, match=match):
             ColIsInCheck(column_name, value, message)
@@ -581,7 +584,7 @@ class TestColIsInCheck(BaseClassColumnTest):
         assert repr(expectations.constraint) == "Column<'(country IN (name, AU))'>"
 
     @pytest.mark.parametrize(
-        "custom_message, has_failed, expected_message",
+        ("custom_message", "has_failed", "expected_message"),
         [
             ("custom message", True, "ColIsInCheck: custom message"),
             ("custom message", False, "ColIsInCheck: custom message"),
@@ -602,7 +605,7 @@ class TestColIsInCheck(BaseClassColumnTest):
         assert expectations.message == expected_message
 
     @pytest.mark.parametrize(
-        "column_name, value, custom_message, expected_result",
+        ("column_name", "value", "custom_message", "expected_result"),
         [
             ("country", ["AU", "DE", "FR"], None,
                 {
@@ -733,7 +736,7 @@ class TestColIsInCheck(BaseClassColumnTest):
 class TestColCompareCheck(BaseClassColumnTest):
 
     @pytest.mark.parametrize(
-        "column_name, value, operator, message",
+        ("column_name", "value", "operator", "message"),
         [
             ("age", 10, "higher", None),
             ("age",  10, "higher", "hello world"),
@@ -743,7 +746,7 @@ class TestColCompareCheck(BaseClassColumnTest):
         ColCompareCheck(column_name, value, operator, message)
 
     @pytest.mark.parametrize(
-        "column_name, value, operator, message, exception, match",
+        ("column_name", "value", "operator", "message", "exception", "match"),
         [
             ("age", 10, "lower", 1, TypeError, re.escape("ColCompareCheck: the argument `message` does not correspond to the expected types '[str | NoneType]'. Got: int")),
             ("age", 10, 1, None, TypeError, re.escape("ColCompareCheck: the argument `operator` does not correspond to the expected types '[str]'. Got: int")),
@@ -754,7 +757,7 @@ class TestColCompareCheck(BaseClassColumnTest):
         ],
     )
     def test_init_exceptions(
-        self, column_name, value, operator, message, exception, match
+        self, column_name, value, operator, message, exception, match,
     ):
         with pytest.raises(exception, match=match):
             ColCompareCheck(column_name, value, operator, message)
@@ -773,9 +776,8 @@ class TestColCompareCheck(BaseClassColumnTest):
         expectations = ColCompareCheck("age", "NoneObject", "different")
         assert repr(expectations.constraint) == "Column<'(NOT (age = NoneObject))'>"
 
-
     @pytest.mark.parametrize(
-        "operator, custom_message, has_failed, expected_message",
+        ("operator", "custom_message", "has_failed", "expected_message"),
         [
             ("higher", "custom message", True, "ColCompareCheck: custom message"),
             ("higher", "custom message", False, "ColCompareCheck: custom message"),
@@ -799,7 +801,7 @@ class TestColCompareCheck(BaseClassColumnTest):
         assert expectations.message == expected_message
 
     @pytest.mark.parametrize(
-        "column_name, value, operator, custom_message, expected_result",
+        ("column_name", "value", "operator", "custom_message", "expected_result"),
         [
             ("age", 10, "higher", None,
                 {
