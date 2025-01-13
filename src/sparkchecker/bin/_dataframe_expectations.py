@@ -56,17 +56,17 @@ class DataFrameIsEmptyCheck(DataFrameExpectation):
         self.value = value
 
     @add_class_prefix
-    def get_message(self, check: bool) -> None:
+    def get_message(self, has_failed: bool) -> None:
         """
-        This method returns the message result formatted with the check.
+        This method returns the message result formatted with the has_failed.
 
-        :param check: (bool), the check
+        :param has_failed: (bool), the has_failed
 
         :returns: (str), the message
         """
         default_msg = "The DataFrame <$is not|is> empty"
         self.message = _resolve_msg(default_msg, self.message)
-        self.message = _substitute(self.message, check, "<$is not|is>")
+        self.message = _substitute(self.message, has_failed, "<$is not|is>")
 
     @validate_expectation
     @check_dataframe
@@ -113,11 +113,11 @@ class DataFrameCountThresholdCheck(DataFrameExpectation):
         self.operator = operator
 
     @add_class_prefix
-    def get_message(self, check: bool) -> None:
+    def get_message(self, has_failed: bool) -> None:
         """
-        This method returns the message result formatted with the check.
+        This method returns the message result formatted with the has_failed.
 
-        :param check: (bool), the check
+        :param has_failed: (bool), the has_failed
         :returns: (str), the message
         """
         default_msg = (
@@ -125,7 +125,7 @@ class DataFrameCountThresholdCheck(DataFrameExpectation):
             f" {self.operator} <$to|than> {self.value}"
         )
         self.message = _resolve_msg(default_msg, self.message)
-        self.message = _substitute(self.message, check, "<$is not|is>")
+        self.message = _substitute(self.message, has_failed, "<$is not|is>")
         self.message = _substitute(
             self.message,
             self.operator in {"equal", "different"},
@@ -179,11 +179,11 @@ class DataFramePartitionsCountCheck(DataFrameExpectation):
         self.operator = operator
 
     @add_class_prefix
-    def get_message(self, check: bool) -> None:
+    def get_message(self, has_failed: bool) -> None:
         """
-        This method returns the message result formatted with the check.
+        This method returns the message result formatted with the has_failed.
 
-        :param check: (bool), the check
+        :param has_failed: (bool), the has_failed
         :returns: (str), the message
         """
         default_msg = (
@@ -191,7 +191,7 @@ class DataFramePartitionsCountCheck(DataFrameExpectation):
             f"<$is not|is> {self.operator} <$to|than> {self.value}"
         )
         self.message = _resolve_msg(default_msg, self.message)
-        self.message = _substitute(self.message, check, "<$is not|is>")
+        self.message = _substitute(self.message, has_failed, "<$is not|is>")
         self.message = _substitute(
             self.message,
             self.operator in {"equal", "different"},
@@ -243,28 +243,28 @@ class DataFrameHasColumnsCheck(DataFrameExpectation):
         self.column = column
 
     @add_class_prefix
-    def get_message(self, check: bool) -> None:
+    def get_message(self, has_failed: bool) -> None:
         """
-        This method returns the message result formatted with the check.
+        This method returns the message result formatted with the has_failed.
 
-        :param check: (bool), the check
+        :param has_failed: (bool), the has_failed
         :returns: (str), the message
         """
-        if self.value:
-            default_message = (
-                f"Column '{self.column}' exists in the DataFrame "
-                f"<$but|and> it'<$s not|s> of type: {self.value}"
-            )
-            self.message = _resolve_msg(default_message, self.message)
-            self.message = _substitute(self.message, check, "<$but|and>")
-            self.message = _substitute(self.message, check, "<$s not|s>")
-        else:
-            default_message = (
-                f"Column '{self.column}' <$doesn't|does> exist "
-                "in the DataFrame"
-            )
-            self.message = _resolve_msg(default_message, self.message)
-            self.message = _substitute(self.message, check, "<$doesn't|does>")
+        default_message = (
+            f"Column '{self.column}' exists in the DataFrame "
+            f"<$but|and> it'<$s not|s> of type: {self.value}"
+            if self.value
+            else f"Column '{self.column}' <$doesn't|does> "
+            "exist in the DataFrame"
+        )
+
+        self.message = _resolve_msg(default_message, self.message)
+        placeholders = (
+            ["<$but|and>", "<$s not|s>"] if self.value else ["<$doesn't|does>"]
+        )
+
+        for placeholder in placeholders:
+            self.message = _substitute(self.message, has_failed, placeholder)
 
     @validate_expectation
     @check_dataframe
