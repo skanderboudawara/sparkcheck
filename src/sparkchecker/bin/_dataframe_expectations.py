@@ -144,11 +144,11 @@ class DataFrameCountThresholdCheck(DataFrameExpectation):
         """
         count = target.count()
         # Convert the threshold to a literal value and apply the operator
-        check = not (OPERATOR_MAP[self.operator](count, self.value))
+        has_failed = not (OPERATOR_MAP[self.operator](count, self.value))
         self.result = count
-        self.get_message(check)
+        self.get_message(has_failed)
         return {
-            "has_failed": check,
+            "has_failed": has_failed,
             "got": count,
             "message": self.message,
         }
@@ -210,11 +210,11 @@ class DataFramePartitionsCountCheck(DataFrameExpectation):
         """
         rdd_count = target.rdd.getNumPartitions()
         # Convert the threshold to a literal value and apply the operator
-        check = not (OPERATOR_MAP[self.operator](rdd_count, self.value))
+        has_failed = not (OPERATOR_MAP[self.operator](rdd_count, self.value))
         self.result = rdd_count
-        self.get_message(check)
+        self.get_message(has_failed)
         return {
-            "has_failed": check,
+            "has_failed": has_failed,
             "got": rdd_count,
             "message": self.message,
         }
@@ -276,32 +276,25 @@ class DataFrameHasColumnsCheck(DataFrameExpectation):
         :return: (dict), the expectation result
         :raises: (TypeError), If the target is not a DataFrame.
         """
-        check_exist = self.column not in target.columns
-        check_type = False
-        if self.value and not (check_exist):
-            data_type = target.schema[self.column].dataType
-            check_type = data_type != self.value
-        else:
-            # overwrite the value to None if the column does not exist
-            self.value = None
+        # Check if the column exists
+        has_failed = self.column not in target.columns
 
-        self.get_message(check_exist or check_type)
-        if check_exist:
+        if has_failed:
+            self.value = None  # Overwrite value if column doesn't exist
+            self.get_message(True)
             return {
-                "has_failed": check_exist,
+                "has_failed": True,
                 "got": ", ".join(target.columns),
                 "message": self.message,
             }
 
-        if self.value and not (check_exist):
-            return {
-                "has_failed": check_type,
-                "got": data_type,
-                "message": self.message,
-            }
+        # Check if the column type matches the expected value
+        data_type = target.schema[self.column].dataType
+        has_failed = data_type != self.value if self.value else has_failed
 
+        self.get_message(has_failed)
         return {
-            "has_failed": check_exist,
-            "got": self.column,
+            "has_failed": has_failed,
+            "got": data_type if self.value else self.column,
             "message": self.message,
         }
