@@ -16,7 +16,6 @@ classifiers = [
 requires-python = ">=3.10"
 dependencies = [
     "PyYaml >= 6.0.2",
-    "jsonpath-ng >= 1.7.0",
     "pyspark >= 3.5",
 ]
 dynamic = ["version"]
@@ -48,6 +47,8 @@ source = ["src"]
 omit = [
     "*/__init__.py",
     "*/test_*",
+    "*/_exceptions.py",
+    "*/_logger.py",
 ]
 
 [tool.coverage.report]
@@ -138,5 +139,5 @@ pretty = true
 explicit_package_bases = true
 
 [[tool.mypy.overrides]]
-module = ["pyspark.*", "jsonpath_ng.*"]
+module = ["pyspark.*"]
 ignore_missing_imports = true
