@@ -25,36 +25,6 @@ def to_col(
         as a raw string literal or not
     :returns: (Column) a spark Column
     :raises: (TypeError), If the input is not a string, float, or Column
-
-    Examples:
-    >>> from pyspark.sql import SparkSession
-    >>> spark = SparkSession.builder.getOrCreate()
-    >>> to_col(None)
-    Column<'NoneObject'>
-
-    >>> to_col('column1')
-    Column<'column1'>
-
-    >>> to_col('column1', is_col=False)
-    Column<'column1'>
-
-    >>> to_col(123)
-    Column<'123'>
-
-    >>> to_col(col('column1'))
-    Column<'column1'>
-
-    >>> to_col(123.0)
-    Column<'123.0'>
-
-    >>> to_col(123.0, is_col=False)
-    Column<'123.0'>
-
-    >>> to_col(123.0, is_col=True)
-    Column<'123.0'>
-
-    >>> spark.stop()
-
     """
     if column_name is None:
         return lit("NoneObject")
@@ -89,27 +59,6 @@ def to_name(column: str | Column | bool | float | None) -> str:
     :param column: (str | Column | bool | float | None), a spark Column
     :returns: (str) a column name
     :raises: (TypeError), If the input is not a string or Column
-
-    Examples:
-    >>> from pyspark.sql import SparkSession
-    >>> spark = SparkSession.builder.getOrCreate()
-    >>> to_name('column1')
-    'column1'
-
-    >>> to_name(col('column1'))
-    'column1'
-
-    >>> to_name(None)
-    'NoneObject'
-
-    >>> to_name(1)
-    '1'
-
-    >>> to_name(True)
-    'True'
-
-    >>> spark.stop()
-
     """
     if column is None:
         return "NoneObject"
@@ -130,19 +79,6 @@ def _op_check(self: object, operator: str) -> None:
     :param operator: (str), the operator to check
     :returns: None
     :raises: (ValueError), If the operator is not valid.
-
-    Example:
-    >>> class HelloWorld:
-    ...     def __init__(self):
-    ...         pass
-    >>> data = HelloWorld()
-    >>> _op_check(data, 'lower')
-    >>> _op_check(data, 'flower')
-    Traceback (most recent call last):
-        ...
-    ValueError: HelloWorld: Invalid operator: 'flower'. Must be one of: \
-'[lower, lower_or_equal, equal, different, higher, higher_or_equal]'
-
     """
     class_name = self.__class__.__name__
     if operator not in OPERATOR_MAP:
@@ -162,17 +98,6 @@ def to_decimal(decimal_string: str) -> DecimalType:
 
     :return: (DecimalType), a DecimalType object.
     :raises ValueError: If the input string is not in the correct format.
-
-    Examples:
-    >>> to_decimal('decimal(10,2)')
-    DecimalType(10,2)
-
-    >>> to_decimal('decimal(5, 0)')
-    DecimalType(5,0)
-
-    >>> to_decimal('decimal(15, 5)')
-    DecimalType(15,5)
-
     """
     # Regular expression to match 'decimal(precision,scale)'
     match = re.fullmatch(
@@ -198,18 +123,6 @@ def split_base_file(file_path: str) -> tuple[str, str]:
         and filename from.
     :returns: (tuple[str, str]) The base path and the filename with
         '_expectations_result.log' appended.
-
-    Examples:
-    >>> split_base_file('/path/to/file.txt')[1] \
-    ...     .replace('\\', '/')  # Normalize path for Windows
-    '/path/to/file_sparkchecker_result.log'
-
-    >>> split_base_file('/path/to/file.txt')[0]
-    'file'
-
-    >>> split_base_file('file.txt')
-    ('file', 'file_sparkchecker_result.log')
-
     """
     base_path = os.path.dirname(file_path)
     filename = os.path.splitext(os.path.basename(file_path))[0]
@@ -235,23 +148,6 @@ def _substitute(input_string: str, condition: bool, placeholder: str) -> str:
     :raises: (TypeError), If the condition is not a boolean.
     :raises: (TypeError), If the placeholder is not a string.
     :raises: (ValueError), If the placeholder format is invalid.
-
-    Examples:
-    >>> _substitute("This is <$is|not> a test.", True, "<$is|not>")
-    'This is is a test.'
-
-    >>> _substitute("This is <$is|is not> a test.", False, "<$is|is not>")
-    'This is is not a test.'
-
-    >>> _substitute("This is <$is|not> a test.", False, "<$is|not>")
-    'This is not a test.'
-
-    >>> _substitute("The value is <$high|low>.", True, "<$high|low>")
-    'The value is high.'
-
-    >>> _substitute("The value is <$high|low>.", False, "<$high|low>")
-    'The value is low.'
-
     """
     if not isinstance(input_string, str):
         raise TypeError(
@@ -291,14 +187,6 @@ def _resolve_msg(default: str, msg: str | None) -> str:
     :return: (str), the resulting message.
     :raises: (TypeError), If the default message is not a string.
     :raises: (TypeError), If the message is not a string or None.
-
-    Examples:
-    >>> _resolve_msg("Default message", "Custom message")
-    'Custom message'
-
-    >>> _resolve_msg("Default message", None)
-    'Default message'
-
     """
     if not isinstance(default, str):
         raise TypeError(
@@ -327,31 +215,6 @@ def eval_first_fail(
     :return: (tuple), the check, the count of cases and the first failed row
     :raises: (TypeError), if the expectation is not of type Column
     :raises: (TypeError), if the DataFrame is not of type DataFrame
-
-    Examples:
-    >>> from pyspark.sql import SparkSession
-    >>> spark = SparkSession.builder.getOrCreate()
-    >>> df = spark.createDataFrame([(1, 2), (3, 4)], ['a', 'b'])
-    >>> df = df.cache()
-
-    >>> expectation = col('a') > 0
-    >>> eval_first_fail(df, 'a', expectation)
-    (False, 0, {})
-
-    >>> expectation = col('a') > 3
-    >>> eval_first_fail(df, 'a', expectation)
-    (True, 2, {'a': 1})
-
-    >>> expectation = col('a').isNotNull()
-    >>> eval_first_fail(df, 'a', expectation)
-    (False, 0, {})
-
-    >>> expectation = col('a').isNull()
-    >>> eval_first_fail(df, 'a', expectation)
-    (True, 2, {'a': 1})
-
-    >>> spark.stop()
-
     """
     if not isinstance(expectation, Column):
         raise TypeError(

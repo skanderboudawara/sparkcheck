@@ -51,8 +51,6 @@ class DataFrameIsEmptyCheck(DataFrameExpectation):
         :raises: (TypeError), If the value is not a boolean.
         """
         self.message = message
-        if value is None:
-            value = True
         self.value = value
 
     @add_class_prefix
