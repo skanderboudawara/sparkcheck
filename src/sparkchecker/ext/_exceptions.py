@@ -26,6 +26,7 @@ class SparkCheckerError(Exception):
     CONSTRAINTS_OUT_OF_RANGE = "ConstraintsOutOfRange"
     ILLEGAL_CONSTRAINT = "IllegalConstraint"
     ILLEGAL_COLUMN_TYPE = "IllegalColumnType"
+    ILLEGAL_COLUMN_CONSTRAINT = "IllegalColumnConstraint"
 
     def __init__(
         self,
@@ -103,6 +104,14 @@ class SparkCheckerError(Exception):
                     *list(DATAFRAME_CHECKS.keys()),
                     *list(COLUMN_CHECKS.keys()),
                 ]
+                return (
+                    f"`{constraint}` is an unknown constraint. "
+                    "The constraint must be one of these values: "
+                    f"\n{', '.join(authorized_values)}"
+                    f"\nGot: {exception}"
+                )
+            case SparkCheckerError.ILLEGAL_COLUMN_CONSTRAINT:
+                authorized_values = list(COLUMN_CHECKS.keys())
                 return (
                     f"`{constraint}` is an unknown constraint. "
                     "The constraint must be one of these values: "
