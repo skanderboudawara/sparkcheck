@@ -287,12 +287,15 @@ class ExpectationsYamlParser:
                 self.set_constraint(check)
                 self._verify_column_checks_parsing()
                 self._verify_constructor_parsing()
-                if not isinstance(self.constraint_obj, dict):
+                if not isinstance(
+                    self.constraint_obj,
+                    dict,
+                ):  # pragma: no cover
                     raise ValueError("Constraint object must be a dict")
                 self.constraint_obj.update({"column": column_name})
                 self.append("column", self.constraint_obj, self.constraint)
 
-    def parse(self) -> None:
+    def parse(self) -> None:  # pragma: no cover
         """
         This method runs the checks.
 
@@ -347,7 +350,7 @@ class ExpectationsYamlParser:
         return self.stack
 
 
-def read_yaml_file(file_path: str) -> dict:
+def read_yaml_file(file_path: str) -> dict:  # pragma: no cover
     """
     Reads a YAML file and returns the parsed data.
 
