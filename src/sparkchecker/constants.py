@@ -79,19 +79,7 @@ COLUMN_TYPES = {
 
 CONSTRAINT_CONSTRUCTOR = [
     "value",
+    "operator",
     "strategy",
     "message",
-]
-
-COLUMN_OPERATIONS = [
-    "not_null",
-    "is_null",
-    "pattern",
-    "in",
-    "lower",
-    "lower_or_equal",
-    "equal",
-    "different",
-    "higher",
-    "higher_or_equal",
 ]

@@ -1,7 +1,10 @@
 from typing import Any
 
+from sparkchecker.bin._expectations_factory import (
+    COLUMN_CHECKS,
+    DATAFRAME_CHECKS,
+)
 from sparkchecker.constants import (
-    COLUMN_OPERATIONS,
     COLUMN_TYPES,
     CONSTRAINT_CONSTRUCTOR,
     OPERATOR_MAP,
@@ -21,23 +24,22 @@ class SparkCheckerError(Exception):
     ILLEGAL_HAS_COLUMN_EXPECTATIONS = "IllegalHasColumnExpectations"
     ILLEGAL_THRESHOLD_MATH_OPERATOR = "IllegalThresholdMathOperator"
     CONSTRAINTS_OUT_OF_RANGE = "ConstraintsOutOfRange"
+    ILLEGAL_CONSTRAINT = "IllegalConstraint"
     ILLEGAL_COLUMN_TYPE = "IllegalColumnType"
-    ILLEGAL_COLUMN_CHECK = "IllegalColumnCheck"
 
     def __init__(
         self,
         error_type: str,
-        constraint: str | None = None,
-        exception: Any | str = None,
+        constraint: dict | str | None = None,
+        exception: Any = None,
     ) -> None:
         """
         Initialize a SparkCheckerError with a specific error type and details.
 
-        :param error_type: The type of error
-            (e.g., INTERNAL_ERROR, ILLEGAL_CONSTRAINT_CONSTRUCTOR).
-        :param constraint: The related constraint or context for the error.
-        :param exception: The offending value or additional details
-            about the error.
+        :param error_type: (str) The type of error.
+        :param constraint: (dict | str | None) The related constraint.
+        :param exception: (Any) The offending value or additional details.
+        :return: None
         """
         message = self._generate_message(error_type, constraint, exception)
         super().__init__(message)
@@ -45,15 +47,15 @@ class SparkCheckerError(Exception):
     @staticmethod
     def _generate_message(
         error_type: str,
-        constraint: str | None,
-        exception: Any | str,
+        constraint: dict | str | None,
+        exception: Any,
     ) -> str:
         """
         Generate an error message based on the error type and details.
 
-        :param error_type: The type of error.
-        :param constraint: The related constraint or context.
-        :param exception: The offending value or additional details.
+        :param error_type: (str) The type of error.
+        :param constraint: (dict | str | None) The related constraint.
+        :param exception: (Any) The offending value or additional details.
         :return: A formatted error message.
         """
         match error_type:
@@ -96,10 +98,14 @@ class SparkCheckerError(Exception):
                     f"\n{', '.join(COLUMN_TYPES.keys())}"
                     f"\nGot: {exception}"
                 )
-            case SparkCheckerError.ILLEGAL_COLUMN_CHECK:
-                authorized_values = [*OPERATOR_MAP, *COLUMN_OPERATIONS]
+            case SparkCheckerError.ILLEGAL_CONSTRAINT:
+                authorized_values = [
+                    *list(DATAFRAME_CHECKS.keys()),
+                    *list(COLUMN_CHECKS.keys()),
+                ]
                 return (
-                    f"`{constraint}` only takes these values as constraints "
+                    f"`{constraint}` is an unknown constraint. "
+                    "The constraint must be one of these values: "
                     f"\n{', '.join(authorized_values)}"
                     f"\nGot: {exception}"
                 )
