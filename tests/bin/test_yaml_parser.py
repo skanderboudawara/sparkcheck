@@ -3,13 +3,16 @@ import re
 import pytest
 
 from sparkchecker.bin._yaml_parser import ExpectationsYamlParser
+from sparkchecker.constants import OPERATOR_MAP
 from sparkchecker.ext._exceptions import SparkCheckerError
 
 
+@pytest.fixture
+def parser():
+    return ExpectationsYamlParser({})
+
+
 class TestSetConstraint:
-    @pytest.fixture
-    def parser(self):
-        return ExpectationsYamlParser({})
 
     def test_set_constraint_with_valid_dict(self, parser):
         test_constraint = {"test_key": "test_value"}
@@ -37,9 +40,6 @@ class TestSetConstraint:
 
 
 class TestVerifyConstructorParsing:
-    @pytest.fixture
-    def parser(self):
-        return ExpectationsYamlParser({})
 
     def test_valid_constraint(self, parser):
         parser.set_constraint({"higher": {"value": 0, "strategy": "warn"}})
@@ -75,4 +75,30 @@ class TestVerifyConstructorParsing:
     @pytest.mark.parametrize("valid_strategy", ["fail", "warn"])
     def test_valid_strategies(self, parser, valid_strategy):
         parser.set_constraint({"higher": {"value": 0, "strategy": valid_strategy}})
-        parser._verify_constructor_parsing()  # Should not raise
+        parser._verify_constructor_parsing()
+
+
+class TestVerifyThresholdParsing:
+    def test_valid_threshold(self, parser):
+        parser.set_constraint({"higher": {"value": 0, "strategy": "warn"}})
+        parser._verify_threshold_parsing()
+
+    def test_invalid_constraint_type(self, parser):
+        parser.set_constraint({1: {"value": 0, "strategy": "warn"}})
+        with pytest.raises(ValueError, match="Constraint must be a string"):
+            parser._verify_threshold_parsing()
+
+    def test_invalid_constraint_obj_type(self, parser):
+        parser.set_constraint({"higher": 1})
+        with pytest.raises(ValueError, match="Constraint object must be a dict"):
+            parser._verify_threshold_parsing()
+
+    def test_invalid_operator(self, parser):
+        parser.set_constraint({"slower": {"value": 0, "strategy": "warn"}})
+        with pytest.raises(SparkCheckerError):
+            parser._verify_threshold_parsing()
+
+    @pytest.mark.parametrize("valid_operator", list(OPERATOR_MAP.keys()))
+    def test_valid_operators(self, parser, valid_operator):
+        parser.set_constraint({valid_operator: {"value": 0, "strategy": "warn"}})
+        parser._verify_threshold_parsing()
