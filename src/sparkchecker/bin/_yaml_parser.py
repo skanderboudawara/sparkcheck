@@ -251,7 +251,9 @@ class ExpectationsYamlParser:
                         SparkCheckerError.ILLEGAL_HAS_COLUMN_EXPECTATIONS,
                         repr(self.constraint_obj),
                     )
-                if self.constraint_obj not in COLUMN_TYPES:
+                if (self.constraint_obj not in COLUMN_TYPES) and (
+                    "decimal" not in self.constraint_obj
+                ):
                     raise SparkCheckerError(
                         SparkCheckerError.ILLEGAL_COLUMN_TYPE,
                         self.constraint,

@@ -1,6 +1,7 @@
 import re
 
 import pytest
+from pyspark.sql.types import DecimalType, StringType
 
 from sparkchecker.bin._expectations_factory import COLUMN_CHECKS
 from sparkchecker.bin._yaml_parser import ExpectationsYamlParser
@@ -129,3 +130,69 @@ class TestVerifyColumnChecksParsing:
     def test_valid_column_checks(self, parser, valid_check):
         parser.set_constraint({valid_check: {"value": 0, "strategy": "warn"}})
         parser._verify_column_checks_parsing()
+
+
+class TestParserCheckCount:
+
+    def test_count_exist(self, parser):
+        parser.data = ({"count": [{"higher": {"value": 0, "strategy": "warn"}}]})
+        parser._check_count()
+        assert parser.stack == [{"value": 0, "strategy": "warn", "check": "count", "operator": "higher"}]
+
+    def test_count_not_exist(self, parser):
+        parser.data = ({"not_count": [{"higher": {"value": 0, "strategy": "warn"}}]})
+        parser._check_count()
+        assert parser.stack == []
+
+
+class TestParserCheckPartitions:
+
+    def test_partitions_exist(self, parser):
+        parser.data = ({"partitions": [{"higher": {"value": 0, "strategy": "warn"}}]})
+        parser._check_partitions()
+        assert parser.stack == [{"value": 0, "strategy": "warn", "check": "partitions", "operator": "higher"}]
+
+    def test_partitions_not_exist(self, parser):
+        parser.data = ({"not_partitions": [{"higher": {"value": 0, "strategy": "warn"}}]})
+        parser._check_partitions()
+        assert parser.stack == []
+
+
+class TestParserCheckIsEmpty:
+
+    def test_is_empty_exist(self, parser):
+        parser.data = ({"is_empty": {"value": False, "strategy": "fail"}})
+        parser._check_is_empty()
+        assert parser.stack == [{"value": False, "strategy": "fail", "check": "is_empty"}]
+
+    def test_is_empty_not_exist(self, parser):
+        parser.data = ({"not_is_empty": {"value": False, "strategy": "fail"}})
+        parser._check_is_empty()
+        assert parser.stack == []
+
+
+class TestParserCheckHasColumns:
+
+    def test_has_columns_exist(self, parser):
+        parser.data = ({"has_columns": [{"passengers_name": "string"}, "passengers_age", {"passengers_net": "decimal(10,2)"}]})
+        parser._check_has_columns()
+        assert parser.stack == [
+            {"column": "passengers_name", "value": StringType(), "check": "has_columns"},
+            {"column": "passengers_age", "check": "has_columns"},
+            {"column": "passengers_net", "value": DecimalType(10, 2), "check": "has_columns"},
+        ]
+
+    def test_has_columns_unknown_type(self, parser):
+        parser.data = ({"has_columns": [{"passengers_name": "not_string"}]})
+        with pytest.raises(SparkCheckerError):
+            parser._check_has_columns()
+
+    def test_has_columns_type_not_in_str(self, parser):
+        parser.data = ({"has_columns": [{"passengers_name": 1}]})
+        with pytest.raises(SparkCheckerError):
+            parser._check_has_columns()
+
+    def test_has_columns_not_exist(self, parser):
+        parser.data = ({"not_has_columns": [{"passengers_name": "string"}, "'passengers_age'"]})
+        parser._check_has_columns()
+        assert parser.stack == []
