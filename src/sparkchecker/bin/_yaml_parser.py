@@ -6,8 +6,11 @@ This class is used to construct constraints.
 
 import yaml
 
+from sparkchecker.bin._expectations_factory import (
+    COLUMN_CHECKS,
+    DATAFRAME_CHECKS,
+)
 from sparkchecker.constants import (
-    COLUMN_OPERATIONS,
     COLUMN_TYPES,
     CONSTRAINT_CONSTRUCTOR,
     OPERATOR_MAP,
@@ -64,6 +67,12 @@ class ExpectationsYamlParser:
         :raises: (SparkCheckerError), if the constraint is not a dict
         """
         if isinstance(new_constraint, dict):
+            if len(new_constraint.keys()) != 1:
+                raise SparkCheckerError(
+                    SparkCheckerError.INTERNAL_ERROR,
+                    {"item": {"constraint": 10}},
+                    new_constraint,
+                )
             self._constraint, self._constraint_obj = next(
                 iter(new_constraint.items()),
             )
@@ -72,7 +81,7 @@ class ExpectationsYamlParser:
             self._constraint_obj = None
         else:
             raise SparkCheckerError(
-                SparkCheckerError.InternalError,
+                SparkCheckerError.INTERNAL_ERROR,
                 {"item": {"constraint": 10}},
                 new_constraint,
             )
@@ -93,6 +102,14 @@ class ExpectationsYamlParser:
                 "Expected a dict for constraint_obj, "
                 f"but got: {type(self.constraint_obj)}",
             )
+        if (self.constraint not in DATAFRAME_CHECKS) and (
+            self.constraint not in COLUMN_CHECKS
+        ):
+            raise SparkCheckerError(
+                SparkCheckerError.ILLEGAL_CONSTRAINT,
+                self.constraint,
+                self.constraint,
+            )
         for expectation in self.constraint_obj:
             if expectation not in CONSTRAINT_CONSTRUCTOR:
                 raise SparkCheckerError(
@@ -105,7 +122,7 @@ class ExpectationsYamlParser:
             str,
         ):
             raise TypeError(
-                "Message must be of type str but got: ",
+                f"{self.constraint}: Message must be of type str but got: ",
                 type(message),
             )
         if (
@@ -115,7 +132,7 @@ class ExpectationsYamlParser:
             str,
         ):
             raise TypeError(
-                "Strategy must be of type str but got: ",
+                f"{self.constraint}: Strategy must be of type str but got: ",
                 type(strategy),
             )
         if (
@@ -125,7 +142,8 @@ class ExpectationsYamlParser:
             "warn",
         }:
             raise ValueError(
-                "Strategy must be one of 'fail' or 'warn' but got: "
+                f"{self.constraint}: strategy must be one of 'fail' or 'warn'"
+                "but got: "
                 f"{strategy}",
             )
 
@@ -160,15 +178,15 @@ class ExpectationsYamlParser:
         :raises: (ValueError), if the constraint is not a string
         :raises: (ValueError), if the constraint object is not a dict
         :raises: (SparkCheckerError), if the expectation
-            is not in the OPERATOR_MAP and COLUMN_OPERATIONS
+            is not in the COLUMN_CHECKS
         """
         if not isinstance(self.constraint, str):
             raise ValueError("Constraint must be a string")
         if not isinstance(self.constraint_obj, dict):
             raise ValueError("Constraint object must be a dict")
-        if self.constraint not in {*OPERATOR_MAP, *COLUMN_OPERATIONS}:
+        if self.constraint not in COLUMN_CHECKS:
             raise SparkCheckerError(
-                SparkCheckerError.ILLEGAL_COLUMN_CHECK,
+                SparkCheckerError.ILLEGAL_CONSTRAINT,
                 self.constraint,
                 self.constraint_obj,
             )
