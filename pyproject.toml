@@ -22,6 +22,10 @@ dependencies = [
     "pyspark >= 3.5",
 ]
 
+[tool.setuptools.packages.find]
+include = ["src*"]
+exclude = ["docs*", "tests*", "examples*"]
+
 [project.optional-dependencies]
 test = [
     "types-PyYAML >= 6.0.0",
