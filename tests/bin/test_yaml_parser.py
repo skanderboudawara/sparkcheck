@@ -4,7 +4,10 @@ import pytest
 from pyspark.sql.types import DecimalType, StringType
 
 from sparkchecker.bin._expectations_factory import COLUMN_CHECKS
-from sparkchecker.bin._yaml_parser import ExpectationsYamlParser
+from sparkchecker.bin._yaml_parser import (
+    ExpectationsYamlParser,
+    replace_keys_in_json,
+)
 from sparkchecker.constants import OPERATOR_MAP
 from sparkchecker.ext._exceptions import SparkCheckerError
 
@@ -64,7 +67,7 @@ class TestVerifyConstructorParsing:
         with pytest.raises(SparkCheckerError):
             parser._verify_constructor_parsing()
 
-    def test_invalid_strategy_type(self, parser):
+    def test_invalid_message_type(self, parser):
         parser.set_constraint({"higher": {"value": 0, "strategy": "warn", "message": 1}})
         with pytest.raises(TypeError, match=re.escape("Message must be of type str but got: ', <class 'int'>")):
             parser._verify_constructor_parsing()
@@ -74,10 +77,20 @@ class TestVerifyConstructorParsing:
         with pytest.raises(ValueError, match="higher: strategy must be one of 'fail' or 'warn'but got: wrong"):
             parser._verify_constructor_parsing()
 
+    def test_invalid_strategy_type(self, parser):
+        parser.set_constraint({"higher": {"value": 0, "strategy": 1}})
+        with pytest.raises(TypeError, match=re.escape("'higher: Strategy must be of type str but got: ', <class 'int'>")):
+            parser._verify_constructor_parsing()
+
     @pytest.mark.parametrize("valid_strategy", ["fail", "warn"])
     def test_valid_strategies(self, parser, valid_strategy):
         parser.set_constraint({"higher": {"value": 0, "strategy": valid_strategy}})
         parser._verify_constructor_parsing()
+
+    def test_invalid_constraint_obj(self, parser):
+        parser.set_constraint({"higher": {"delta": 0, "strategy": "warn"}})
+        with pytest.raises(SparkCheckerError):
+            parser._verify_constructor_parsing()
 
 
 class TestVerifyThresholdParsing:
@@ -196,3 +209,147 @@ class TestParserCheckHasColumns:
         parser.data = ({"not_has_columns": [{"passengers_name": "string"}, "'passengers_age'"]})
         parser._check_has_columns()
         assert parser.stack == []
+
+
+class TestParserColumnChecks:
+
+    def test_checks_exist(self, parser):
+        data = {
+            "checks": [
+                {
+                    "is_military": [
+                        {"equal": {"value": False, "strategy": "fail", "message": "There should be no military in civilian dataset"}},
+                        {"is_null": {"value": False}},
+                    ],
+                 },
+                {
+                    "passengers_country": [
+                        {"different": {"value": "arrival_country", "strategy": "warn", "message": "The passenger country should be different from the arrival country in this dataset"}},
+                        {"in": {"value": {"value": ["USA", "UK", "FR", "DE", "IT", "ES", "JP", "CN", "RU"], "strategy": "fail"}, "strategy": "fail"}},
+                        {"is_null": {"value": False}},
+                    ],
+                },
+            ],
+        }
+        parser.data = data
+        parser._column_checks()
+        assert parser.stack == [
+            {"value": False, "strategy": "fail", "message": "There should be no military in civilian dataset", "column": "is_military", "check": "column", "operator": "equal"},
+            {"value": False, "column": "is_military", "check": "column", "operator": "is_null"},
+            {"value": "arrival_country", "strategy": "warn", "message": "The passenger country should be different from the arrival country in this dataset", "column": "passengers_country", "check": "column", "operator": "different"},
+            {"value": {"value": ["USA", "UK", "FR", "DE", "IT", "ES", "JP", "CN", "RU"], "strategy": "fail"}, "strategy": "fail", "column": "passengers_country", "check": "column", "operator": "in"},
+            {"value": False, "column": "passengers_country", "check": "column", "operator": "is_null"},
+        ]
+
+    def test_checks_not_exist(self, parser):
+        parser.data = ({"not_checks": [{"passengers_name": "string"}, "'passengers_age'"]})
+        parser._check_has_columns()
+        assert parser.stack == []
+
+
+class TestParserAppend:
+    @pytest.fixture
+    def valid_constraint(self):
+        return {"value": 10}
+
+    def test_valid_append(self, parser, valid_constraint):
+        parser.append("test_check", valid_constraint)
+        assert parser.stack == [{"value": 10, "check": "test_check"}]
+
+    def test_append_with_operator(self, parser, valid_constraint):
+        parser.append("test_check", valid_constraint, "eq")
+        assert parser.stack == [{"value": 10, "check": "test_check", "operator": "eq"}]
+
+    @pytest.mark.parametrize(("chk", "constraint", "operator", "error_msg"), [
+        (None, {"value": 10}, None, "Check cannot be None"),
+        ("test", None, None, "Constraint cannot be None"),
+        (123, {"value": 10}, None, "Check must be a string"),
+        ("test", "not_a_dict", None, "Constraint must be a dictionary"),
+    ])
+    def test_invalid_inputs(self, parser, chk, constraint, operator, error_msg):
+        with pytest.raises(ValueError, match=re.escape(error_msg)):
+            parser.append(chk, constraint, operator)
+
+
+class TestReplaceKeysInJson:
+    @pytest.fixture
+    def basic_replacements(self):
+        return {"old_key": "new_key"}
+
+    def test_basic_replacement(self, basic_replacements):
+        input_data = {"old_key": "value"}
+        expected = {"new_key": "value"}
+        result = replace_keys_in_json(input_data, basic_replacements)
+        assert result == expected
+
+    def test_nested_dict_replacement(self, basic_replacements):
+        input_data = {
+            "level1": {
+                "old_key": "value",
+            },
+        }
+        expected = {
+            "level1": {
+                "new_key": "value",
+            },
+        }
+        result = replace_keys_in_json(input_data, basic_replacements)
+        assert result == expected
+
+    def test_list_in_dict(self, basic_replacements):
+        input_data = {
+            "items": [
+                {"old_key": "value1"},
+                {"old_key": "value2"},
+            ],
+        }
+        expected = {
+            "items": [
+                {"new_key": "value1"},
+                {"new_key": "value2"},
+            ],
+        }
+        result = replace_keys_in_json(input_data, basic_replacements)
+        assert result == expected
+
+    def test_mixed_data_structure(self, basic_replacements):
+        input_data = {
+            "old_key": [
+                {"old_key": "value"},
+                ["nested", {"old_key": "value"}],
+            ],
+        }
+        expected = {
+            "new_key": [
+                {"new_key": "value"},
+                ["nested", {"new_key": "value"}],
+            ],
+        }
+        result = replace_keys_in_json(input_data, basic_replacements)
+        assert result == expected
+
+    def test_empty_inputs(self):
+        assert replace_keys_in_json({}, {}) == {}
+        assert replace_keys_in_json([], {}) == []
+
+    def test_non_existing_replacement(self):
+        input_data = {"keep_key": "value"}
+        replacements = {"non_existing": "new"}
+        result = replace_keys_in_json(input_data, replacements)
+        assert result == input_data
+
+    def test_multiple_replacements(self):
+        input_data = {
+            "key1": "value1",
+            "key2": "value2",
+        }
+        replacements = {
+            "key1": "new1",
+            "key2": "new2",
+        }
+        expected = {
+            "new1": "value1",
+            "new2": "value2",
+        }
+        result = replace_keys_in_json(input_data, replacements)
+        assert result == expected
