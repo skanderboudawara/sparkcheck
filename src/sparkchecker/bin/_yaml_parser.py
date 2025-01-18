@@ -186,7 +186,7 @@ class ExpectationsYamlParser:
             raise ValueError("Constraint object must be a dict")
         if self.constraint not in COLUMN_CHECKS:
             raise SparkCheckerError(
-                SparkCheckerError.ILLEGAL_CONSTRAINT,
+                SparkCheckerError.ILLEGAL_COLUMN_CONSTRAINT,
                 self.constraint,
                 self.constraint_obj,
             )

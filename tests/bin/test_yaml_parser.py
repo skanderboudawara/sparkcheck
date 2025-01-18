@@ -2,6 +2,7 @@ import re
 
 import pytest
 
+from sparkchecker.bin._expectations_factory import COLUMN_CHECKS
 from sparkchecker.bin._yaml_parser import ExpectationsYamlParser
 from sparkchecker.constants import OPERATOR_MAP
 from sparkchecker.ext._exceptions import SparkCheckerError
@@ -102,3 +103,29 @@ class TestVerifyThresholdParsing:
     def test_valid_operators(self, parser, valid_operator):
         parser.set_constraint({valid_operator: {"value": 0, "strategy": "warn"}})
         parser._verify_threshold_parsing()
+
+
+class TestVerifyColumnChecksParsing:
+    def test_valid_column_check(self, parser):
+        parser.set_constraint({"higher": {"value": 0, "strategy": "warn"}})
+        parser._verify_column_checks_parsing()
+
+    def test_invalid_constraint_type(self, parser):
+        parser.set_constraint({1: {"value": 0, "strategy": "warn"}})
+        with pytest.raises(ValueError, match="Constraint must be a string"):
+            parser._verify_column_checks_parsing()
+
+    def test_invalid_constraint_obj_type(self, parser):
+        parser.set_constraint({"higher": 1})
+        with pytest.raises(ValueError, match="Constraint object must be a dict"):
+            parser._verify_column_checks_parsing()
+
+    def test_invalid_column_check(self, parser):
+        parser.set_constraint({"slower": {"value": 0, "strategy": "warn"}})
+        with pytest.raises(SparkCheckerError):
+            parser._verify_column_checks_parsing()
+
+    @pytest.mark.parametrize("valid_check", list(COLUMN_CHECKS.keys()))
+    def test_valid_column_checks(self, parser, valid_check):
+        parser.set_constraint({valid_check: {"value": 0, "strategy": "warn"}})
+        parser._verify_column_checks_parsing()
