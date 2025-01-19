@@ -288,6 +288,7 @@ class TestEvalFirstFail:
     def test_empty_dataframe(self, spark_session):
         schema = StructType([StructField("value", IntegerType())])
         df = spark_session.createDataFrame([], schema)
+        df = df.cache()
         failed, count, result = eval_first_fail(
             df,
             "value",

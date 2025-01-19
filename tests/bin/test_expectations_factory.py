@@ -20,7 +20,9 @@ class TestExpectationsFactory:
             StructField("num", IntegerType(), True),
             StructField("letter", StringType(), True),
         ])
-        return spark_session.createDataFrame([], schema)
+        df = spark_session.createDataFrame([], schema)
+        df = df.cache()
+        return df
 
     def test_initialization(self, sample_df):
         stack = [{"check": "row_count"}]

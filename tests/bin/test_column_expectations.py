@@ -61,6 +61,7 @@ def df_test_empty(spark_session):
     )
 
     df = spark_session.createDataFrame([], schema)
+    df = df.cache()
     return df
 
 
