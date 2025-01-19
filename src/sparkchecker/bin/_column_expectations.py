@@ -19,6 +19,7 @@ Dev rules:
 - The class should have a `validate_expectation` decorator to validate the
     expectation keys
 """
+from __future__ import annotations
 
 from typing import Any
 
