@@ -16,7 +16,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = ["PyYaml >= 6.0.2", "pyspark >= 3.3"]
 
 [tool.setuptools.packages.find]
