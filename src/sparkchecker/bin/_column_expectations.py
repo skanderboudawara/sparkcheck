@@ -235,9 +235,10 @@ class ColRegexLikeCheck(ColumnsExpectations):
         self.message = message
         self.value = value
         self.is_spark35: bool = True
+        self.is_col: bool = True
 
     @property
-    def constraint(self) -> Column:  # pragma: no cover
+    def constraint(self) -> Column:
         """
         This method returns the constraint.
 
@@ -246,10 +247,15 @@ class ColRegexLikeCheck(ColumnsExpectations):
         """
         self.column = to_col(self.column)
         if self.is_spark35:
-            from pyspark.sql.functions import regexp  # noqa: PLC0415
+            from pyspark.sql.functions import rlike  # noqa: PLC0415
 
-            return regexp(self.column, self.value)
-        return self.column.rlike(self.value)  # type: ignore
+            return rlike(self.column, self.value)
+        from pyspark.sql.functions import expr  # noqa: PLC0415
+
+        if self.is_col:
+            return expr(f"{to_name(self.column)} RLIKE {to_name(self.value)}")
+
+        return expr(f"{to_name(self.column)} RLIKE '{self.value}'")
 
     @add_class_prefix
     def get_message(self, has_failed: bool) -> None:
@@ -277,15 +283,14 @@ class ColRegexLikeCheck(ColumnsExpectations):
         :return: (dict), the expectation result
         """
         self.is_spark35 = target.sparkSession.version >= "3.5"
-        self.value = (
-            to_col(  # type: ignore
-                self.value,
-                is_col=self.value in target.columns,
-                escaped=True,
-            )
-            if self.is_spark35
-            else self.value
+        self.is_col = self.value in target.columns
+        self.value = to_col(  # type: ignore
+            self.value,
+            is_col=self.is_col,
+            escaped=True,
+            default="lit" if self.is_spark35 else "raw",
         )
+
         has_failed, count_cases, first_failed_row = eval_first_fail(
             target,
             self.column,

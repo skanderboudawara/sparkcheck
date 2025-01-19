@@ -15,6 +15,7 @@ def to_col(
     column_name: str | bool | float | Column | None,
     is_col: bool = True,
     escaped: bool = False,
+    default: str = "lit",
 ) -> Column:
     """
     Convert a `column_name` string to a column.
@@ -23,29 +24,33 @@ def to_col(
         or a column name
     :param is_col: (bool), flag to determine if the column should be treated
         as a column or literal
+    :param default: (str), flag to determine if the column should be treated
     :param escaped: (bool), flag to determine if the column should be treated
         as a raw string literal or not
     :returns: (Column) a spark Column
     :raises: (TypeError), If the input is not a string, float, or Column
     """
+    if default not in {"lit", "raw"}:
+        raise ValueError(
+            f"Invalid value for `default`: {default}. Must be 'lit' or 'raw'.",
+        )
+
     if column_name is None:
-        return lit("NoneObject")
+        return lit("NoneObject") if default == "lit" else "NoneObject"
 
-    # Handle string column names
-    if isinstance(column_name, str):
-        if is_col:
-            return col(column_name)
-        if escaped:
-            return lit(rf"{column_name}")
-        return lit(column_name)
-
-    # Handle numeric types (int, float, bool)
-    if isinstance(column_name, int | float | bool):
-        return lit(column_name)
-
-    # Handle Column type directly
-    if isinstance(column_name, Column):
-        return column_name
+    match column_name:
+        case str():
+            if is_col:
+                return col(column_name)
+            return (
+                lit(rf"{column_name}" if escaped else column_name)
+                if default == "lit"
+                else column_name
+            )
+        case int() | float() | bool():
+            return lit(column_name) if default == "lit" else column_name
+        case Column():
+            return column_name
 
     # Raise an error if none of the conditions match
     raise TypeError(
@@ -227,7 +232,7 @@ def eval_first_fail(
         )
     column = to_col(column)
     # We need to check the opposite of our expectations
-    df = df.select(column).filter(~expectation)
+    df = df.filter(~expectation).select(column)
     if not eval_empty_dataframe(df):
         first_failed_row = cast(Row, df.first())
         count_cases = df.count()
