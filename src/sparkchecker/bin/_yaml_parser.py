@@ -3,6 +3,7 @@ This module contains the ExpectationsYamlParser class.
 
 This class is used to construct constraints.
 """
+
 from __future__ import annotations
 
 import yaml
