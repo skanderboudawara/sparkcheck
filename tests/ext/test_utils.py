@@ -262,6 +262,7 @@ class TestResolveMsg:
 
 class TestEvalFirstFail:
     def test_valid_expectation_pass(self, spark_session):
+        spark_session.catalog.clearCache()
         # Create test DataFrame where all rows pass
         df = spark_session.createDataFrame([(1,), (2,), (3,)], ["value"])
         failed, count, result = eval_first_fail(
@@ -274,6 +275,7 @@ class TestEvalFirstFail:
         assert result == {}
 
     def test_valid_expectation_fail(self, spark_session):
+        spark_session.catalog.clearCache()
         # Create test DataFrame where some rows fail
         df = spark_session.createDataFrame([(1,), (-2,), (3,)], ["value"])
         failed, count, result = eval_first_fail(
@@ -286,6 +288,7 @@ class TestEvalFirstFail:
         assert result == {"value": -2}
 
     def test_empty_dataframe(self, spark_session):
+        spark_session.catalog.clearCache()
         schema = StructType([StructField("value", IntegerType())])
         df = spark_session.createDataFrame([], schema)
         df = df.cache()
@@ -299,6 +302,7 @@ class TestEvalFirstFail:
         assert result == {}
 
     def test_column_as_string(self, spark_session):
+        spark_session.catalog.clearCache()
         df = spark_session.createDataFrame([(1,)], ["test"])
         failed, count, result = eval_first_fail(
             df,
@@ -310,6 +314,7 @@ class TestEvalFirstFail:
         assert result == {}
 
     def test_column_as_column(self, spark_session):
+        spark_session.catalog.clearCache()
         df = spark_session.createDataFrame([(1,)], ["test"])
         failed, count, result = eval_first_fail(
             df,
@@ -321,6 +326,7 @@ class TestEvalFirstFail:
         assert result == {}
 
     def test_invalid_inputs(self, spark_session):
+        spark_session.catalog.clearCache()
         spark_session.createDataFrame([(1,)], ["test"])
         with pytest.raises(TypeError, match=re.escape("Argument `df` must be of type DataFrame but got: ', <class 'str'>")):
             eval_first_fail("not_a_dataframe", "col", col("col") > 0)
