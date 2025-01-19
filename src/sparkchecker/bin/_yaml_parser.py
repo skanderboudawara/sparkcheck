@@ -342,7 +342,7 @@ class ExpectationsYamlParser:
         self.stack.append(constraint)
 
     @property
-    def stacks(self) -> list:
+    def stacks(self) -> list:  # pragma: no cover
         """
         This method is a getter for the stack attribute.
 

@@ -6,7 +6,7 @@ from typing import Any
 import pytest
 from pyspark.sql import DataFrame
 
-from src.sparkchecker.ext._decorators import (
+from sparkchecker.ext._decorators import (
     add_class_prefix,
     check_column_exist,
     check_dataframe,

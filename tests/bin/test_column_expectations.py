@@ -12,7 +12,7 @@ from pyspark.sql.types import (
     StructType,
 )
 
-from src.sparkchecker.bin._column_expectations import (
+from sparkchecker.bin._column_expectations import (
     ColCompareCheck,
     ColIsInCheck,
     ColNonNullCheck,

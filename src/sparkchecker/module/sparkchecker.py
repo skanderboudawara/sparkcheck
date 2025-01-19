@@ -21,7 +21,7 @@ from ..ext._utils import split_base_file
 def sparkChecker(  # noqa: N802
     self: DataFrame,
     path: str,
-) -> None:
+) -> None:  # pragma: no cover
     """
     This function checks a DataFrame against a stack of checks.
 

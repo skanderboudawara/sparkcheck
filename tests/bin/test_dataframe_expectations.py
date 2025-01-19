@@ -14,7 +14,7 @@ from pyspark.sql.types import (
     TimestampType,
 )
 
-from src.sparkchecker.bin._dataframe_expectations import (
+from sparkchecker.bin._dataframe_expectations import (
     DataFrameCountThresholdCheck,
     DataFrameHasColumnsCheck,
     DataFrameIsEmptyCheck,
