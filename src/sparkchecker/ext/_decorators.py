@@ -10,12 +10,11 @@ from sparkchecker.ext._utils import to_name
 
 def validate_expectation(func: Callable) -> Callable:
     """
-    A decorator to validate that the wrapped function returns a dictionary
-    with the required structure.
+    Ensure the wrapped function returns a dictionary with required keys.
 
     The dictionary must contain either:
-    - Keys: "has_failed", "got", and "message" (3 keys).
-    - Or Keys: "has_failed", "got", "message", and "example" (4 keys).
+    - "has_failed", "got", "message"
+    - or "has_failed", "got", "message", "example"
 
     :param func: (Callable), The function to wrap.
     :return: (Callable), The wrapped function with validation.
@@ -57,15 +56,14 @@ def validate_expectation(func: Callable) -> Callable:
 
 def order_expectations_dict(func: Callable) -> Callable:
     """
-    A decorator to order the keys of the dictionary returned by
-        the wrapped function.
+    A decorator that orders dictionary keys in the function's return value.
 
     The dictionary will be ordered based on a predefined key order.
-        Any additional keys not in the predefined order will
-        be appended at the end in their original order.
+    Any additional keys not in the predefined order will
+    be appended at the end in their original order.
 
     :param func: (Callable), The function to wrap.
-    :return:(Callable), The wrapped function with ordered dictionary keys.
+    :return: (Callable), The wrapped function with ordered dictionary keys.
     :raises: (TypeError), If the return value is not a dictionary.
     """
 
@@ -129,8 +127,7 @@ def check_column_exist(method: Callable) -> Callable:
 
 def check_inputs(func: Callable) -> Callable:
     """
-    This decorator checks if the arguments passed to the decorated function
-        correspond to the expected types.
+    A decorator that validates argument types against expected types.
 
     The expected types are inferred from the type hints of the function.
 
@@ -187,8 +184,7 @@ def check_inputs(func: Callable) -> Callable:
 
 def add_class_prefix(func: Callable) -> Callable:
     """
-    This decorator adds the class name as a prefix to the 'message' attribute
-        of the class instance.
+    A decorator that prefixes class name to instance's 'message' attribute.
 
     :param func: (Callable), The function to be decorated.
     :return: (Callable), The wrapped function with the class name prefix.

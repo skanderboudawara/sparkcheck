@@ -1,0 +1,11 @@
+[flake8]
+select = RST
+max-complexity = 10
+extend-select = RST
+extend-ignore =
+    D212,
+    D200,
+    D401,
+    E704,
+    D102
+docstring-convention = google

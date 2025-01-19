@@ -63,8 +63,7 @@ class ExpectationsFactory:
     @order_expectations_dict
     def _compile_dataframe_operation(df: DataFrame, check: dict) -> dict:
         """
-        This static method compiles a dataframe operation
-            check into a dictionary.
+        Compiles a dataframe operation check into a dictionary.
 
         :param df: (DataFrame), the DataFrame to check
         :param check: (dict), the check to compile
@@ -94,7 +93,7 @@ class ExpectationsFactory:
         """
         This method compiles the stack of checks into a list of dictionaries.
 
-        :param None
+        :param: None
         :return: None
         :raises: (ValueError), if the check type is unknown
         """
@@ -141,7 +140,7 @@ class ExpectationsFactory:
         """
         This property returns the compiled stack of checks.
 
-        :param None
+        :param: None
         :return: (list), the compiled stack of checks
         """
         return self.compiled_stack

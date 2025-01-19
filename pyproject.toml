@@ -14,13 +14,12 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "Operating System :: OS Independent",
-]
+    "Operating System :: OS Independent"]
+
 requires-python = ">=3.10"
 dependencies = [
     "PyYaml >= 6.0.2",
-    "pyspark >= 3.5",
-]
+    "pyspark >= 3.5"]
 
 [tool.setuptools.packages.find]
 include = ["src*"]
@@ -33,17 +32,18 @@ test = [
     "pytest >= 6.0.0",
     "pre-commit",
     "flake8 >= 7.0.0",
+    "flake8-docstrings >= 1.6.0",
+    "flake8-rst-docstrings >= 0.3.0",
     "black >= 24.10.0",
     "tox >= 4.23.2",
     "ruff >= 0.9.0",
-    "mypy >= 1.14.1",
-]
-doc = [
+    "mypy >= 1.14.1"]
+
+docs = [
     "packaging",
     "Sphinx >= 7",
     "sphinx-autodoc-typehints >= 1.2.0",
-    "sphinx-rtd-theme >= 1.3.0",
-]
+    "sphinx-rtd-theme >= 1.3.0"]
 
 [tool.black]
 line-length = 79
@@ -54,15 +54,14 @@ omit = [
     "*/__init__.py",
     "*/test_*",
     "*/_exceptions.py",
-    "*/_logger.py",
-]
+    "*/_logger.py"]
 
 [tool.coverage.report]
 show_missing = true
 exclude_lines = [
     "pragma: no cover",
-    "if TYPE_CHECKING:",
-]
+    "if TYPE_CHECKING:"]
+
 fail_under = 100
 
 [tool.pytest.ini_options]
@@ -71,8 +70,8 @@ addopts = [
     "-vv",
     "-p",
     "no:warnings",
-    "--tb=short",
-]
+    "--tb=short"]
+
 pythonpath = ["src"]
 testpaths = ["."]
 xfail_strict = true
@@ -88,16 +87,16 @@ log_date_format = "%Y-%m-%d %H:%M:%S"
 lint.select = [
     "F", "E", "W", "C90", "I", "N", "B", "Q", "D", "UP", "ANN", "S", "B", "A", "COM",
     "C4", "DTZ", "FA", "ISC", "ICN", "LOG", "G", "INP", "T20", "PYI", "PT", "RSE",
-    "RET", "SLF", "SLOT", "SIM", "INT", "ARG", "TD", "FIX", "ERA", "PL", "PERF", "RUF"
-]
+    "RET", "SLF", "SLOT", "SIM", "INT", "ARG", "TD", "FIX", "ERA", "PL", "PERF", "RUF"]
+
 lint.ignore = [
     "PYI041", "A002", "D401", "N812", "FA100", "E203", "E202", "D200", "D404", "D104", "D212", "D415", "D205",
     "PLR0913", "D107", "B023", "RET504", "E271", "PLR0917", "PLR6301", "PLR0904", "N818", "D203",
-    "E241", "PLR0915", "PLR0914", "C901", "PLR0912", "PLR0911", "PLC0206", "PLC2701", "ANN401"
-]
+    "E241", "PLR0915", "PLR0914", "C901", "PLR0912", "PLR0911", "PLC0206", "PLC2701", "ANN401"]
+
 
 lint.fixable = ["ALL"]
-lint.exclude = ["*conftest.py"]
+lint.exclude = ["*conftest.py", "docs*"]
 include = ["pyproject.toml", "src/**/*.py", "tests/**/*.py"]
 output-format = "grouped"
 preview = true
@@ -139,8 +138,8 @@ exclude = [
     "(^|/)(test.*)$",
     ".*conftest.*",
     "(^|/)(__init__/.*py)$",
-    ".*jobs.*",
-]
+    ".*jobs.*"]
+
 pretty = true
 explicit_package_bases = true
 

@@ -1,3 +1,7 @@
+"""
+The base classes for the column-based and DataFrame-based expectations.
+"""
+
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -13,6 +17,10 @@ from ..ext._decorators import (
 
 
 class ColumnsExpectations(ABC):  # pragma: no cover
+    """
+    An abstract class for column-based expectations.
+    """
+
     @check_inputs
     def __init__(
         self,
@@ -20,6 +28,16 @@ class ColumnsExpectations(ABC):  # pragma: no cover
         message: str | None = None,
         **kwargs: Any,  # noqa: ARG002
     ) -> None:
+        """
+        The constructor for the ColumnsExpectations class.
+
+        :param col_name: (str | Column), The column name or the column object.
+        :param message: (str | None), The message to be displayed in
+            case of failure.
+        :param kwargs: (Any), The additional arguments to be
+            passed to the class.
+        :return: (None)
+        """
         self.column = col_name
         self.message = message
 
@@ -39,12 +57,25 @@ class ColumnsExpectations(ABC):  # pragma: no cover
 
 
 class DataFrameExpectation(ABC):  # pragma: no cover
+    """
+    The abstract class for DataFrame-based expectations.
+    """
+
     @check_inputs
     def __init__(
         self,
         message: str | None = None,
         **kwargs: Any,  # noqa: ARG002
     ) -> None:
+        """
+        The constructor for the DataFrameExpectation class.
+
+        :param message: (str | None), The message to be displayed
+            in case of failure.
+        :param kwargs: (Any), The additional arguments to be passed
+            to the class.
+        :return: (None)
+        """
         self.message = message
 
     @abstractmethod

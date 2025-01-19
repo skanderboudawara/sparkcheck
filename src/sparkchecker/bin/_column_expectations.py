@@ -2,6 +2,7 @@
 This module contains the column expectations classes.
 
 Dev rules:
+
 - Suffix the class name with `Expectation` to make it clear that it is an
     expectation class.
 - The class should inherit from `ColumnsExpectations` to ensure that it
@@ -44,6 +45,9 @@ from ._base import ColumnsExpectations
 
 
 class ColNonNullCheck(ColumnsExpectations):
+    """
+    Check if a column is not null.
+    """
 
     @check_inputs
     def __init__(
@@ -123,6 +127,10 @@ class ColNonNullCheck(ColumnsExpectations):
 
 
 class ColNullCheck(ColumnsExpectations):
+    """
+    Check if a column is null.
+    """
+
     @check_inputs
     def __init__(
         self,
@@ -201,6 +209,10 @@ class ColNullCheck(ColumnsExpectations):
 
 
 class ColRegexLikeCheck(ColumnsExpectations):
+    """
+    Check if a column matches a pattern.
+    """
+
     @check_inputs
     def __init__(
         self,
@@ -278,6 +290,10 @@ class ColRegexLikeCheck(ColumnsExpectations):
 
 
 class ColIsInCheck(ColumnsExpectations):
+    """
+    Check if a column is in a list of values.
+    """
+
     @check_inputs
     def __init__(
         self,
@@ -369,6 +385,10 @@ class ColIsInCheck(ColumnsExpectations):
 
 
 class ColCompareCheck(ColumnsExpectations):
+    """
+    Check if a column meets a comparison condition.
+    """
+
     @check_inputs
     def __init__(
         self,
@@ -382,8 +402,7 @@ class ColCompareCheck(ColumnsExpectations):
         This class compares a column to a value.
 
         :param column: (str | Column), the column to compare
-        :param value: (str | float | int | int | Column | bool),
-            the value to compare
+        :param value: (str | float | int | Column | bool), the value to compare
         :param operator: (str), the operator to use
         :param message: (str | None), the message to display
         :return: None
