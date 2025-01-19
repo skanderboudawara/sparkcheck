@@ -240,7 +240,7 @@ class ColRegexLikeCheck(ColumnsExpectations):
     # The pragma no cover is used in this method to handle spark 3.4 and 3.5
     # RLIKE was introduced in spark 3.5
     @property
-    def constraint(self) -> Column:  # pragma: no cover
+    def constraint(self) -> Column:
         """
         This method returns the constraint.
 

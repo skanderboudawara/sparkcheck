@@ -292,7 +292,7 @@ class ExpectationsYamlParser:
                 if not isinstance(
                     self.constraint_obj,
                     dict,
-                ):  # pragma: no cover
+                ):
                     raise ValueError("Constraint object must be a dict")
                 self.constraint_obj.update({"column": column_name})
                 self.append("column", self.constraint_obj, self.constraint)
@@ -342,7 +342,7 @@ class ExpectationsYamlParser:
         self.stack.append(constraint)
 
     @property
-    def stacks(self) -> list:  # pragma: no cover
+    def stacks(self) -> list:
         """
         This method is a getter for the stack attribute.
 
