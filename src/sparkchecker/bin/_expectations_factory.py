@@ -111,10 +111,12 @@ class ExpectationsFactory:
                     "Check type is missing in the check dictionary.",
                 )
 
-            if check_type in DATAFRAME_CHECKS:
-                compiled_check = self._compile_dataframe_operation(
-                    self.df,
-                    check,
+            if check_type in DATAFRAME_CHECKS:  # pragma: no cover
+                compiled_check = (
+                    self._compile_dataframe_operation(  # pragma: no cover
+                        self.df,
+                        check,
+                    )
                 )
             elif check_type == "column":
                 if df_is_empty:

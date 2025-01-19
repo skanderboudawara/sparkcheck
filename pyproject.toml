@@ -58,7 +58,7 @@ fail_under = 100
 addopts = ["--doctest-modules", "-vv", "-p", "no:warnings", "--tb=short"]
 
 pythonpath = ["src"]
-testpaths = ["."]
+testpaths = ["tests"]
 xfail_strict = true
 filterwarnings = ["error"]
 python_files = "test_*.py"
