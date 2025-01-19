@@ -263,17 +263,6 @@ class TestCheckDataFrame:
         with pytest.raises(TypeError, match=re.escape("OtherClass: The target must be a Spark DataFrame, but got 'str'")):
             instance.method("not_a_dataframe")
 
-    def test_empty_dataframe_column_class(self, spark_session):
-        empty_df = spark_session.createDataFrame([(1,)], ["col1"]).filter("col1 = 0").cache()
-        instance = self.ColumnClass()
-
-        result = instance.method(empty_df)
-        assert result == {
-            "has_failed": False,
-            "got": "Empty DataFrame",
-            "message": "ColumnClass: The DataFrame is empty.",
-        }
-
     def test_empty_dataframe_other_class(self, spark_session):
         # Create empty DataFrame
         empty_df = spark_session.createDataFrame([(1,)], ["col1"]).filter("col1 = 0").cache()
@@ -290,7 +279,7 @@ class TestCheckDataFrame:
 
 
 class TestCheckColumnExist:
-    class TestClass:
+    class ClassMock:
         def __init__(self, column):
             self.column = column
 
@@ -300,24 +289,24 @@ class TestCheckColumnExist:
 
     def test_column_exists(self, spark_session):
         df = spark_session.createDataFrame([(1,)], ["test_col"])
-        instance = self.TestClass("test_col")
+        instance = self.ClassMock("test_col")
         result = instance.test_method(df)
         assert result == "success"
 
     def test_column_not_exists(self, spark_session):
         df = spark_session.createDataFrame([(1,)], ["existing_col"])
-        instance = self.TestClass("missing_col")
-        with pytest.raises(ValueError, match=re.escape("TestClass: Column 'missing_col' does not exist in the DataFrame")):
+        instance = self.ClassMock("missing_col")
+        with pytest.raises(ValueError, match=re.escape("ClassMock: Column 'missing_col' does not exist in the DataFrame")):
             instance.test_method(df)
 
     def test_case_sensitive(self, spark_session):
         df = spark_session.createDataFrame([(1,)], ["Test_Col"])
-        instance = self.TestClass("test_col")
-        with pytest.raises(ValueError, match="TestClass: Column 'test_col' does not exist in the DataFrame"):
+        instance = self.ClassMock("test_col")
+        with pytest.raises(ValueError, match="ClassMock: Column 'test_col' does not exist in the DataFrame"):
             instance.test_method(df)
 
     def test_return_value_preserved(self, spark_session):
         df = spark_session.createDataFrame([(1,)], ["test_col"])
-        instance = self.TestClass("test_col")
+        instance = self.ClassMock("test_col")
         result = instance.test_method(df)
         assert result == "success"

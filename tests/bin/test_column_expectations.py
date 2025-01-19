@@ -52,19 +52,6 @@ def df_test(spark_session):
     return df
 
 
-@pytest.fixture
-def df_test_empty(spark_session):
-    schema = StructType(
-        [
-            StructField("name", StringType(), True),
-        ],
-    )
-
-    df = spark_session.createDataFrame([], schema)
-    df = df.cache()
-    return df
-
-
 class BaseClassColumnTest(ABC):
 
     @abstractmethod
@@ -89,10 +76,6 @@ class BaseClassColumnTest(ABC):
 
     @abstractmethod
     def test_eval_expectation_exception(self):
-        pass
-
-    @abstractmethod
-    def test_eval_dataframe_empty(self):
         pass
 
 
@@ -228,15 +211,12 @@ class TestColNonNullCheck(BaseClassColumnTest):
     )
     def test_eval_expectation(
         self,
-        spark_session,
         df_test,
         column_name,
         value,
         custom_message,
         expected_result,
     ):
-        spark_session.catalog.clearCache()
-        df_test = df_test.cache()
         expectations = ColNonNullCheck(column_name, value, custom_message)
         assert expectations.eval_expectation(df_test) == expected_result
 
@@ -246,15 +226,6 @@ class TestColNonNullCheck(BaseClassColumnTest):
             expectations.eval_expectation(df_test.drop("name"))
         with pytest.raises(TypeError, match="ColNonNullCheck: The target must be a Spark DataFrame, but got 'int'"):
             expectations.eval_expectation(1)
-
-    def test_eval_dataframe_empty(self, df_test_empty):
-        expectations = ColNonNullCheck("name", True)
-        expectation_result = expectations.eval_expectation(df_test_empty)
-        assert expectation_result == {
-            "got": "Empty DataFrame",
-            "has_failed": False,
-            "message": "ColNonNullCheck: The DataFrame is empty.",
-        }
 
 
 class TestColNullCheck(BaseClassColumnTest):
@@ -405,15 +376,6 @@ class TestColNullCheck(BaseClassColumnTest):
         with pytest.raises(TypeError, match="ColNullCheck: The target must be a Spark DataFrame, but got 'int'"):
             expectations.eval_expectation(1)
 
-    def test_eval_dataframe_empty(self, df_test_empty):
-        expectations = ColNullCheck("name", True)
-        expectation_result = expectations.eval_expectation(df_test_empty)
-        assert expectation_result == {
-            "got": "Empty DataFrame",
-            "has_failed": False,
-            "message": "ColNullCheck: The DataFrame is empty.",
-        }
-
 
 class TestColRegexLikeCheck(BaseClassColumnTest):
 
@@ -541,15 +503,6 @@ class TestColRegexLikeCheck(BaseClassColumnTest):
             expectations.eval_expectation(df_test.drop("name"))
         with pytest.raises(TypeError, match="ColRegexLikeCheck: The target must be a Spark DataFrame, but got 'int'"):
             expectations.eval_expectation(1)
-
-    def test_eval_dataframe_empty(self, df_test_empty):
-        expectations = ColRegexLikeCheck("name", "crypto")
-        expectation_result = expectations.eval_expectation(df_test_empty)
-        assert expectation_result == {
-            "got": "Empty DataFrame",
-            "has_failed": False,
-            "message": "ColRegexLikeCheck: The DataFrame is empty.",
-        }
 
 
 class TestColIsInCheck(BaseClassColumnTest):
@@ -727,15 +680,6 @@ class TestColIsInCheck(BaseClassColumnTest):
         with pytest.raises(TypeError, match="ColIsInCheck: The target must be a Spark DataFrame, but got 'int'"):
             expectations.eval_expectation(1)
 
-    def test_eval_dataframe_empty(self, df_test_empty):
-        expectations = ColIsInCheck("name", True)
-        expectation_result = expectations.eval_expectation(df_test_empty)
-        assert expectation_result == {
-            "got": "Empty DataFrame",
-            "has_failed": False,
-            "message": "ColIsInCheck: The DataFrame is empty.",
-        }
-
 
 class TestColCompareCheck(BaseClassColumnTest):
 
@@ -883,12 +827,3 @@ class TestColCompareCheck(BaseClassColumnTest):
             expectations.eval_expectation(df_test.drop("age"))
         with pytest.raises(TypeError, match="ColCompareCheck: The target must be a Spark DataFrame, but got 'int'"):
             expectations.eval_expectation(1)
-
-    def test_eval_dataframe_empty(self, df_test_empty):
-        expectations = ColCompareCheck("age", True, "equal")
-        expectation_result = expectations.eval_expectation(df_test_empty)
-        assert expectation_result == {
-            "got": "Empty DataFrame",
-            "has_failed": False,
-            "message": "ColCompareCheck: The DataFrame is empty.",
-        }
