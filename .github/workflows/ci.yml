@@ -25,18 +25,7 @@ jobs:
     - name: Starts testing
       run: pytest --cov
     - name: Show coverage
-      run: coverage report > "coverage.txt"
-    - name: update coverage
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add -A
-        git diff-index --quiet HEAD || (git commit -a -m "update coverage" --allow-empty)
-    - name: push changes
-      uses: ad-m/github-push-action@v0.8.0
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: main
+      run: coverage report
 
   linting:
     runs-on: ubuntu-latest
