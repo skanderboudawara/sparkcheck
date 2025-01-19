@@ -10,13 +10,13 @@ description = "Run Data Validation on a Spark DataFrame"
 readme = "README.md"
 authors = [{ name = "Skander Boudawara" }]
 classifiers = [
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Operating System :: OS Independent",
 ]
 
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = ["PyYaml >= 6.0.2", "pyspark >= 3.3"]
 
 
