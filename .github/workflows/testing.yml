@@ -11,7 +11,7 @@ jobs:
         # os: [ubuntu-latest, windows-latest, macos-latest]
         os: [ubuntu-latest]
         python-version: ['3.10', '3.11']
-        pyspark-version: ["pyspark>=3.3.0,<3.4.0", "pyspark>=3.4.0,<3.5.0", "pyspark>=3.5.0"]
+        pyspark-version: ["pyspark>=3.4.0,<3.5.0", "pyspark>=3.5.0"]
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
