@@ -26,6 +26,14 @@ class TestToCol:
         df = spark_session.createDataFrame([(1,)], ["test_col"])
         assert df.select(result).collect()[0][0] == 1
 
+    def test_string_as_raw(self, spark_session):
+        result = to_col("test_col", is_col=False, default="raw")
+        assert result == "test_col"
+
+    def test_string_as_default_exception(self, spark_session):
+        with pytest.raises(ValueError, match=re.escape("Invalid value for `default`: invalid. Must be 'lit' or 'raw'.")):
+            to_col("test_col", is_col=False, default="invalid")
+
     def test_string_as_literal(self, spark_session):
         result = to_col("test_value", is_col=False)
         assert isinstance(result, Column)
