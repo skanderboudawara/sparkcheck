@@ -8,6 +8,10 @@ jobs:
   linting:
     uses: ./.github/workflows/linting.yml
 
-  test:
-    uses: ./.github/workflows/testing.yml
+  test_os:
+    uses: ./.github/workflows/testing_os.yml
+    needs: linting
+
+  test_spark:
+    uses: ./.github/workflows/testing_spark.yml
     needs: linting
