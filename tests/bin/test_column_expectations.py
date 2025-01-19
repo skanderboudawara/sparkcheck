@@ -228,12 +228,15 @@ class TestColNonNullCheck(BaseClassColumnTest):
     )
     def test_eval_expectation(
         self,
+        spark_session,
         df_test,
         column_name,
         value,
         custom_message,
         expected_result,
     ):
+        spark_session.catalog.clearCache()
+        df_test = df_test.cache()
         expectations = ColNonNullCheck(column_name, value, custom_message)
         assert expectations.eval_expectation(df_test) == expected_result
 
