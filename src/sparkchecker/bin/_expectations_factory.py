@@ -7,6 +7,7 @@ from collections.abc import Mapping
 from pyspark.sql import DataFrame
 
 from ..ext._decorators import order_expectations_dict
+from ..ext._utils import eval_empty_dataframe
 from ._base import ColumnsExpectations, DataFrameExpectation
 from ._column_expectations import (
     ColCompareCheck,
@@ -101,7 +102,7 @@ class ExpectationsFactory:
             raise ValueError("No checks provided.")
 
         self.df = self.df.cache()  # To improve performance
-        df_is_empty = self.df.isEmpty()
+        df_is_empty = eval_empty_dataframe(self.df)
 
         for check in self.stack:
             check_type = check.get("check")

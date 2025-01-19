@@ -33,7 +33,12 @@ from ..ext._decorators import (
     check_inputs,
     validate_expectation,
 )
-from ..ext._utils import _op_check, _resolve_msg, _substitute
+from ..ext._utils import (
+    _op_check,
+    _resolve_msg,
+    _substitute,
+    eval_empty_dataframe,
+)
 from ._base import DataFrameExpectation
 
 
@@ -83,7 +88,7 @@ class DataFrameIsEmptyCheck(DataFrameExpectation):
         :return: (dict), the expectation result
         :raises: (TypeError), If the target is not a DataFrame.
         """
-        has_failed = target.isEmpty()
+        has_failed = eval_empty_dataframe(target)
         has_failed = has_failed != self.value
         self.get_message(has_failed if self.value else not has_failed)
         return {

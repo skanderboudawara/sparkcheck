@@ -17,7 +17,7 @@ classifiers = [
 ]
 
 requires-python = ">=3.9"
-dependencies = ["PyYaml >= 6.0.2", "pyspark >= 3.5"]
+dependencies = ["PyYaml >= 6.0.2", "pyspark >= 3.3"]
 
 [tool.setuptools.packages.find]
 include = ["src*"]
