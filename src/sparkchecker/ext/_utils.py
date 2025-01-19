@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import re
-from typing import cast
+from typing import cast, overload
 
 from pyspark.sql import Column, DataFrame, Row
 from pyspark.sql.functions import col, lit
@@ -11,12 +11,51 @@ from pyspark.sql.types import DecimalType
 from sparkchecker.constants import OPERATOR_MAP
 
 
+def _lit_or_raw(
+    value: str | bool | float | Column,
+    is_escaped: bool = False,
+    default: str = "lit",
+) -> str | bool | float | Column:  # pragma: no cover
+    """
+    THIS FUNCTION IS NOT INTENDED TO BE USED DIRECTLY.
+
+    Convert a `value` to a literal or raw string.
+
+    :param value: (str | bool | float | Column), a value to convert
+    :param is_escaped: (bool), flag to determine if the value should be treated
+        as a raw string literal or not
+    :param default: (str), flag to determine if the value should be treated
+    :returns: (str | bool | float | Column) a spark Column or raw str
+    """
+    if is_escaped:
+        value = rf"{value}"
+    return lit(value) if default == "lit" else value
+
+
+@overload
+def to_col(
+    column_name: str | None,
+    is_col: bool = True,
+    escaped: bool = False,
+    default: str = "lit",
+) -> Column: ...  # pragma: no cover
+
+
+@overload
+def to_col(
+    column_name: bool | float | Column,
+    is_col: bool = True,
+    escaped: bool = False,
+    default: str = "raw",
+) -> Column: ...  # pragma: no cover
+
+
 def to_col(
     column_name: str | bool | float | Column | None,
     is_col: bool = True,
     escaped: bool = False,
     default: str = "lit",
-) -> Column:
+) -> str | bool | float | Column:
     """
     Convert a `column_name` string to a column.
 
@@ -27,30 +66,30 @@ def to_col(
     :param default: (str), flag to determine if the column should be treated
     :param escaped: (bool), flag to determine if the column should be treated
         as a raw string literal or not
-    :returns: (Column) a spark Column
+    :returns: (str | bool | float | Column) a spark Column or raw str
     :raises: (TypeError), If the input is not a string, float, or Column
     """
     if default not in {"lit", "raw"}:
         raise ValueError(
-            f"Invalid value for `default`: {default}. Must be 'lit' or 'raw'.",
+            "Argument `default` must be one of 'lit' or 'raw' but got: ",
+            default,
         )
-
     if column_name is None:
-        return lit("NoneObject") if default == "lit" else "NoneObject"
+        return _lit_or_raw("NoneObject", is_escaped=False, default=default)
 
-    match column_name:
-        case str():
-            if is_col:
-                return col(column_name)
-            return (
-                lit(rf"{column_name}" if escaped else column_name)
-                if default == "lit"
-                else column_name
-            )
-        case int() | float() | bool():
-            return lit(column_name) if default == "lit" else column_name
-        case Column():
-            return column_name
+    # Handle string column names
+    if isinstance(column_name, str):
+        if is_col:
+            return col(column_name)
+        return _lit_or_raw(column_name, is_escaped=escaped, default=default)
+
+    # Handle numeric types (int, float, bool)
+    if isinstance(column_name, int | float | bool):
+        return _lit_or_raw(column_name, is_escaped=False, default=default)
+
+    # Handle Column type directly
+    if isinstance(column_name, Column):
+        return column_name
 
     # Raise an error if none of the conditions match
     raise TypeError(

@@ -31,7 +31,7 @@ class TestToCol:
         assert result == "test_col"
 
     def test_string_as_default_exception(self, spark_session):
-        with pytest.raises(ValueError, match=re.escape("Invalid value for `default`: invalid. Must be 'lit' or 'raw'.")):
+        with pytest.raises(ValueError, match=re.escape("Argument `default` must be one of 'lit' or 'raw' but got: ")):
             to_col("test_col", is_col=False, default="invalid")
 
     def test_string_as_literal(self, spark_session):
