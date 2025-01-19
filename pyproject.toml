@@ -27,9 +27,11 @@ exclude = ["docs*", "tests*", "examples*"]
 
 [project.optional-dependencies]
 test = [
-    "types-PyYAML >= 6.0.0",
     "pytest-cov >= 6.0.0",
-    "pytest >= 6.0.0",
+    "pytest >= 6.0.0"]
+
+lint = [
+    "types-PyYAML >= 6.0.0",
     "pre-commit",
     "flake8 >= 7.0.0",
     "flake8-docstrings >= 1.6.0",
@@ -37,7 +39,8 @@ test = [
     "black >= 24.10.0",
     "tox >= 4.23.2",
     "ruff >= 0.9.0",
-    "mypy >= 1.14.1"]
+    "mypy >= 1.14.1"
+]
 
 docs = [
     "packaging",
