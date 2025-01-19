@@ -12,6 +12,10 @@ jobs:
     uses: ./.github/workflows/testing_os.yml
     needs: linting
 
+  test_py_version:
+    uses: ./.github/workflows/testing_py_version.yml
+    needs: linting
+
   test_spark:
     uses: ./.github/workflows/testing_spark.yml
     needs: linting
