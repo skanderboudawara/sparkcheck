@@ -8,25 +8,22 @@ name = "sparkcheck"
 version = "0.0.1"
 description = "Run Data Validation on a Spark DataFrame"
 readme = "README.md"
-authors = [{name = "Skander Boudawara"}]
+authors = [{ name = "Skander Boudawara" }]
 classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
-    "Operating System :: OS Independent"]
+    "Operating System :: OS Independent",
+]
 
 requires-python = ">=3.9"
-dependencies = [
-    "PyYaml >= 6.0.2",
-    "pyspark >= 3.5"]
+dependencies = ["PyYaml >= 6.0.2", "pyspark >= 3.5"]
 
 [tool.setuptools.packages.find]
 include = ["src*"]
 exclude = ["docs*", "tests*", "examples*"]
 
 [project.optional-dependencies]
-test = [
-    "pytest-cov >= 6.0.0",
-    "pytest >= 6.0.0"]
+test = ["pytest-cov >= 6.0.0", "pytest >= 6.0.0"]
 
 lint = [
     "types-PyYAML >= 6.0.0",
@@ -37,41 +34,31 @@ lint = [
     "black >= 24.10.0",
     "tox >= 4.23.2",
     "ruff >= 0.9.0",
-    "mypy >= 1.14.1"
+    "mypy >= 1.14.1",
 ]
 
 docs = [
     "packaging",
     "Sphinx >= 7",
     "sphinx-autodoc-typehints >= 1.2.0",
-    "sphinx-rtd-theme >= 1.3.0"]
+    "sphinx-rtd-theme >= 1.3.0",
+]
 
 [tool.black]
 line-length = 79
 
 [tool.coverage.run]
 source = ["src"]
-omit = [
-    "*/__init__.py",
-    "*/test_*",
-    "*/_exceptions.py",
-    "*/_logger.py"]
+omit = ["*/__init__.py", "*/test_*", "*/_exceptions.py", "*/_logger.py"]
 
 [tool.coverage.report]
 show_missing = true
-exclude_lines = [
-    "pragma: no cover",
-    "if TYPE_CHECKING:"]
+exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
 
 fail_under = 100
 
 [tool.pytest.ini_options]
-addopts = [
-    "--doctest-modules",
-    "-vv",
-    "-p",
-    "no:warnings",
-    "--tb=short"]
+addopts = ["--doctest-modules", "-vv", "-p", "no:warnings", "--tb=short"]
 
 pythonpath = ["src"]
 testpaths = ["."]
@@ -86,14 +73,81 @@ log_date_format = "%Y-%m-%d %H:%M:%S"
 
 [tool.ruff]
 lint.select = [
-    "F", "E", "W", "C90", "I", "N", "B", "Q", "D", "UP", "ANN", "S", "B", "A", "COM",
-    "C4", "DTZ", "FA", "ISC", "ICN", "LOG", "G", "INP", "T20", "PYI", "PT", "RSE",
-    "RET", "SLF", "SLOT", "SIM", "INT", "ARG", "TD", "FIX", "ERA", "PL", "PERF", "RUF"]
+    "F",
+    "E",
+    "W",
+    "C90",
+    "I",
+    "N",
+    "B",
+    "Q",
+    "D",
+    "UP",
+    "ANN",
+    "S",
+    "B",
+    "A",
+    "COM",
+    "C4",
+    "DTZ",
+    "FA",
+    "ISC",
+    "ICN",
+    "LOG",
+    "G",
+    "INP",
+    "T20",
+    "PYI",
+    "PT",
+    "RSE",
+    "RET",
+    "SLF",
+    "SLOT",
+    "SIM",
+    "INT",
+    "ARG",
+    "TD",
+    "FIX",
+    "ERA",
+    "PL",
+    "PERF",
+    "RUF",
+]
 
 lint.ignore = [
-    "PYI041", "A002", "D401", "N812", "FA100", "E203", "E202", "D200", "D404", "D104", "D212", "D415", "D205",
-    "PLR0913", "D107", "B023", "RET504", "E271", "PLR0917", "PLR6301", "PLR0904", "N818", "D203",
-    "E241", "PLR0915", "PLR0914", "C901", "PLR0912", "PLR0911", "PLC0206", "PLC2701", "ANN401"]
+    "PYI041",
+    "A002",
+    "D401",
+    "N812",
+    "FA100",
+    "E203",
+    "E202",
+    "D200",
+    "D404",
+    "D104",
+    "D212",
+    "D415",
+    "D205",
+    "PLR0913",
+    "D107",
+    "B023",
+    "RET504",
+    "E271",
+    "PLR0917",
+    "PLR6301",
+    "PLR0904",
+    "N818",
+    "D203",
+    "E241",
+    "PLR0915",
+    "PLR0914",
+    "C901",
+    "PLR0912",
+    "PLR0911",
+    "PLC0206",
+    "PLC2701",
+    "ANN401",
+]
 
 
 lint.fixable = ["ALL"]
@@ -118,7 +172,13 @@ multiline-quotes = "double"
 [tool.ruff.lint.isort]
 split-on-trailing-comma = true
 default-section = "third-party"
-section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
+]
 from-first = false
 lines-between-types = 0
 known-third-party = ["pyspark"]
@@ -127,9 +187,38 @@ known-local-folder = ["src"]
 [tool.ruff.lint.per-file-ignores]
 "*bin*" = ["INP001"]
 "test_*.py" = [
-    "E501", "ANN001", "D101", "D102", "D103", "PT001", "ARG001", "N803", "N802", "ANN201", "ANN202",
-    "ANN204", "D100", "RET504", "DTZ005", "DTZ007", "DTZ002", "N806", "DTZ001", "ARG002", "D106",
-    "PLR0914", "S101", "PT004", "ANN002", "ANN003", "ANN206", "N801", "ARG003", "E402", "SLF001"]
+    "E501",
+    "ANN001",
+    "D101",
+    "D102",
+    "D103",
+    "PT001",
+    "ARG001",
+    "N803",
+    "N802",
+    "ANN201",
+    "ANN202",
+    "ANN204",
+    "D100",
+    "RET504",
+    "DTZ005",
+    "DTZ007",
+    "DTZ002",
+    "N806",
+    "DTZ001",
+    "ARG002",
+    "D106",
+    "PLR0914",
+    "S101",
+    "PT004",
+    "ANN002",
+    "ANN003",
+    "ANN206",
+    "N801",
+    "ARG003",
+    "E402",
+    "SLF001",
+]
 
 [tool.mypy]
 mypy_path = "src"
@@ -139,7 +228,8 @@ exclude = [
     "(^|/)(test.*)$",
     ".*conftest.*",
     "(^|/)(__init__/.*py)$",
-    ".*jobs.*"]
+    ".*jobs.*",
+]
 
 pretty = true
 explicit_package_bases = true

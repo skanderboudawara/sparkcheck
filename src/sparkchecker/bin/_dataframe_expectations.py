@@ -18,6 +18,7 @@ Dev rules:
 - The __init__ in this module should be decorated with the @check_inputs
     decorator.
 """
+
 from __future__ import annotations
 
 from typing import Any
