@@ -42,6 +42,7 @@ jobs:
           pip install '.[lint]'
       - name: ⚠️ Important to read ⚠️
         run: |
+          echo "Linting prerequisites:"
           echo "Linting job started. Please ensure there are no linting errors before merging the PR."
           echo "To fix linting errors locally, run the following commands:"
           echo "1. Install linting dependencies: pip install '.[lint]'"
@@ -50,7 +51,7 @@ jobs:
       - name: run black
         run: black --diff src
       - name: run ruff
-        run: ruff check --fix --unsafe-fixes --preview --exit-zero --show-fixes --show-files --diff --config=pyproject.toml
+        run: ruff check --fix --unsafe-fixes --preview --exit-zero --show-files --diff --config=pyproject.toml
       - name: run mypy
         run: mypy --config-file=pyproject.toml
       - name: run flakes
