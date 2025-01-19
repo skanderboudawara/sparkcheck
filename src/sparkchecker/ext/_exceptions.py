@@ -61,64 +61,62 @@ class SparkCheckerError(Exception):
         :param exception: (Any) The offending value or additional details.
         :return: A formatted error message.
         """
-        match error_type:
-            case SparkCheckerError.INTERNAL_ERROR:
-                return f"Expected: {constraint}, Got: {exception}"
-            case SparkCheckerError.ILLEGAL_CONSTRAINT_CONSTRUCTOR:
-                return (
-                    f"Each constraint in `{constraint}` must have keys in "
-                    f"\n{', '.join(CONSTRAINT_CONSTRUCTOR)}"
-                    f"\nGot: {exception}"
-                )
-            case SparkCheckerError.ILLEGAL_HAS_COLUMN_EXPECTATIONS:
-                return (
-                    f"Constraint object must be a string "
-                    "in has_columns but got:"
-                    f"{type(exception)!r} = {exception!r}"
-                )
-            case SparkCheckerError.ILLEGAL_THRESHOLD_MATH_OPERATOR:
-                return (
-                    f"`{constraint}` only takes these values as constraints "
-                    f"\n{', '.join(OPERATOR_MAP.keys())}"
-                    f"\nGot: {exception}"
-                )
-            case SparkCheckerError.CONSTRAINTS_OUT_OF_RANGE:
-                return (
-                    f"Each constraint in `{constraint}` must "
-                    "have 1 set of rules"
-                    "\nAn Example:"
-                    "\nlower:"
-                    "\n    value: 10"
-                    "\n    strategy: 'fail'"
-                    "\n    message: 'lower failed'"
-                    f"In your YAML file, we got {len(exception)} "
-                    f"rules: {exception}"
-                )
-            case SparkCheckerError.ILLEGAL_COLUMN_TYPE:
-                return (
-                    f"`has_column` checks on `{constraint}` only take "
-                    "these values as types "
-                    f"\n{', '.join(COLUMN_TYPES.keys())}"
-                    f"\nGot: {exception}"
-                )
-            case SparkCheckerError.ILLEGAL_CONSTRAINT:
-                authorized_values = [
-                    *list(DATAFRAME_CHECKS.keys()),
-                    *list(COLUMN_CHECKS.keys()),
-                ]
-                return (
-                    f"`{constraint}` is an unknown constraint. "
-                    "The constraint must be one of these values: "
-                    f"\n{', '.join(authorized_values)}"
-                    f"\nGot: {exception}"
-                )
-            case SparkCheckerError.ILLEGAL_COLUMN_CONSTRAINT:
-                authorized_values = list(COLUMN_CHECKS.keys())
-                return (
-                    f"`{constraint}` is an unknown constraint. "
-                    "The constraint must be one of these values: "
-                    f"\n{', '.join(authorized_values)}"
-                    f"\nGot: {exception}"
-                )
-            case _:
-                return "An unknown error occurred."
+        if error_type == SparkCheckerError.INTERNAL_ERROR:
+            return f"Expected: {constraint}, Got: {exception}"
+        if error_type == SparkCheckerError.ILLEGAL_CONSTRAINT_CONSTRUCTOR:
+            return (
+                f"Each constraint in `{constraint}` must have keys in "
+                f"\n{', '.join(CONSTRAINT_CONSTRUCTOR)}"
+                f"\nGot: {exception}"
+            )
+        if error_type == SparkCheckerError.ILLEGAL_HAS_COLUMN_EXPECTATIONS:
+            return (
+                f"Constraint object must be a string "
+                "in has_columns but got:"
+                f"{type(exception)!r} = {exception!r}"
+            )
+        if error_type == SparkCheckerError.ILLEGAL_THRESHOLD_MATH_OPERATOR:
+            return (
+                f"`{constraint}` only takes these values as constraints "
+                f"\n{', '.join(OPERATOR_MAP.keys())}"
+                f"\nGot: {exception}"
+            )
+        if error_type == SparkCheckerError.CONSTRAINTS_OUT_OF_RANGE:
+            return (
+                f"Each constraint in `{constraint}` must "
+                "have 1 set of rules"
+                "\nAn Example:"
+                "\nlower:"
+                "\n    value: 10"
+                "\n    strategy: 'fail'"
+                "\n    message: 'lower failed'"
+                f"In your YAML file, we got {len(exception)} "
+                f"rules: {exception}"
+            )
+        if error_type == SparkCheckerError.ILLEGAL_COLUMN_TYPE:
+            return (
+                f"`has_column` checks on `{constraint}` only take "
+                "these values as types "
+                f"\n{', '.join(COLUMN_TYPES.keys())}"
+                f"\nGot: {exception}"
+            )
+        if error_type == SparkCheckerError.ILLEGAL_CONSTRAINT:
+            authorized_values = [
+                *list(DATAFRAME_CHECKS.keys()),
+                *list(COLUMN_CHECKS.keys()),
+            ]
+            return (
+                f"`{constraint}` is an unknown constraint. "
+                "The constraint must be one of these values: "
+                f"\n{', '.join(authorized_values)}"
+                f"\nGot: {exception}"
+            )
+        if error_type == SparkCheckerError.ILLEGAL_COLUMN_CONSTRAINT:
+            authorized_values = list(COLUMN_CHECKS.keys())
+            return (
+                f"`{constraint}` is an unknown constraint. "
+                "The constraint must be one of these values: "
+                f"\n{', '.join(authorized_values)}"
+                f"\nGot: {exception}"
+            )
+        return "An unknown error occurred."
