@@ -284,7 +284,7 @@ class ColRegexLikeCheck(ColumnsExpectations):
         """
         self.is_spark35 = target.sparkSession.version >= "3.5"
         self.is_col = self.value in target.columns
-        self.value = to_col(  # type: ignore
+        self.value = to_col(
             self.value,
             is_col=self.is_col,
             escaped=True,
