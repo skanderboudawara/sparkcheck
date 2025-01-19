@@ -91,8 +91,7 @@ def _op_check(self: object, operator: str) -> None:
 
 def to_decimal(decimal_string: str) -> DecimalType:
     """
-    Parses a string like 'decimal(10,2)' and converts it
-        to a DecimalType object.
+    Parse decimal string format (e.g. 'decimal(10,2)') into DecimalType object.
 
     :param decimal_string: (str), string like 'decimal(10,2)'.
 
@@ -134,8 +133,7 @@ def split_base_file(file_path: str) -> tuple[str, str]:
 
 def _substitute(input_string: str, condition: bool, placeholder: str) -> str:
     """
-    Replaces the specified placeholder in a string
-        based on a boolean condition.
+    Replace placeholder in string with conditional text based on boolean value.
 
     The placeholder is in the format "<$text1|text2>", where "text1" is used
     if the condition is True, and "text2" is used if the condition is False.
@@ -178,8 +176,7 @@ def _substitute(input_string: str, condition: bool, placeholder: str) -> str:
 
 def _resolve_msg(default: str, msg: str | None) -> str:
     """
-    Returns the provided message if it is not None,
-        otherwise returns the default message.
+    Returns provided message if not None, otherwise returns default message.
 
     :param default: (str), the default message to use if `msg` is None.
     :param msg: (str | None), the message to override

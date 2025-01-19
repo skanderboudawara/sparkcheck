@@ -1,4 +1,6 @@
 """
+Core module for validating DataFrames against YAML-defined checks.
+
 This is the main file that contains the main function that is
     used to check the DataFrame against the checks in the yaml file.
 """

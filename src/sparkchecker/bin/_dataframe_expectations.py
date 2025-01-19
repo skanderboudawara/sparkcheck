@@ -4,6 +4,7 @@ This module contains the DataFrame expectations classes.
 The classes in this module are used to check the DataFrame properties.
 
 Dev rules:
+
 - The classes in this module should inherit from the DataFrameExpectation
     class.
 - The classes in this module should implement the abstract methods from the
@@ -35,6 +36,10 @@ from ._base import DataFrameExpectation
 
 
 class DataFrameIsEmptyCheck(DataFrameExpectation):
+    """
+    Check if a DataFrame is empty.
+    """
+
     @check_inputs
     def __init__(
         self,
@@ -87,6 +92,10 @@ class DataFrameIsEmptyCheck(DataFrameExpectation):
 
 
 class DataFrameCountThresholdCheck(DataFrameExpectation):
+    """
+    Check the count of a DataFrame is compared to a threshold.
+    """
+
     @check_inputs
     def __init__(
         self,
@@ -153,6 +162,10 @@ class DataFrameCountThresholdCheck(DataFrameExpectation):
 
 
 class DataFramePartitionsCountCheck(DataFrameExpectation):
+    """
+    Check the number of partitions of a DataFrame is compared to a threshold.
+    """
+
     @check_inputs
     def __init__(
         self,
@@ -219,6 +232,10 @@ class DataFramePartitionsCountCheck(DataFrameExpectation):
 
 
 class DataFrameHasColumnsCheck(DataFrameExpectation):
+    """
+    Check if a DataFrame has the specified columns.
+    """
+
     @check_inputs
     def __init__(
         self,

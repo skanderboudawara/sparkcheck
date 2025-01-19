@@ -364,12 +364,11 @@ def read_yaml_file(file_path: str) -> dict:  # pragma: no cover
 
 def replace_keys_in_json(json_data: dict, replacements: dict) -> dict:
     """
-    Replaces specified keys in a JSON-like dictionary with
-        new keys based on a mapping.
+    Replaces keys in a JSON-like dictionary based on a mapping.
 
     :param json_data (dict): The input JSON-like dictionary.
     :param replacements (dict): A dictionary mapping old keys to new keys.
-    :returns: (dict)n The modified dictionary with keys replaced.
+    :returns: (dict) The modified dictionary with keys replaced.
     """
     if isinstance(json_data, dict):
         # Replace keys in the current dictionary
