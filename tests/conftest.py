@@ -2,7 +2,7 @@ from pyspark.sql import SparkSession
 import pytest
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="class")
 def spark_session():
     spark = (
         SparkSession.builder.appName("pytest")
@@ -13,5 +13,6 @@ def spark_session():
         .config("spark.driver.memory", "512m")
         .getOrCreate()
     )
-    yield spark
     spark.catalog.clearCache()
+    yield spark
+    spark.stop()

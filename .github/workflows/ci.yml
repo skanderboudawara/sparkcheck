@@ -24,6 +24,8 @@ jobs:
         pip install '.[test]'
     - name: Starts testing
       run: pytest --cov
+    - name: Show coverage
+      run: coverage report
 
   linting:
     runs-on: ubuntu-latest
