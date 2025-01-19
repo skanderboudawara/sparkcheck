@@ -404,13 +404,24 @@ class TestColRegexLikeCheck(BaseClassColumnTest):
         with pytest.raises(exception, match=match):
             ColRegexLikeCheck(column_name, value, message)
 
-    def test_constraint(self, spark_session):
-        expectations = ColRegexLikeCheck("name", ".*")
-        expectations.value = lit(r".*")
-        assert repr(expectations.constraint) == "Column<'regexp(name, .*)'>"
-        expectations = ColRegexLikeCheck("name", "alice")
-        expectations.value = col("alice")
-        assert repr(expectations.constraint) == "Column<'regexp(name, alice)'>"
+    @pytest.mark.parametrize(
+        ("column_name", "value", "expected_constraint_spark35", "expected_constraint_pre_spark35"),
+        [
+            ("name", ".*", "Column<'regexp(name, .*)'>", "Column<'RLIKE(name, .*)'>"),
+            ("name", "alice", "Column<'regexp(name, alice)'>", "Column<'RLIKE(name, alice)'>"),
+        ],
+    )
+    def test_constraint(
+        self, spark_session, column_name, value, expected_constraint_spark35, expected_constraint_pre_spark35,
+    ):
+        expectations = ColRegexLikeCheck(column_name, value)
+        expectations.is_spark35 = True
+        if spark_session.version >= "3.5":
+            expectations.value = lit(value)
+            assert repr(expectations.constraint) == expected_constraint_spark35
+        expectations.is_spark35 = False
+        if spark_session.version < "3.5":
+            assert repr(expectations.constraint) == expected_constraint_pre_spark35
 
     @pytest.mark.parametrize(
         ("custom_message", "has_failed", "expected_message"),
@@ -468,6 +479,22 @@ class TestColRegexLikeCheck(BaseClassColumnTest):
                     "message": "ColRegexLikeCheck: custom message",
                 },
             ),
+        ],
+    )
+    def test_eval_expectation(
+        self,
+        df_test,
+        column_name,
+        value,
+        custom_message,
+        expected_result,
+    ):
+        expectations = ColRegexLikeCheck(column_name, value, custom_message)
+        assert expectations.eval_expectation(df_test) == expected_result
+
+    @pytest.mark.parametrize(
+        ("column_name", "value", "custom_message", "expected_result"),
+        [
             ("country", "pattern_ok", None,
                 {
                     "example": {},
@@ -486,16 +513,18 @@ class TestColRegexLikeCheck(BaseClassColumnTest):
             ),
         ],
     )
-    def test_eval_expectation(
+    def test_eval_expectation_spark_35(
         self,
         df_test,
+        spark_session,
         column_name,
         value,
         custom_message,
         expected_result,
     ):
-        expectations = ColRegexLikeCheck(column_name, value, custom_message)
-        assert expectations.eval_expectation(df_test) == expected_result
+        if spark_session.version >= "3.5":
+            expectations = ColRegexLikeCheck(column_name, value, custom_message)
+            assert expectations.eval_expectation(df_test) == expected_result
 
     def test_eval_expectation_exception(self, df_test):
         expectations = ColRegexLikeCheck("name", "crypto")

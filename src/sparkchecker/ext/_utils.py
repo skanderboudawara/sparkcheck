@@ -228,8 +228,24 @@ def eval_first_fail(
     column = to_col(column)
     # We need to check the opposite of our expectations
     df = df.select(column).filter(~expectation)
-    if not df.isEmpty():
+    if not eval_empty_dataframe(df):
         first_failed_row = cast(Row, df.first())
         count_cases = df.count()
         return True, count_cases, first_failed_row.asDict()
     return False, 0, {}
+
+
+def eval_empty_dataframe(target: DataFrame) -> bool:  # pragma: no cover
+    """
+    This function evaluates if a DataFrame is empty.
+
+    This method ensures compatibility with Spark 3.3 and below.
+
+    :param target: (DataFrame), the DataFrame to check
+
+    :return: (bool), True if the DataFrame is empty, False otherwise
+    """
+    spark_version = target.sparkSession.version
+    if spark_version >= "3.3":
+        return target.isEmpty()
+    return target.rdd.isEmpty()

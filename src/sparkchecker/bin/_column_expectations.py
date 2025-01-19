@@ -235,9 +235,10 @@ class ColRegexLikeCheck(ColumnsExpectations):
         self.column = column
         self.message = message
         self.value = value
+        self.is_spark35 = None
 
     @property
-    def constraint(self) -> Column:
+    def constraint(self) -> Column:  # pragma: no cover
         """
         This method returns the constraint.
 
@@ -245,7 +246,9 @@ class ColRegexLikeCheck(ColumnsExpectations):
         :returns: None
         """
         self.column = to_col(self.column)
-        return regexp(self.column, self.value)
+        if self.is_spark35:
+            return regexp(self.column, self.value)
+        return self.column.rlike(self.value)
 
     @add_class_prefix
     def get_message(self, has_failed: bool) -> None:
@@ -272,10 +275,15 @@ class ColRegexLikeCheck(ColumnsExpectations):
         :param target: (DataFrame), the DataFrame to check
         :return: (dict), the expectation result
         """
-        self.value = to_col(  # type: ignore
-            self.value,
-            is_col=self.value in target.columns,
-            escaped=True,
+        self.is_spark35 = target.sparkSession.version >= "3.5"
+        self.value = (
+            to_col(  # type: ignore
+                self.value,
+                is_col=self.value in target.columns,
+                escaped=True,
+            )
+            if self.is_spark35
+            else self.value
         )
         has_failed, count_cases, first_failed_row = eval_first_fail(
             target,
