@@ -264,7 +264,7 @@ class TestCheckDataFrame:
             instance.method("not_a_dataframe")
 
     def test_empty_dataframe_column_class(self, spark_session):
-        empty_df = spark_session.createDataFrame([(1,)], ["col1"]).filter("col1 = 0")
+        empty_df = spark_session.createDataFrame([(1,)], ["col1"]).filter("col1 = 0").cache()
         instance = self.ColumnClass()
 
         result = instance.method(empty_df)
@@ -276,7 +276,7 @@ class TestCheckDataFrame:
 
     def test_empty_dataframe_other_class(self, spark_session):
         # Create empty DataFrame
-        empty_df = spark_session.createDataFrame([(1,)], ["col1"]).filter("col1 = 0")
+        empty_df = spark_session.createDataFrame([(1,)], ["col1"]).filter("col1 = 0").cache()
         instance = self.OtherClass()
 
         result = instance.method(empty_df)
