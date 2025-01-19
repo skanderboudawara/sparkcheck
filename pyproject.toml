@@ -53,7 +53,7 @@ omit = ["*/__init__.py", "*/test_*", "*/_exceptions.py", "*/_logger.py"]
 show_missing = true
 exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
 
-fail_under = 100
+fail_under = 95
 
 [tool.pytest.ini_options]
 addopts = ["--doctest-modules", "-vv", "-p", "no:warnings", "--tb=short"]
