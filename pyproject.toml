@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 
 [project]
-name = "sparkcheck"
+name = "sparkchecker"
 version = "0.0.1"
 description = "Run Data Validation on a Spark DataFrame"
 readme = "README.md"
@@ -18,9 +18,6 @@ classifiers = [
 requires-python = ">=3.10"
 dependencies = ["PyYaml >= 6.0.2", "pyspark >= 3.5"]
 
-[tool.setuptools.packages.find]
-include = ["src*"]
-exclude = ["docs*", "tests*", "examples*"]
 
 [project.optional-dependencies]
 test = ["pytest-cov >= 6.0.0", "pytest >= 6.0.0"]
