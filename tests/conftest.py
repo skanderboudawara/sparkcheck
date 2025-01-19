@@ -8,6 +8,5 @@ def spark_session():
         SparkSession.builder.appName("pytest")
         .getOrCreate()
     )
-    spark.catalog.clearCache()
     yield spark
-    spark.stop()
+    spark.catalog.clearCache()
