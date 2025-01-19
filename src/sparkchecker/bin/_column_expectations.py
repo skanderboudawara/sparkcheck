@@ -25,7 +25,6 @@ from __future__ import annotations
 from typing import Any
 
 from pyspark.sql import Column, DataFrame
-from pyspark.sql.functions import regexp
 
 from ..constants import OPERATOR_MAP
 from ..ext._decorators import (
@@ -235,7 +234,7 @@ class ColRegexLikeCheck(ColumnsExpectations):
         self.column = column
         self.message = message
         self.value = value
-        self.is_spark35 = None
+        self.is_spark35: bool = True
 
     @property
     def constraint(self) -> Column:  # pragma: no cover
@@ -247,8 +246,10 @@ class ColRegexLikeCheck(ColumnsExpectations):
         """
         self.column = to_col(self.column)
         if self.is_spark35:
+            from pyspark.sql.functions import regexp  # noqa: PLC0415
+
             return regexp(self.column, self.value)
-        return self.column.rlike(self.value)
+        return self.column.rlike(self.value)  # type: ignore
 
     @add_class_prefix
     def get_message(self, has_failed: bool) -> None:
