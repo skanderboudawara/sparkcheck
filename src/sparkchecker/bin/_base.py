@@ -1,6 +1,7 @@
 """
 The base classes for the column-based and DataFrame-based expectations.
 """
+from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from typing import Any
