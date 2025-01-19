@@ -16,7 +16,7 @@ classifiers = [
 ]
 
 requires-python = ">=3.10"
-dependencies = ["PyYaml >= 6.0.2", "pyspark >= 3.5"]
+dependencies = ["PyYaml >= 6.0.2", "pyspark >= 3.3"]
 
 
 [project.optional-dependencies]
