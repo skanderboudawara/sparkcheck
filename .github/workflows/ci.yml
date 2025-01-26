@@ -5,8 +5,12 @@ on:
   - pull_request
 
 jobs:
+  gitleaks:
+    uses: ./.github/workflows/gitleaks.yml
+
   linting:
     uses: ./.github/workflows/linting.yml
+    needs: gitleaks
 
   test_os:
     uses: ./.github/workflows/testing_os.yml
