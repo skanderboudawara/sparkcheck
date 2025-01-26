@@ -20,7 +20,7 @@ jobs:
           pip install '.[docs]'
       - name: Build HTML
         run: |
-          sphinx-apidoc -P -o docs src/
+          sphinx-apidoc -P -o docs src/sparkchecker
           make -C docs clean
           make -C docs html
       - name: commit files

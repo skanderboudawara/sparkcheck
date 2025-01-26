@@ -1,5 +1,5 @@
-src
-===
+sparkchecker
+============
 
 .. toctree::
    :maxdepth: 4
