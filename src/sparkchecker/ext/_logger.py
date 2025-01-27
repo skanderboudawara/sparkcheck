@@ -3,6 +3,7 @@ Additional functions to create a logger with a rotating file handler.
 """
 
 import logging
+import os
 from logging.handlers import TimedRotatingFileHandler
 
 
@@ -10,6 +11,10 @@ def setup_logger(
     name: str,
     log_file: str,
     level: int = logging.INFO,
+    log_format: int = 1,
+    force_create: bool = False,
+    print_log: bool = True,
+    write_file: bool = True,
 ) -> logging.Logger:
     """
     This function creates a logger with the specified name and log level.
@@ -17,6 +22,9 @@ def setup_logger(
     :param name: (str), the name of the logger
     :param log_file: (str), the path to the log file
     :param level: (int), the log level
+    :param log_format: (int), the log format
+    :param force_create: (bool), whether to force create the log file
+    :param write_file: (bool), whether to write to the log file
     :return: (logging.Logger), the configured logger
     :raises: (TypeError), if name is not a string
     :raises: (TypeError), if log_file is not a string
@@ -28,27 +36,42 @@ def setup_logger(
     logger = logging.getLogger(name)
     logger.setLevel(level)
 
+    log_formats = {
+        1: "%(asctime)s - %(name)s - %(levelname)s - \n %(message)s",
+        2: "\n%(message)s",
+    }
+    formatter = logging.Formatter(log_formats[log_format])
+
     # Create handlers
-    file_handler = TimedRotatingFileHandler(
-        filename=log_file,
-        when="D",
-        interval=1,
-        backupCount=2,
-    )
-    console_handler = logging.StreamHandler()
+    if write_file:
+        _force_create(log_file, force_create)
+        file_handler = TimedRotatingFileHandler(
+            filename=log_file,
+            when="D",
+            interval=1,
+            backupCount=2,
+        )
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
 
-    # Create formatters and add them to handlers
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    )
-    file_handler.setFormatter(formatter)
-    console_handler.setFormatter(formatter)
-
-    # Add handlers to the logger
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
+    if print_log:
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
 
     return logger
+
+
+def _force_create(log_file: str, is_forced: bool) -> None:
+    """
+    This function forces the creation of a log file.
+
+    :param log_file: (str), the path to the log file
+    :param is_forced: (bool), whether to force create the log file
+    :return: None
+    """
+    if is_forced and os.path.exists(log_file):
+        os.remove(log_file)
 
 
 def _setup_logger_checks(
