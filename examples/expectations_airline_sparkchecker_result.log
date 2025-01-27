@@ -5,110 +5,266 @@ Total Number of Warns: 2
 Total Number of Failures: 5
 ============================================================
 
-✅ PASSED - Check count has succeeded
+✅ PASSED - Rule has succeeded
+Rule:
++-------+-----------+----------+
+| rule  | predicate | expected |
++=======+===========+==========+
+| count | higher    | 0        |
++-------+-----------+----------+
 
-✅ PASSED - Check partitions has succeeded
+✅ PASSED - Rule has succeeded
+Rule:
++------------+-----------+----------+
+| rule       | predicate | expected |
++============+===========+==========+
+| partitions | equal     | 2        |
++------------+-----------+----------+
 
-✅ PASSED - Check is_empty has succeeded
+✅ PASSED - Rule has succeeded
+Rule:
++-----------+-----------+----------+
+| rule      | predicate | expected |
++===========+===========+==========+
+| dataframe | is_empty  | False    |
++-----------+-----------+----------+
 
-✅ PASSED - Check has_columns has succeeded
+✅ PASSED - Rule has succeeded
+Rule:
++-------------+-----------------+----------+
+| rule        | predicate       | expected |
++=============+=================+==========+
+| has_columns | passengers_name | string   |
++-------------+-----------------+----------+
 
-✅ PASSED - Check has_columns has succeeded
+✅ PASSED - Rule has succeeded
+Rule:
++-------------+----------------+----------+
+| rule        | predicate      | expected |
++=============+================+==========+
+| has_columns | passengers_age | exists   |
++-------------+----------------+----------+
 
-✅ PASSED - Check has_columns has succeeded
+✅ PASSED - Rule has succeeded
+Rule:
++-------------+--------------------+----------+
+| rule        | predicate          | expected |
++=============+====================+==========+
+| has_columns | passengers_country | exists   |
++-------------+--------------------+----------+
 
-✅ PASSED - Check has_columns has succeeded
+✅ PASSED - Rule has succeeded
+Rule:
++-------------+-------------------+----------+
+| rule        | predicate         | expected |
++=============+===================+==========+
+| has_columns | departure_country | exists   |
++-------------+-------------------+----------+
 
-✅ PASSED - Check has_columns has succeeded
+✅ PASSED - Rule has succeeded
+Rule:
++-------------+-----------------+----------+
+| rule        | predicate       | expected |
++=============+=================+==========+
+| has_columns | arrival_country | string   |
++-------------+-----------------+----------+
 
-✅ PASSED - Check has_columns has succeeded
+✅ PASSED - Rule has succeeded
+Rule:
++-------------+----------------+-----------+
+| rule        | predicate      | expected  |
++=============+================+===========+
+| has_columns | departure_time | timestamp |
++-------------+----------------+-----------+
 
-✅ PASSED - Check has_columns has succeeded
+✅ PASSED - Rule has succeeded
+Rule:
++-------------+-----------+----------+
+| rule        | predicate | expected |
++=============+===========+==========+
+| has_columns | gate      | integer  |
++-------------+-----------+----------+
 
-✅ PASSED - Check has_columns has succeeded
+✅ PASSED - Rule has succeeded
+Rule:
++-------------+-----------------+----------+
+| rule        | predicate       | expected |
++=============+=================+==========+
+| has_columns | airline_company | exists   |
++-------------+-----------------+----------+
 
-✅ PASSED - Check has_columns has succeeded
+✅ PASSED - Rule has succeeded
+Rule:
++-------------+---------------+----------+
+| rule        | predicate     | expected |
++=============+===============+==========+
+| has_columns | aircraft_type | exists   |
++-------------+---------------+----------+
 
-✅ PASSED - Check has_columns has succeeded
+✅ PASSED - Rule has succeeded
+Rule:
++-------------+-------------+----------+
+| rule        | predicate   | expected |
++=============+=============+==========+
+| has_columns | is_military | boolean  |
++-------------+-------------+----------+
 
-✅ PASSED - Check column has succeeded
+✅ PASSED - Rule has succeeded
+Rule:
++-------------+-----------+----------+
+| rule        | predicate | expected |
++=============+===========+==========+
+| is_military | equal     | False    |
++-------------+-----------+----------+
 
-✅ PASSED - Check column has succeeded
+✅ PASSED - Rule has succeeded
+Rule:
++-------------+-----------+----------+
+| rule        | predicate | expected |
++=============+===========+==========+
+| is_military | is_null   | False    |
++-------------+-----------+----------+
 
-⚠️ WARN - Check column has failed
+⚠️ WARN - Rule has failed
+Rule:
++--------------------+-----------+-----------------+
+| rule               | predicate | expected        |
++====================+===========+=================+
+| passengers_country | different | arrival_country |
++--------------------+-----------+-----------------+
 ColCompareCheck: The passenger country should be different from the arrival country in this dataset
 Number of rows failed: 20480
 Example:
-+======================+
-| passengers_country  |
 +----------------------+
-| USA                 |
+| passengers_country  |
 +======================+
+| USA                 |
++----------------------+
 
-❌ FAILED - Check column has failed
+❌ FAILED - Rule has failed
+Rule:
++--------------------+-----------+---------------------------------------------------------+
+| rule               | predicate | expected                                                |
++====================+===========+=========================================================+
+| passengers_country | in        | ['USA', 'UK', 'FR', 'DE', 'IT', 'ES', 'JP', 'CN', 'RU'] |
++--------------------+-----------+---------------------------------------------------------+
 ColIsInCheck: The column `passengers_country` is not in `[CN, DE, ES, FR, IT, JP, RU, UK, USA]`
 Number of rows failed: 51200
 Example:
-+======================+
-| passengers_country  |
 +----------------------+
-| AU                  |
+| passengers_country  |
 +======================+
+| AU                  |
++----------------------+
 
-✅ PASSED - Check column has succeeded
+✅ PASSED - Rule has succeeded
+Rule:
++--------------------+-----------+----------+
+| rule               | predicate | expected |
++====================+===========+==========+
+| passengers_country | is_null   | False    |
++--------------------+-----------+----------+
 
-❌ FAILED - Check column has failed
+❌ FAILED - Rule has failed
+Rule:
++-------------------+-----------+---------------------------------------------------------+
+| rule              | predicate | expected                                                |
++===================+===========+=========================================================+
+| departure_country | in        | ['USA', 'UK', 'FR', 'DE', 'IT', 'ES', 'JP', 'CN', 'RU'] |
++-------------------+-----------+---------------------------------------------------------+
 ColIsInCheck: The column `departure_country` is not in `[CN, DE, ES, FR, IT, JP, RU, UK, USA]`
 Number of rows failed: 51200
 Example:
-+=====================+
-| departure_country  |
 +---------------------+
-| AU                 |
+| departure_country  |
 +=====================+
+| AU                 |
++---------------------+
 
-✅ PASSED - Check column has succeeded
+✅ PASSED - Rule has succeeded
+Rule:
++-------------------+-----------+----------+
+| rule              | predicate | expected |
++===================+===========+==========+
+| departure_country | is_null   | False    |
++-------------------+-----------+----------+
 
-❌ FAILED - Check column has failed
+❌ FAILED - Rule has failed
+Rule:
++-----------------+-----------+---------------------------------------------------------+
+| rule            | predicate | expected                                                |
++=================+===========+=========================================================+
+| arrival_country | in        | ['USA', 'UK', 'FR', 'DE', 'IT', 'ES', 'JP', 'CN', 'RU'] |
++-----------------+-----------+---------------------------------------------------------+
 ColIsInCheck: The column `arrival_country` is not in `[CN, DE, ES, FR, IT, JP, RU, UK, USA]`
 Number of rows failed: 51200
 Example:
-+===================+
-| arrival_country  |
 +-------------------+
-| AU               |
+| arrival_country  |
 +===================+
+| AU               |
++-------------------+
 
-✅ PASSED - Check column has succeeded
+✅ PASSED - Rule has succeeded
+Rule:
++-----------------+-----------+----------+
+| rule            | predicate | expected |
++=================+===========+==========+
+| arrival_country | is_null   | False    |
++-----------------+-----------+----------+
 
-⚠️ WARN - Check column has failed
+⚠️ WARN - Rule has failed
+Rule:
++----------------+-----------+------------------+
+| rule           | predicate | expected         |
++================+===========+==================+
+| departure_time | higher    | 2023-10-01 10:00 |
++----------------+-----------+------------------+
 ColCompareCheck: The column `departure_time` is not higher than `2023-10-01 10:00`
 Number of rows failed: 20480
 Example:
-+=======================+
-| departure_time       |
 +-----------------------+
-| 2023-10-01 08:00:00  |
+| departure_time       |
 +=======================+
+| 2023-10-01 08:00:00  |
++-----------------------+
 
-✅ PASSED - Check column has succeeded
+✅ PASSED - Rule has succeeded
+Rule:
++------+-----------+----------+
+| rule | predicate | expected |
++======+===========+==========+
+| gate | lower     | 15       |
++------+-----------+----------+
 
-❌ FAILED - Check column has failed
+❌ FAILED - Rule has failed
+Rule:
++------+-----------+----------+
+| rule | predicate | expected |
++======+===========+==========+
+| gate | higher    | 2        |
++------+-----------+----------+
 ColCompareCheck: The gate number should be higher than 2
 Number of rows failed: 10240
 Example:
-+========+
-| gate  |
 +--------+
-| 2     |
+| gate  |
 +========+
+| 2     |
++--------+
 
-❌ FAILED - Check column has failed
+❌ FAILED - Rule has failed
+Rule:
++---------------+-----------+---------------+
+| rule          | predicate | expected      |
++===============+===========+===============+
+| aircraft_type | pattern   | Boeing|Airbus |
++---------------+-----------+---------------+
 ColRegexLikeCheck: The aircraft type should be an Airbus or a Boeing
 Number of rows failed: 10240
 Example:
-+=================+
-| aircraft_type  |
 +-----------------+
-| Falcon 9       |
+| aircraft_type  |
 +=================+
+| Falcon 9       |
++-----------------+

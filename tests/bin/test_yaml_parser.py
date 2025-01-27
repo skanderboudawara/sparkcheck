@@ -150,7 +150,13 @@ class TestParserCheckCount:
     def test_count_exist(self, parser):
         parser.data = ({"count": [{"higher": {"value": 0, "strategy": "warn"}}]})
         parser._check_count()
-        assert parser.stack == [{"value": 0, "strategy": "warn", "check": "count", "operator": "higher"}]
+        assert parser.stack == [{
+            "value": 0,
+            "strategy": "warn",
+            "check": "count",
+            "operator": "higher",
+            "rule": ("count", "higher", 0),
+        }]
 
     def test_count_not_exist(self, parser):
         parser.data = ({"not_count": [{"higher": {"value": 0, "strategy": "warn"}}]})
@@ -163,7 +169,13 @@ class TestParserCheckPartitions:
     def test_partitions_exist(self, parser):
         parser.data = ({"partitions": [{"higher": {"value": 0, "strategy": "warn"}}]})
         parser._check_partitions()
-        assert parser.stack == [{"value": 0, "strategy": "warn", "check": "partitions", "operator": "higher"}]
+        assert parser.stack == [{
+            "value": 0,
+            "strategy": "warn",
+            "check": "partitions",
+            "operator": "higher",
+            "rule": ("partitions", "higher", 0),
+        }]
 
     def test_partitions_not_exist(self, parser):
         parser.data = ({"not_partitions": [{"higher": {"value": 0, "strategy": "warn"}}]})
@@ -176,7 +188,12 @@ class TestParserCheckIsEmpty:
     def test_is_empty_exist(self, parser):
         parser.data = ({"is_empty": {"value": False, "strategy": "fail"}})
         parser._check_is_empty()
-        assert parser.stack == [{"value": False, "strategy": "fail", "check": "is_empty"}]
+        assert parser.stack == [{
+            "value": False,
+            "strategy": "fail",
+            "check": "is_empty",
+            "rule": ("dataframe", "is_empty", False),
+        }]
 
     def test_is_empty_not_exist(self, parser):
         parser.data = ({"not_is_empty": {"value": False, "strategy": "fail"}})
@@ -190,9 +207,9 @@ class TestParserCheckHasColumns:
         parser.data = ({"has_columns": [{"passengers_name": "string"}, "passengers_age", {"passengers_net": "decimal(10,2)"}]})
         parser._check_has_columns()
         assert parser.stack == [
-            {"column": "passengers_name", "value": StringType(), "check": "has_columns"},
-            {"column": "passengers_age", "check": "has_columns"},
-            {"column": "passengers_net", "value": DecimalType(10, 2), "check": "has_columns"},
+            {"column": "passengers_name", "value": StringType(), "check": "has_columns", "rule": ("has_columns", "passengers_name", "string")},
+            {"column": "passengers_age", "check": "has_columns", "rule": ("has_columns", "passengers_age", "exists")},
+            {"column": "passengers_net", "value": DecimalType(10, 2), "check": "has_columns", "rule": ("has_columns", "passengers_net", "decimal(10,2)")},
         ]
 
     def test_has_columns_unknown_type(self, parser):
@@ -225,7 +242,7 @@ class TestParserColumnChecks:
                 {
                     "passengers_country": [
                         {"different": {"value": "arrival_country", "strategy": "warn", "message": "The passenger country should be different from the arrival country in this dataset"}},
-                        {"in": {"value": {"value": ["USA", "UK", "FR", "DE", "IT", "ES", "JP", "CN", "RU"], "strategy": "fail"}, "strategy": "fail"}},
+                        {"in": {"value": ["USA", "UK", "FR", "DE", "IT", "ES", "JP", "CN", "RU"], "strategy": "fail"}},
                         {"is_null": {"value": False}},
                     ],
                 },
@@ -234,11 +251,11 @@ class TestParserColumnChecks:
         parser.data = data
         parser._column_checks()
         assert parser.stack == [
-            {"value": False, "strategy": "fail", "message": "There should be no military in civilian dataset", "column": "is_military", "check": "column", "operator": "equal"},
-            {"value": False, "column": "is_military", "check": "column", "operator": "is_null"},
-            {"value": "arrival_country", "strategy": "warn", "message": "The passenger country should be different from the arrival country in this dataset", "column": "passengers_country", "check": "column", "operator": "different"},
-            {"value": {"value": ["USA", "UK", "FR", "DE", "IT", "ES", "JP", "CN", "RU"], "strategy": "fail"}, "strategy": "fail", "column": "passengers_country", "check": "column", "operator": "in"},
-            {"value": False, "column": "passengers_country", "check": "column", "operator": "is_null"},
+            {"value": False, "strategy": "fail", "message": "There should be no military in civilian dataset", "column": "is_military", "check": "column", "rule": ("is_military", "equal", False), "operator": "equal"},
+            {"value": False, "column": "is_military", "check": "column", "rule": ("is_military", "is_null", False), "operator": "is_null"},
+            {"value": "arrival_country", "strategy": "warn", "message": "The passenger country should be different from the arrival country in this dataset", "column": "passengers_country", "check": "column", "rule": ("passengers_country", "different", "arrival_country"), "operator": "different"},
+            {"value": ["USA", "UK", "FR", "DE", "IT", "ES", "JP", "CN", "RU"], "strategy": "fail", "column": "passengers_country", "check": "column", "rule": ("passengers_country", "in", ["USA", "UK", "FR", "DE", "IT", "ES", "JP", "CN", "RU"]), "operator": "in"},
+            {"value": False, "column": "passengers_country", "check": "column", "rule": ("passengers_country", "is_null", False), "operator": "is_null"},
         ]
 
     def test_checks_not_exist(self, parser):
@@ -253,22 +270,24 @@ class TestParserAppend:
         return {"value": 10}
 
     def test_valid_append(self, parser, valid_constraint):
-        parser.append("test_check", valid_constraint)
-        assert parser.stack == [{"value": 10, "check": "test_check"}]
+        parser.append("test_check", valid_constraint, rule=("hello", "world", "test"))
+        assert parser.stack == [{"value": 10, "check": "test_check", "rule": ("hello", "world", "test")}]
 
     def test_append_with_operator(self, parser, valid_constraint):
-        parser.append("test_check", valid_constraint, "eq")
-        assert parser.stack == [{"value": 10, "check": "test_check", "operator": "eq"}]
+        parser.append("test_check", valid_constraint, "eq", rule=("hello", "world", "test"))
+        assert parser.stack == [{"value": 10, "check": "test_check", "operator": "eq", "rule": ("hello", "world", "test")}]
 
-    @pytest.mark.parametrize(("chk", "constraint", "operator", "error_msg"), [
-        (None, {"value": 10}, None, "Check cannot be None"),
-        ("test", None, None, "Constraint cannot be None"),
-        (123, {"value": 10}, None, "Check must be a string"),
-        ("test", "not_a_dict", None, "Constraint must be a dictionary"),
+    @pytest.mark.parametrize(("chk", "constraint", "operator", "rule", "error_msg"), [
+        (None, {"value": 10}, None, ("hello", "world", "test"), "Check cannot be None"),
+        ("test", None, None, ("hello", "world", "test"), "Constraint cannot be None"),
+        (123, {"value": 10}, None, ("hello", "world", "test"), "Check must be a string"),
+        ("test", "not_a_dict", None, ("hello", "world", "test"), "Constraint must be a dictionary"),
+        ("test", {"value": 10}, None, "Not a rule", "Rule must be a tuple"),
+        ("test", {"value": 10}, None, ("hello", "world"), "Rule must have 3 items"),
     ])
-    def test_invalid_inputs(self, parser, chk, constraint, operator, error_msg):
+    def test_invalid_inputs(self, parser, chk, constraint, operator, rule, error_msg):
         with pytest.raises(ValueError, match=re.escape(error_msg)):
-            parser.append(chk, constraint, operator)
+            parser.append(chk, constraint, operator, rule=rule)
 
 
 class TestReplaceKeysInJson:

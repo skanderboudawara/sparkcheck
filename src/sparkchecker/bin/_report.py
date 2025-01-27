@@ -38,6 +38,40 @@ class ReportGenerator:
         self._run()
 
     @staticmethod
+    def _create_rule_table(rule: tuple | list) -> str:
+        headers = ("rule", "predicate", "expected")
+        rule = [str(r) for r in rule]
+
+        col_widths = [
+            max(len(str(header)), len(str(value))) + 2
+            for header, value in zip(headers, rule, strict=True)
+        ]
+
+        def format_border(col_widths: list[int], sep: str) -> str:
+            return "+" + "+".join(sep * width for width in col_widths) + "+"
+
+        def format_data(data: tuple | list, col_widths: list[int]) -> str:
+            return (
+                "|"
+                + "|".join(
+                    f" {header.ljust(width - 2)} "
+                    for header, width in zip(data, col_widths, strict=True)
+                )
+                + "|"
+            )
+
+        # Construct the table
+        table = [
+            format_border(col_widths, "-"),
+            format_data(headers, col_widths),
+            format_border(col_widths, "="),
+            format_data(rule, col_widths),
+            format_border(col_widths, "-"),
+        ]
+
+        return "\n".join(table)
+
+    @staticmethod
     def _create_table(example: dict) -> str:
         """
         Creates a simple ASCII table from a single key-value pair in the input.
@@ -57,11 +91,11 @@ class ReportGenerator:
 
         # Construct the table
         table = [
-            format_border(max_width, "="),
-            format_row(col_name),
             format_border(max_width, "-"),
-            format_row(col_value),
+            format_row(col_name),
             format_border(max_width, "="),
+            format_row(col_value),
+            format_border(max_width, "-"),
         ]
 
         return "\n".join(table)
@@ -86,7 +120,9 @@ class ReportGenerator:
 
         # Construct the message
         msg_parts = [
-            f"{start} - Check {predicate['check']} has failed",
+            f"{start} - Rule has failed",
+            "Rule:",
+            self._create_rule_table(predicate["rule"]),
             predicate["message"],
             f"Number of rows failed: {predicate['got']}",
         ]
@@ -94,7 +130,9 @@ class ReportGenerator:
         # Add example table if applicable
         if isinstance(predicate["example"], dict):
             msg_parts.append("Example:")
-            msg_parts.append(self._create_table(predicate["example"]))
+            msg_parts.append(
+                ReportGenerator._create_table(predicate["example"]),
+            )
 
         msg = "\n".join(msg_parts)
 
@@ -107,7 +145,12 @@ class ReportGenerator:
         :param predicate: (dict) The predicate that has succeeded.
         :return: (tuple) The log level and the message.
         """
-        msg = f"✅ PASSED - Check {predicate['check']} has succeeded"
+        msg_parts = [
+            "✅ PASSED - Rule has succeeded",
+            "Rule:",
+            self._create_rule_table(predicate["rule"]),
+        ]
+        msg = "\n".join(msg_parts)
         return self.INFO, msg
 
     def append_raises(self, msg: str, strategy: str) -> None:
