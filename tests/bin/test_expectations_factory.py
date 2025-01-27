@@ -24,7 +24,7 @@ class TestExpectationsFactory:
         df = df.cache()
         return df
 
-    def test_initialization(self, sample_df):
+    def test_initialization(self, sample_df) -> None:
         stack = [{"check": "row_count"}]
         factory = ExpectationsFactory(sample_df, stack)
         assert isinstance(factory.df, DataFrame)
@@ -79,26 +79,26 @@ class TestExpectationsFactory:
             },
         ),
     ])
-    def test_compile_dataframe_operation(self, sample_df, check, expected):
+    def test_compile_dataframe_operation(self, sample_df, check, expected) -> None:
         result = ExpectationsFactory._compile_dataframe_operation(sample_df, check)
         assert result == expected
 
-    def test_compile_with_empty_stack(self, sample_df):
+    def test_compile_with_empty_stack(self, sample_df) -> None:
         factory = ExpectationsFactory(sample_df, [])
         with pytest.raises(ValueError, match=re.escape("No checks provided.")):
             factory.compile()
 
-    def test_compile_with_invalid_check_type(self, sample_df):
+    def test_compile_with_invalid_check_type(self, sample_df) -> None:
         factory = ExpectationsFactory(sample_df, [{"check": "invalid_check"}])
         with pytest.raises(ValueError, match="Unknown check type: invalid_check"):
             factory.compile()
 
-    def test_compile_with_missing_check_type(self, sample_df):
+    def test_compile_with_missing_check_type(self, sample_df) -> None:
         factory = ExpectationsFactory(sample_df, [{}])
         with pytest.raises(ValueError, match="Check type is missing"):
             factory.compile()
 
-    def test_compile_with_empty_dataframe(self, empty_df):
+    def test_compile_with_empty_dataframe(self, empty_df) -> None:
         check = [{"value": 15, "strategy": "fail", "column": "num", "check": "column", "operator": "lower"}]
         factory = ExpectationsFactory(empty_df, check)
         factory.compile()
@@ -110,7 +110,7 @@ class TestExpectationsFactory:
             },
         ]
 
-    def test_full_compilation(self, sample_df):
+    def test_full_compilation(self, sample_df) -> None:
         check = [{"value": 15, "strategy": "fail", "column": "num", "check": "column", "operator": "lower"}]
         factory = ExpectationsFactory(sample_df, check)
         factory.compile()
@@ -128,6 +128,6 @@ class TestExpectationsFactory:
             },
         ]
 
-    def test_compiled_property(self, sample_df):
+    def test_compiled_property(self, sample_df) -> None:
         factory = ExpectationsFactory(sample_df, [])
         assert factory.compiled == []

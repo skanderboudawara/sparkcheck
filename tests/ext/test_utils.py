@@ -20,27 +20,27 @@ from sparkchecker.ext._utils import (
 
 
 class TestToCol:
-    def test_string_as_column(self, spark_session):
+    def test_string_as_column(self, spark_session) -> None:
         result = to_col("test_col", is_col=True)
         assert isinstance(result, Column)
         df = spark_session.createDataFrame([(1,)], ["test_col"])
         assert df.select(result).collect()[0][0] == 1
 
-    def test_string_as_raw(self, spark_session):
+    def test_string_as_raw(self, spark_session) -> None:
         result = to_col("test_col", is_col=False, default="raw")
         assert result == "test_col"
 
-    def test_string_as_default_exception(self, spark_session):
+    def test_string_as_default_exception(self, spark_session) -> None:
         with pytest.raises(ValueError, match=re.escape("Argument `default` must be one of 'lit' or 'raw' but got: ")):
             to_col("test_col", is_col=False, default="invalid")
 
-    def test_string_as_literal(self, spark_session):
+    def test_string_as_literal(self, spark_session) -> None:
         result = to_col("test_value", is_col=False)
         assert isinstance(result, Column)
         df = spark_session.createDataFrame([(1,)], ["dummy"])
         assert df.select(result).collect()[0][0] == "test_value"
 
-    def test_string_escaped(self, spark_session):
+    def test_string_escaped(self, spark_session) -> None:
         result = to_col("test\\value", is_col=False, escaped=True)
         assert isinstance(result, Column)
         df = spark_session.createDataFrame([(1,)], ["dummy"])
@@ -51,39 +51,39 @@ class TestToCol:
         (3.14, float),
         (True, bool),
     ])
-    def test_numeric_inputs(self, spark_session, value, expected_type):
+    def test_numeric_inputs(self, spark_session, value, expected_type) -> None:
         result = to_col(value)
         assert isinstance(result, Column)
         df = spark_session.createDataFrame([(1,)], ["dummy"])
         assert isinstance(df.select(result).collect()[0][0], expected_type)
 
-    def test_column_input(self, spark_session):
+    def test_column_input(self, spark_session) -> None:
         input_col = col("test")
         result = to_col(input_col)
         assert result is input_col
 
-    def test_none_input(self, spark_session):
+    def test_none_input(self, spark_session) -> None:
         result = to_col(None)
         assert isinstance(result, Column)
         df = spark_session.createDataFrame([(1,)], ["dummy"])
         assert df.select(result).collect()[0][0] == "NoneObject"
 
-    def test_invalid_input(self):
+    def test_invalid_input(self) -> None:
         with pytest.raises(TypeError, match="must be of type"):
             to_col([1, 2, 3])
 
 
 class TestToName:
-    def test_string_input(self, spark_session):
+    def test_string_input(self, spark_session) -> None:
         result = to_name("test_column")
         assert result == "test_column"
 
-    def test_column_input(self, spark_session):
+    def test_column_input(self, spark_session) -> None:
         column = col("test_column")
         result = to_name(column)
         assert result == "test_column"
 
-    def test_none_input(self, spark_session):
+    def test_none_input(self, spark_session) -> None:
         result = to_name(None)
         assert result == "NoneObject"
 
@@ -92,29 +92,29 @@ class TestToName:
         (3.14, "3.14"),
         (True, "True"),
     ])
-    def test_numeric_inputs(self, spark_session, input_val, expected):
+    def test_numeric_inputs(self, spark_session, input_val, expected) -> None:
         result = to_name(input_val)
         assert result == expected
 
-    def test_invalid_input(self, spark_session):
+    def test_invalid_input(self, spark_session) -> None:
         with pytest.raises(TypeError, match=re.escape("must be of type str | Column")):
             to_name([1, 2, 3])
 
 
-class Test_OpCheck:
+class TestOpCheck:
     class MockClass:
-        def check_operator(self, operator):
+        def check_operator(self, operator) -> None:
             _op_check(self, operator)
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         self.instance = self.MockClass()
 
-    def test_valid_operators(self):
+    def test_valid_operators(self) -> None:
         for operator in OPERATOR_MAP:
             # Should not raise any exception
             self.instance.check_operator(operator)
 
-    def test_invalid_operator(self):
+    def test_invalid_operator(self) -> None:
         invalid_operator = "invalid_op"
         expected_operators = ", ".join(OPERATOR_MAP.keys())
 
@@ -126,7 +126,7 @@ class Test_OpCheck:
         with pytest.raises(ValueError, match=re.escape(expected_error)):
             self.instance.check_operator(invalid_operator)
 
-    def test_empty_operator(self):
+    def test_empty_operator(self) -> None:
         with pytest.raises(ValueError, match="Invalid operator: ''"):
             self.instance.check_operator("")
 
@@ -139,7 +139,7 @@ class TestToDecimal:
         ("decimal(10, 2)", DecimalType(10, 2)),
         ("  decimal(7,3)  ", DecimalType(7, 3)),
     ])
-    def test_valid_decimal_strings(self, spark_session, input_str, expected):
+    def test_valid_decimal_strings(self, spark_session, input_str, expected) -> None:
         result = to_decimal(input_str)
         assert isinstance(result, DecimalType)
         assert result.precision == expected.precision
@@ -159,11 +159,11 @@ class TestToDecimal:
         "decimal 10,2",
         "(10,2)",
     ])
-    def test_invalid_decimal_strings(self, spark_session, invalid_input):
+    def test_invalid_decimal_strings(self, spark_session, invalid_input) -> None:
         with pytest.raises(ValueError, match="Invalid decimal type string"):
             to_decimal(invalid_input)
 
-    def test_type_checking(self, spark_session):
+    def test_type_checking(self, spark_session) -> None:
         result = to_decimal("decimal(10,2)")
         assert isinstance(result, DecimalType)
 
@@ -196,12 +196,12 @@ class TestSplitBaseFile:
             os.path.normpath(os.path.join("directory", "subdirectory", "file_sparkchecker_result.log")),
         ),
     ])
-    def test_split_base_file(self, input_path, expected_filename, expected_path):
+    def test_split_base_file(self, input_path, expected_filename, expected_path) -> None:
         filename, path = split_base_file(input_path)
         assert filename == expected_filename
         assert path == expected_path
 
-    def test_empty_path(self):
+    def test_empty_path(self) -> None:
         filename, path = split_base_file("")
         assert filename == ""  # noqa: PLC1901
         assert path == os.path.normpath("_sparkchecker_result.log")
@@ -216,7 +216,7 @@ class TestSubstitute:
         ("", True, "<$yes|no>", ""),  # Empty string test
         ("No placeholder text", True, "<$yes|no>", "No placeholder text"),  # No replacement needed
     ])
-    def test_valid_substitutions(self, string, condition, placeholder, expected):
+    def test_valid_substitutions(self, string, condition, placeholder, expected) -> None:
         result = _substitute(string, condition, placeholder)
         assert result == expected
 
@@ -225,7 +225,7 @@ class TestSubstitute:
         ("text", "not_bool", "<$yes|no>"),
         ("text", True, 123),
     ])
-    def test_invalid_types(self, invalid_input):
+    def test_invalid_types(self, invalid_input) -> None:
         with pytest.raises(TypeError):
             _substitute(*invalid_input)
 
@@ -234,11 +234,11 @@ class TestSubstitute:
         "yes|no",
         "<$yes>",
     ])
-    def test_invalid_placeholder_format(self, invalid_placeholder):
+    def test_invalid_placeholder_format(self, invalid_placeholder) -> None:
         with pytest.raises(ValueError, match="Invalid placeholder format"):
             _substitute("test", True, invalid_placeholder)
 
-    def test_multiple_placeholders(self):
+    def test_multiple_placeholders(self) -> None:
         input_str = "This <$is|not> a <$good|bad> test"
         result = _substitute(input_str, True, "<$is|not>")
         assert result == "This is a <$good|bad> test"
@@ -252,7 +252,7 @@ class TestResolveMsg:
         ("default", "", ""),
         ("", None, ""),
     ])
-    def test_valid_inputs(self, default, msg, expected):
+    def test_valid_inputs(self, default, msg, expected) -> None:
         result = _resolve_msg(default, msg)
         assert result == expected
 
@@ -263,13 +263,13 @@ class TestResolveMsg:
         (["default"], None),     # invalid default type
         ("default", ["msg"]),    # invalid msg type
     ])
-    def test_invalid_types(self, default, msg):
+    def test_invalid_types(self, default, msg) -> None:
         with pytest.raises(TypeError):
             _resolve_msg(default, msg)
 
 
 class TestEvalFirstFail:
-    def test_valid_expectation_pass(self, spark_session):
+    def test_valid_expectation_pass(self, spark_session) -> None:
 
         # Create test DataFrame where all rows pass
         df = spark_session.createDataFrame([(1,), (2,), (3,)], ["value"])
@@ -282,7 +282,7 @@ class TestEvalFirstFail:
         assert count == 0
         assert result == {}
 
-    def test_valid_expectation_fail(self, spark_session):
+    def test_valid_expectation_fail(self, spark_session) -> None:
 
         # Create test DataFrame where some rows fail
         df = spark_session.createDataFrame([(1,), (-2,), (3,)], ["value"])
@@ -295,7 +295,7 @@ class TestEvalFirstFail:
         assert count == 1
         assert result == {"value": -2}
 
-    def test_empty_dataframe(self, spark_session):
+    def test_empty_dataframe(self, spark_session) -> None:
 
         schema = StructType([StructField("value", IntegerType())])
         df = spark_session.createDataFrame([], schema)
@@ -309,7 +309,7 @@ class TestEvalFirstFail:
         assert count == 0
         assert result == {}
 
-    def test_column_as_string(self, spark_session):
+    def test_column_as_string(self, spark_session) -> None:
 
         df = spark_session.createDataFrame([(1,)], ["test"])
         failed, count, result = eval_first_fail(
@@ -321,7 +321,7 @@ class TestEvalFirstFail:
         assert count == 0
         assert result == {}
 
-    def test_column_as_column(self, spark_session):
+    def test_column_as_column(self, spark_session) -> None:
 
         df = spark_session.createDataFrame([(1,)], ["test"])
         failed, count, result = eval_first_fail(
@@ -333,7 +333,7 @@ class TestEvalFirstFail:
         assert count == 0
         assert result == {}
 
-    def test_invalid_inputs(self, spark_session):
+    def test_invalid_inputs(self, spark_session) -> None:
 
         spark_session.createDataFrame([(1,)], ["test"])
         with pytest.raises(TypeError, match=re.escape("Argument `df` must be of type DataFrame but got: ', <class 'str'>")):

@@ -89,7 +89,7 @@ class TestColNonNullCheck(BaseClassColumnTest):
             ("name", True, "hello world"),
         ],
     )
-    def test_init(self, column_name, value, message):
+    def test_init(self, column_name, value, message) -> None:
         ColNonNullCheck(column_name, value, message)
 
     @pytest.mark.parametrize(
@@ -102,7 +102,7 @@ class TestColNonNullCheck(BaseClassColumnTest):
     )
     def test_init_exceptions(
         self, column_name, value, message, exception, match,
-    ):
+    ) -> None:
         with pytest.raises(exception, match=match):
             ColNonNullCheck(column_name, value, message)
 
@@ -115,7 +115,7 @@ class TestColNonNullCheck(BaseClassColumnTest):
     )
     def test_constraint(
         self, spark_session, column_name, value, expected_constraint,
-    ):
+    ) -> None:
         assert (
             repr(ColNonNullCheck(column_name, value).constraint)
             == expected_constraint
@@ -135,7 +135,7 @@ class TestColNonNullCheck(BaseClassColumnTest):
         custom_message,
         has_failed,
         expected_message,
-    ):
+    ) -> None:
         expectations = ColNonNullCheck("name", True, custom_message)
         expectations.get_message(has_failed)
         assert expectations.message == expected_message
@@ -216,11 +216,11 @@ class TestColNonNullCheck(BaseClassColumnTest):
         value,
         custom_message,
         expected_result,
-    ):
+    ) -> None:
         expectations = ColNonNullCheck(column_name, value, custom_message)
         assert expectations.eval_expectation(df_test) == expected_result
 
-    def test_eval_expectation_exception(self, df_test):
+    def test_eval_expectation_exception(self, df_test) -> None:
         expectations = ColNonNullCheck("name", True)
         with pytest.raises(ValueError, match="ColNonNullCheck: Column 'name' does not exist in the DataFrame"):
             expectations.eval_expectation(df_test.drop("name"))
@@ -238,7 +238,7 @@ class TestColNullCheck(BaseClassColumnTest):
             ("name", True, "hello world"),
         ],
     )
-    def test_init(self, column_name, value, message):
+    def test_init(self, column_name, value, message) -> None:
         ColNullCheck(column_name, value, message)
 
     @pytest.mark.parametrize(
@@ -251,7 +251,7 @@ class TestColNullCheck(BaseClassColumnTest):
     )
     def test_init_exceptions(
         self, column_name, value, message, exception, match,
-    ):
+    ) -> None:
         with pytest.raises(exception, match=match):
             ColNullCheck(column_name, value, message)
 
@@ -264,7 +264,7 @@ class TestColNullCheck(BaseClassColumnTest):
     )
     def test_constraint(
         self, spark_session, column_name, value, expected_constraint,
-    ):
+    ) -> None:
         assert (
             repr(ColNullCheck(column_name, value).constraint)
             == expected_constraint
@@ -284,7 +284,7 @@ class TestColNullCheck(BaseClassColumnTest):
         custom_message,
         has_failed,
         expected_message,
-    ):
+    ) -> None:
         expectations = ColNullCheck("name", True, custom_message)
         expectations.get_message(has_failed)
         assert expectations.message == expected_message
@@ -365,11 +365,11 @@ class TestColNullCheck(BaseClassColumnTest):
         value,
         custom_message,
         expected_result,
-    ):
+    ) -> None:
         expectations = ColNullCheck(column_name, value, custom_message)
         assert expectations.eval_expectation(df_test) == expected_result
 
-    def test_eval_expectation_exception(self, df_test):
+    def test_eval_expectation_exception(self, df_test) -> None:
         expectations = ColNullCheck("name", True)
         with pytest.raises(ValueError, match="ColNullCheck: Column 'name' does not exist in the DataFrame"):
             expectations.eval_expectation(df_test.drop("name"))
@@ -386,7 +386,7 @@ class TestColRegexLikeCheck(BaseClassColumnTest):
             ("name", "regexp", "hello world"),
         ],
     )
-    def test_init(self, column_name, value, message):
+    def test_init(self, column_name, value, message) -> None:
         ColRegexLikeCheck(column_name, value, message)
 
     @pytest.mark.parametrize(
@@ -400,7 +400,7 @@ class TestColRegexLikeCheck(BaseClassColumnTest):
     )
     def test_init_exceptions(
         self, column_name, value, message, exception, match,
-    ):
+    ) -> None:
         with pytest.raises(exception, match=match):
             ColRegexLikeCheck(column_name, value, message)
 
@@ -413,7 +413,7 @@ class TestColRegexLikeCheck(BaseClassColumnTest):
     )
     def test_constraint(
         self, is_col, spark_session, column_name, value, expected_constraint_spark35, expected_constraint_pre_spark35,
-    ):
+    ) -> None:
         expectations = ColRegexLikeCheck(column_name, value)
         expectations.is_spark35 = True
         if spark_session.version >= "3.5":
@@ -437,7 +437,7 @@ class TestColRegexLikeCheck(BaseClassColumnTest):
         custom_message,
         has_failed,
         expected_message,
-    ):
+    ) -> None:
         expectations = ColRegexLikeCheck("name", r".*", custom_message)
         expectations.value = lit(r".*")
         expectations.get_message(has_failed)
@@ -503,11 +503,11 @@ class TestColRegexLikeCheck(BaseClassColumnTest):
         value,
         custom_message,
         expected_result,
-    ):
+    ) -> None:
         expectations = ColRegexLikeCheck(column_name, value, custom_message)
         assert expectations.eval_expectation(df_test) == expected_result
 
-    def test_eval_expectation_exception(self, df_test):
+    def test_eval_expectation_exception(self, df_test) -> None:
         expectations = ColRegexLikeCheck("name", "crypto")
         with pytest.raises(ValueError, match="ColRegexLikeCheck: Column 'name' does not exist in the DataFrame"):
             expectations.eval_expectation(df_test.drop("name"))
@@ -524,7 +524,7 @@ class TestColIsInCheck(BaseClassColumnTest):
             ("country",  ["AU", "FR"], "hello world"),
         ],
     )
-    def test_init(self, column_name, value, message):
+    def test_init(self, column_name, value, message) -> None:
         ColIsInCheck(column_name, value, message)
 
     @pytest.mark.parametrize(
@@ -536,11 +536,11 @@ class TestColIsInCheck(BaseClassColumnTest):
     )
     def test_init_exceptions(
         self, column_name, value, message, exception, match,
-    ):
+    ) -> None:
         with pytest.raises(exception, match=match):
             ColIsInCheck(column_name, value, message)
 
-    def test_constraint(self, spark_session):
+    def test_constraint(self, spark_session) -> None:
         expectations = ColIsInCheck("country", ["AU"])
         assert repr(expectations.constraint) == "Column<'(country IN (AU))'>"
         expectations = ColIsInCheck("country", ["AU", None])
@@ -565,7 +565,7 @@ class TestColIsInCheck(BaseClassColumnTest):
         custom_message,
         has_failed,
         expected_message,
-    ):
+    ) -> None:
         expectations = ColIsInCheck("country", ["AU"], custom_message)
         expectations.expected = "AU"
         expectations.get_message(has_failed)
@@ -679,11 +679,11 @@ class TestColIsInCheck(BaseClassColumnTest):
         value,
         custom_message,
         expected_result,
-    ):
+    ) -> None:
         expectations = ColIsInCheck(column_name, value, custom_message)
         assert expectations.eval_expectation(df_test) == expected_result
 
-    def test_eval_expectation_exception(self, df_test):
+    def test_eval_expectation_exception(self, df_test) -> None:
         expectations = ColIsInCheck("country", "crypto")
         with pytest.raises(ValueError, match="ColIsInCheck: Column 'country' does not exist in the DataFrame"):
             expectations.eval_expectation(df_test.drop("country"))
@@ -700,7 +700,7 @@ class TestColCompareCheck(BaseClassColumnTest):
             ("age",  10, "higher", "hello world"),
         ],
     )
-    def test_init(self, column_name, value, operator, message):
+    def test_init(self, column_name, value, operator, message) -> None:
         ColCompareCheck(column_name, value, operator, message)
 
     @pytest.mark.parametrize(
@@ -716,11 +716,11 @@ class TestColCompareCheck(BaseClassColumnTest):
     )
     def test_init_exceptions(
         self, column_name, value, operator, message, exception, match,
-    ):
+    ) -> None:
         with pytest.raises(exception, match=match):
             ColCompareCheck(column_name, value, operator, message)
 
-    def test_constraint(self, spark_session):
+    def test_constraint(self, spark_session) -> None:
         expectations = ColCompareCheck("age", 10, "lower")
         assert repr(expectations.constraint) == "Column<'(age < 10)'>"
         expectations = ColCompareCheck("age", 10, "higher")
@@ -752,7 +752,7 @@ class TestColCompareCheck(BaseClassColumnTest):
         custom_message,
         has_failed,
         expected_message,
-    ):
+    ) -> None:
         expectations = ColCompareCheck("age", 10, operator, custom_message)
         expectations.expected = 10
         expectations.get_message(has_failed)
@@ -827,11 +827,11 @@ class TestColCompareCheck(BaseClassColumnTest):
         operator,
         custom_message,
         expected_result,
-    ):
+    ) -> None:
         expectations = ColCompareCheck(column_name, value, operator, custom_message)
         assert expectations.eval_expectation(df_test) == expected_result
 
-    def test_eval_expectation_exception(self, df_test):
+    def test_eval_expectation_exception(self, df_test) -> None:
         expectations = ColCompareCheck("age", "10", "lower")
         with pytest.raises(ValueError, match="ColCompareCheck: Column 'age' does not exist in the DataFrame"):
             expectations.eval_expectation(df_test.drop("age"))

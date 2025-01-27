@@ -27,7 +27,7 @@ def sparkChecker(  # noqa: N802
     print_log: bool = True,
     write_file: bool = True,
     file_path: str | None = None,
-) -> None:
+) -> None:  # pragma: no cover
     """
     This function checks a DataFrame against a stack of checks.
 

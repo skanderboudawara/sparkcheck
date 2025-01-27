@@ -81,10 +81,10 @@ class ReportGenerator:
         """
         col_name, col_value = next(iter(example.items()))
         col_value = str(col_value)
-        max_width = max(len(col_name), len(col_value)) + 4
+        max_width = max(len(col_name), len(col_value)) + 2
 
         def format_row(content: str) -> str:
-            return f"| {content}{' ' * (max_width - len(content) - 2)}|"
+            return f"| {content}{' ' * (max_width - len(content) - 1)}|"
 
         def format_border(max_width: int, sep: str) -> str:
             return "+" + sep * max_width + "+"
@@ -110,7 +110,7 @@ class ReportGenerator:
         start = (
             "⚠️ WARN"
             if predicate.get("strategy", "fail") == "warn"
-            else "❌ FAILED"
+            else "❌ FAIL"
         )
         log_level = (
             self.WARN
@@ -128,7 +128,7 @@ class ReportGenerator:
         ]
 
         # Add example table if applicable
-        if isinstance(predicate["example"], dict):
+        if "example" in predicate and isinstance(predicate["example"], dict):
             msg_parts.append("Example:")
             msg_parts.append(
                 ReportGenerator._create_table(predicate["example"]),
@@ -146,7 +146,7 @@ class ReportGenerator:
         :return: (tuple) The log level and the message.
         """
         msg_parts = [
-            "✅ PASSED - Rule has succeeded",
+            "✅ PASS - Rule has succeeded",
             "Rule:",
             self._create_rule_table(predicate["rule"]),
         ]
@@ -191,12 +191,12 @@ class ReportGenerator:
                 concat_msgs,
             )
 
-    def _log_summary(self) -> None:
+    def _log_summary(self) -> tuple[int, str]:
         """
         This function logs a summary of the report.
 
         :param: None
-        :return: None
+        :return: (tuple) The log level and the message.
         """
         counts = {
             "total": len(self.predicates),
@@ -231,7 +231,7 @@ class ReportGenerator:
             "=" * 60,
         ]
 
-        self.send_to_log(self.INFO, "\n".join(messages))
+        return self.INFO, "\n".join(messages)
 
     def _run(self) -> None:
         """
@@ -240,7 +240,8 @@ class ReportGenerator:
         :param: None
         :return: None
         """
-        self._log_summary()
+        level, msg = self._log_summary()
+        self.send_to_log(level, msg)
         for predicate in self.predicates:
             if predicate["has_failed"]:
                 level, msg = self._create_fail(predicate)
