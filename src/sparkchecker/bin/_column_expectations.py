@@ -288,9 +288,9 @@ class ColRegexLikeCheck(ColumnsExpectations):
         :return: (dict), the expectation result
         """
         self.is_spark35 = target.sparkSession.version >= "3.5"
-        self.is_col = self.value.startswith("`") and self.value.endswith("`")
+        self.is_col = self.value.startswith("`") and self.value.endswith("`")  # type: ignore
         self.value = to_col(
-            self.value.strip("`"),
+            self.value.strip("`"),  # type: ignore
             is_col=self.is_col,
             escaped=True,
             default="lit" if self.is_spark35 else "raw",
