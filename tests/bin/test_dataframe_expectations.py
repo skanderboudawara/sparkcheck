@@ -42,8 +42,7 @@ def df_test(spark_session):
         ("Charlie", 35 , 1.80  , True      , datetime(1986, 1, 1), datetime(2021, 1, 1, 0, 0)),
     ]
 
-    df = spark_session.createDataFrame(data, schema)
-    return df
+    return spark_session.createDataFrame(data, schema)
 
 
 @pytest.fixture
@@ -55,8 +54,7 @@ def df_test_empty(spark_session):
     )
 
     df = spark_session.createDataFrame([], schema)
-    df = df.cache()
-    return df
+    return df.cache()
 
 
 class TestDfExpectation(ABC):

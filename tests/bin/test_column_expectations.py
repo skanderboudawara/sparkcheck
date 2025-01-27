@@ -48,8 +48,7 @@ def df_test(spark_session):
         ("Charlie", "DE"   , None  , "running" , 35 , 1.80  , True      , r"[A-Z]{2}", r"[A-Z]{3}", "AU"   , "FR"   , "DE"   , "TN"   , None     ),
     ]
 
-    df = spark_session.createDataFrame(data, schema)
-    return df
+    return spark_session.createDataFrame(data, schema)
 
 
 class BaseClassColumnTest(ABC):

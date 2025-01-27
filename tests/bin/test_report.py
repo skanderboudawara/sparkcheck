@@ -136,8 +136,7 @@ class TestCreateFail:
         monkeypatch.setattr(ReportGenerator, "__init__", noop_init)
 
         # Instantiate the class
-        report_generator = ReportGenerator(None, None, None)
-        return report_generator
+        return ReportGenerator(None, None, None)
 
     def test_create_warn_basic(self, patched_instance) -> None:
         predicate = {
@@ -245,8 +244,7 @@ class TestCreateSuccess:
         monkeypatch.setattr(ReportGenerator, "__init__", noop_init)
 
         # Instantiate the class
-        report_generator = ReportGenerator(None, None, None)
-        return report_generator
+        return ReportGenerator(None, None, None)
 
     def test_create_success_basic(self, patched_instance) -> None:
         predicate = {
@@ -284,8 +282,7 @@ class TestAppendRaise:
         monkeypatch.setattr(ReportGenerator, "_run", noop_run)
 
         # Instantiate the class
-        report_generator = ReportGenerator("a", ["b"], False)
-        return report_generator
+        return ReportGenerator("a", ["b"], False)
 
     @pytest.mark.parametrize(
         ("msg", "strategy", "expected"),
