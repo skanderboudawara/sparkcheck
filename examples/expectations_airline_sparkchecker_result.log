@@ -1,8 +1,8 @@
 
-Total Number of Checks: 26
-Total Number of Passes: 19
-Total Number of Warns: 2
-Total Number of Failures: 5
+Total Number of Checks: 29
+Total Number of Passes: 21
+Total Number of Warns: 1
+Total Number of Failures: 7
 ============================================================
 
 ✅ PASS - Rule has succeeded
@@ -125,21 +125,13 @@ Rule:
 | is_military | is_null   | False    |
 +-------------+-----------+----------+
 
-⚠️ WARN - Rule has failed
+✅ PASS - Rule has succeeded
 Rule:
 +--------------------+-----------+-----------------+
 | rule               | predicate | expected        |
 +====================+===========+=================+
 | passengers_country | different | arrival_country |
 +--------------------+-----------+-----------------+
-ColCompareCheck: The passenger country should be different from the arrival country in this dataset
-Number of rows failed: 20480
-Example:
-+--------------------+
-| passengers_country |
-+====================+
-| USA                |
-+--------------------+
 
 ❌ FAIL - Rule has failed
 Rule:
@@ -268,3 +260,43 @@ Example:
 +===============+
 | Falcon 9      |
 +---------------+
+
+✅ PASS - Rule has succeeded
+Rule:
++--------------------+-----------+--------------------------+
+| rule               | predicate | expected                 |
++====================+===========+==========================+
+| passengers_country | equal     | `passengers_country_bis` |
++--------------------+-----------+--------------------------+
+
+❌ FAIL - Rule has failed
+Rule:
++--------------------+-----------+------------------------+
+| rule               | predicate | expected               |
++====================+===========+========================+
+| passengers_country | equal     | passengers_country_bis |
++--------------------+-----------+------------------------+
+ColCompareCheck: The column `passengers_country` is not equal to `passengers_country_bis`
+Number of rows failed: 102400
+Example:
++--------------------+
+| passengers_country |
++====================+
+| USA                |
++--------------------+
+
+❌ FAIL - Rule has failed
+Rule:
++--------------------+-----------+-------------------+
+| rule               | predicate | expected          |
++====================+===========+===================+
+| passengers_country | equal     | `passengers_name` |
++--------------------+-----------+-------------------+
+ColCompareCheck: The column `passengers_country` is not equal to column `passengers_name`
+Number of rows failed: 102400
+Example:
++--------------------+
+| passengers_country |
++====================+
+| USA                |
++--------------------+

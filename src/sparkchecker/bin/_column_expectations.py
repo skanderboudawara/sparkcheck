@@ -35,10 +35,12 @@ from ..ext._decorators import (
     validate_expectation,
 )
 from ..ext._utils import (
+    _format_column_name,
     _op_check,
     _resolve_msg,
     _substitute,
     eval_first_fail,
+    sanitize_column_name,
     to_col,
     to_name,
 )
@@ -273,6 +275,7 @@ class ColRegexLikeCheck(ColumnsExpectations):
         )
         self.message = _resolve_msg(default_msg, self.message)
         self.message = _substitute(self.message, has_failed, "<$did not|did>")
+        self.message = _format_column_name(self.message)
 
     @validate_expectation
     @check_dataframe
@@ -285,9 +288,9 @@ class ColRegexLikeCheck(ColumnsExpectations):
         :return: (dict), the expectation result
         """
         self.is_spark35 = target.sparkSession.version >= "3.5"
-        self.is_col = self.value in target.columns
+        self.is_col = self.value.startswith("`") and self.value.endswith("`")  # type: ignore
         self.value = to_col(
-            self.value,
+            self.value.strip("`"),  # type: ignore
             is_col=self.is_col,
             escaped=True,
             default="lit" if self.is_spark35 else "raw",
@@ -362,18 +365,19 @@ class ColIsInCheck(ColumnsExpectations):
         self.message = _resolve_msg(default_msg, self.message)
         self.message = _substitute(self.message, has_failed, "<$is not|is>")
 
-    def _prepare_isin_list(self, target: DataFrame) -> None:
+    def _prepare_isin_list(self) -> None:
         """
         This method prepares the list of values to check.
 
-        :param target: (DataFrame), the DataFrame to check
         :return: None
         """
         string_values = [to_name(c) for c in self.value]
         string_values = list(set(string_values))
         string_values.sort()
         self.expected = ", ".join(string_values)
-        self.value = [to_col(c, c in target.columns) for c in self.value]
+        self.value = [
+            to_col(sanitize_column_name(c), is_col=False) for c in self.value
+        ]
 
     @validate_expectation
     @check_dataframe
@@ -385,7 +389,7 @@ class ColIsInCheck(ColumnsExpectations):
         :param target: (DataFrame), the DataFrame to check
         :return: (dict), the expectation result
         """
-        self._prepare_isin_list(target)
+        self._prepare_isin_list()
         # To make NoneObject as list constraint
         target = target.select(self.column).fillna("NoneObject")
         has_failed, count_cases, first_failed_row = eval_first_fail(
@@ -467,6 +471,7 @@ class ColCompareCheck(ColumnsExpectations):
             self.operator in {"equal", "different"},
             "<$to|than>",
         )
+        self.message = _format_column_name(self.message)
 
     @validate_expectation
     @check_dataframe
@@ -479,8 +484,7 @@ class ColCompareCheck(ColumnsExpectations):
         :return: (dict), the expectation result
         """
         self.expected = self.value
-        is_col = to_name(str(self.value))
-        self.value = to_col(self.value, is_col in target.columns)
+        self.value = sanitize_column_name(self.value)
         has_failed, count_cases, first_failed_row = eval_first_fail(
             target,
             self.column,
