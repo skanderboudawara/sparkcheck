@@ -17,7 +17,7 @@ from sparkchecker.ext._decorators import (
 
 
 class TestValidateExpectation:
-    def test_validate_expectation_valid(self):
+    def test_validate_expectation_valid(self) -> None:
         @validate_expectation
         def sample_func(valid=True):
             if valid:
@@ -26,7 +26,7 @@ class TestValidateExpectation:
         result = sample_func(valid=True)
         assert result == {"has_failed": False, "got": "some_value", "message": "All good"}
 
-    def test_validate_expectation_invalid(self):
+    def test_validate_expectation_invalid(self) -> None:
         def sample_func(valid=True):
             if valid:
                 return {"has_failed": False, "got": "some_value", "message": "All good"}
@@ -34,15 +34,15 @@ class TestValidateExpectation:
         result = sample_func(valid=False)
         assert result == {"has_failed": True, "got": "some_value", "message": "Something went wrong"}
 
-    def test_validate_expectation_invalid_return_type(self):
+    def test_validate_expectation_invalid_return_type(self) -> None:
         @validate_expectation
-        def invalid_return_type_func():
+        def invalid_return_type_func() -> str:
             return "invalid_return_type"
 
         with pytest.raises(TypeError, match=re.escape("Expected return type 'dict', but got 'str'.")):
             invalid_return_type_func()
 
-    def test_validate_expectation_missing_keys(self):
+    def test_validate_expectation_missing_keys(self) -> None:
         @validate_expectation
         def missing_keys_func():
             return {"has_failed": False, "got": "some_value"}
@@ -50,7 +50,7 @@ class TestValidateExpectation:
         with pytest.raises(KeyError, match=re.escape("Invalid keys in return value. Expected one of: ['got, has_failed, message', 'example, got, has_failed, message'], but got: got, has_failed.")):
             missing_keys_func()
 
-    def test_validate_expectation_extra_keys(self):
+    def test_validate_expectation_extra_keys(self) -> None:
         @validate_expectation
         def extra_keys_func():
             return {"has_failed": False, "got": "some_value", "message": "All good", "extra_key": "extra_value"}
@@ -58,9 +58,9 @@ class TestValidateExpectation:
         with pytest.raises(KeyError, match=re.escape("Invalid keys in return value. Expected one of: ['got, has_failed, message', 'example, got, has_failed, message'], but got: extra_key, got, has_failed, message")):
             extra_keys_func()
 
-    def test_validate_expectation_not_dict(self):
+    def test_validate_expectation_not_dict(self) -> None:
         @validate_expectation
-        def extra_keys_func():
+        def extra_keys_func() -> int:
             return 1
 
         with pytest.raises(TypeError, match=re.escape("Expected return type 'dict', but got 'int'")):
@@ -68,7 +68,7 @@ class TestValidateExpectation:
 
 
 class TestOrderExpectationsDict:
-    def test_order_expectations_dict_valid(self):
+    def test_order_expectations_dict_valid(self) -> None:
         @order_expectations_dict
         def sample_func():
             return {
@@ -85,7 +85,7 @@ class TestOrderExpectationsDict:
         expected_order = ["check", "has_failed", "strategy", "value", "got", "operator", "message"]
         assert list(result.keys()) == expected_order
 
-    def test_order_expectations_dict_with_additional_keys(self):
+    def test_order_expectations_dict_with_additional_keys(self) -> None:
         @order_expectations_dict
         def sample_func():
             return {
@@ -104,15 +104,15 @@ class TestOrderExpectationsDict:
         assert "extra_key" in ordered_keys[3:]
         assert "another_key" in ordered_keys[3:]
 
-    def test_order_expectations_dict_invalid_return_type(self):
+    def test_order_expectations_dict_invalid_return_type(self) -> None:
         @order_expectations_dict
-        def invalid_return_type_func():
+        def invalid_return_type_func() -> str:
             return "invalid_return_type"
 
         with pytest.raises(TypeError, match=re.escape("Expected return type 'dict', but got 'str'.")):
             invalid_return_type_func()
 
-    def test_order_expectations_dict_empty_dict(self):
+    def test_order_expectations_dict_empty_dict(self) -> None:
         @order_expectations_dict
         def empty_dict_func():
             return {}
@@ -120,7 +120,7 @@ class TestOrderExpectationsDict:
         result = empty_dict_func()
         assert result == {}
 
-    def test_order_expectations_dict_subset_keys(self):
+    def test_order_expectations_dict_subset_keys(self) -> None:
         @order_expectations_dict
         def subset_keys_func():
             return {
@@ -154,33 +154,33 @@ class TestCheckInputs:
         def method_with_default(self, x: int = 10) -> None:
             pass
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         self.test_instance = self.SampleClass()
 
-    def test_valid_input_types(self):
+    def test_valid_input_types(self) -> None:
         # Should not raise any exception
         self.test_instance.method_with_type_hints(42, "test")
 
-    def test_invalid_input_types(self):
+    def test_invalid_input_types(self) -> None:
         with pytest.raises(TypeError, match=re.escape("SampleClass: the argument `x` does not correspond to the expected types '[int]'. Got: str")):
             self.test_instance.method_with_type_hints("wrong", "test")
 
-    def test_union_types(self):
+    def test_union_types(self) -> None:
         # Both types should work
         self.test_instance.method_with_union(42)
         self.test_instance.method_with_union("test")
 
-    def test_any_type_hint(self):
+    def test_any_type_hint(self) -> None:
         # Any type should work
         self.test_instance.method_with_any(42)
         self.test_instance.method_with_any("test")
         self.test_instance.method_with_any([1, 2, 3])
 
-    def test_no_type_hints(self):
+    def test_no_type_hints(self) -> None:
         # Should not raise any exception
         self.test_instance.method_without_hints("anything")
 
-    def test_default_arguments(self):
+    def test_default_arguments(self) -> None:
         # Should work with both default and provided values
         self.test_instance.method_with_default()
         self.test_instance.method_with_default(20)
@@ -191,33 +191,33 @@ class TestCheckInputs:
 
 class TestAddClassPrefix:
     class SampleClass:
-        def __init__(self):
+        def __init__(self) -> None:
             self.message = "Original message"
 
         @add_class_prefix
-        def sample_method(self):
+        def sample_method(self) -> bool:
             return True
 
     class AnotherClass:
-        def __init__(self):
+        def __init__(self) -> None:
             self.message = "Another message"
 
         @add_class_prefix
-        def sample_method(self):
+        def sample_method(self) -> bool:
             return True
 
-    def test_basic_prefix_addition(self):
+    def test_basic_prefix_addition(self) -> None:
         instance = self.SampleClass()
         instance.sample_method()
         assert instance.message == "SampleClass: Original message"
 
-    def test_multiple_calls(self):
+    def test_multiple_calls(self) -> None:
         instance = self.SampleClass()
         instance.sample_method()
         instance.sample_method()
         assert instance.message == "SampleClass: Original message"
 
-    def test_different_class_names(self):
+    def test_different_class_names(self) -> None:
         instance1 = self.SampleClass()
         instance2 = self.AnotherClass()
 
@@ -227,13 +227,13 @@ class TestAddClassPrefix:
         assert instance1.message == "SampleClass: Original message"
         assert instance2.message == "AnotherClass: Another message"
 
-    def test_empty_message(self):
+    def test_empty_message(self) -> None:
         instance = self.SampleClass()
         instance.message = ""
         instance.sample_method()
         assert instance.message == "SampleClass: "
 
-    def test_return_value_preserved(self):
+    def test_return_value_preserved(self) -> None:
         instance = self.SampleClass()
         result = instance.sample_method()
         assert result is True
@@ -241,7 +241,7 @@ class TestAddClassPrefix:
 
 class TestCheckDataFrame:
     class ColumnClass:
-        def __init__(self):
+        def __init__(self) -> None:
             self.name = "test_column"
 
         @check_dataframe
@@ -253,19 +253,19 @@ class TestCheckDataFrame:
         def method(self, df: DataFrame) -> dict:
             return {"result": "success"}
 
-    def test_valid_dataframe(self, spark_session):
+    def test_valid_dataframe(self, spark_session) -> None:
         test_df = spark_session.createDataFrame([(1,)], ["col1"])
         instance = self.OtherClass()
 
         result = instance.method(test_df)
         assert result == {"result": "success"}
 
-    def test_invalid_input(self):
+    def test_invalid_input(self) -> None:
         instance = self.OtherClass()
         with pytest.raises(TypeError, match=re.escape("OtherClass: The target must be a Spark DataFrame, but got 'str'")):
             instance.method("not_a_dataframe")
 
-    def test_empty_dataframe_other_class(self, spark_session):
+    def test_empty_dataframe_other_class(self, spark_session) -> None:
         # Create empty DataFrame
         empty_df = spark_session.createDataFrame([(1,)], ["col1"]).filter("col1 = 0").cache()
         instance = self.OtherClass()
@@ -273,7 +273,7 @@ class TestCheckDataFrame:
         result = instance.method(empty_df)
         assert result == {"result": "success"}
 
-    def test_return_value_preserved(self, spark_session):
+    def test_return_value_preserved(self, spark_session) -> None:
         test_df = spark_session.createDataFrame([(1,)], ["col1"])
         instance = self.OtherClass()
         result = instance.method(test_df)
@@ -282,32 +282,32 @@ class TestCheckDataFrame:
 
 class TestCheckColumnExist:
     class ClassMock:
-        def __init__(self, column):
+        def __init__(self, column) -> None:
             self.column = column
 
         @check_column_exist
         def test_method(self, df: DataFrame) -> str:
             return "success"
 
-    def test_column_exists(self, spark_session):
+    def test_column_exists(self, spark_session) -> None:
         df = spark_session.createDataFrame([(1,)], ["test_col"])
         instance = self.ClassMock("test_col")
         result = instance.test_method(df)
         assert result == "success"
 
-    def test_column_not_exists(self, spark_session):
+    def test_column_not_exists(self, spark_session) -> None:
         df = spark_session.createDataFrame([(1,)], ["existing_col"])
         instance = self.ClassMock("missing_col")
         with pytest.raises(ValueError, match=re.escape("ClassMock: Column 'missing_col' does not exist in the DataFrame")):
             instance.test_method(df)
 
-    def test_case_sensitive(self, spark_session):
+    def test_case_sensitive(self, spark_session) -> None:
         df = spark_session.createDataFrame([(1,)], ["Test_Col"])
         instance = self.ClassMock("test_col")
         with pytest.raises(ValueError, match="ClassMock: Column 'test_col' does not exist in the DataFrame"):
             instance.test_method(df)
 
-    def test_return_value_preserved(self, spark_session):
+    def test_return_value_preserved(self, spark_session) -> None:
         df = spark_session.createDataFrame([(1,)], ["test_col"])
         instance = self.ClassMock("test_col")
         result = instance.test_method(df)
