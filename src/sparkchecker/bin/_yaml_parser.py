@@ -400,8 +400,7 @@ def read_yaml_file(file_path: str) -> dict:  # pragma: no cover
     :return: (dict) Parsed data as a Python dictionary.
     """
     with open(file_path, encoding="utf-8") as file:
-        data = yaml.safe_load(file)
-    return data
+        return yaml.safe_load(file)
 
 
 def replace_keys_in_json(json_data: dict, replacements: dict) -> dict:

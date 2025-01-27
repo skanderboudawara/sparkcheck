@@ -65,7 +65,7 @@ python_files = "test_*.py"
 log_cli = true
 log_cli_level = "INFO"
 log_level = "INFO"
-log_format = "%(asctime)s %(levelname)s %(message)s"
+log_format = "%(asctime)s %(levelname)s %(name)s %(message)s"
 log_date_format = "%Y-%m-%d %H:%M:%S"
 
 [tool.ruff]
@@ -112,38 +112,16 @@ lint.select = [
 ]
 
 lint.ignore = [
-    "PYI041",
-    "A002",
-    "D401",
-    "N812",
-    "FA100",
-    "E203",
-    "E202",
-    "D200",
-    "D404",
-    "D104",
-    "D212",
-    "D415",
-    "D205",
-    "PLR0913",
-    "D107",
-    "B023",
-    "RET504",
-    "E271",
-    "PLR0917",
-    "PLR6301",
-    "PLR0904",
-    "N818",
-    "D203",
-    "E241",
-    "PLR0915",
-    "PLR0914",
-    "C901",
-    "PLR0912",
-    "PLR0911",
-    "PLC0206",
-    "PLC2701",
     "ANN401",
+    "PYI041",
+    "D200",
+    "D212",
+    "D107",
+    "D203",
+    "D104",
+    "D401",
+    "D404",
+    "PLC2701",
 ]
 
 
@@ -198,10 +176,27 @@ known-local-folder = ["src"]
     "D102",
     "D103",
     "D106",
+    "E203",
+    "E202",
+    "E271",
+    "E241",
     "S101",
     "DTZ001",
     "PLR2004",
+    "PLR6301",
     "SLF001",
+    "PLR0913",
+    "PLR0917",
+]
+"_exceptions.py" = [
+    "PLR0911",
+]
+"_logger.py" = [
+    "PLR0913",
+    "PLR0917",
+]
+"sparkchecker.py" = [
+    "PLR0913",
 ]
 
 [tool.mypy]

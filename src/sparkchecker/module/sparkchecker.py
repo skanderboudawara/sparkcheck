@@ -21,8 +21,8 @@ from ..ext._utils import split_base_file
 
 def sparkChecker(  # noqa: N802
     self: DataFrame,
-    *,
     path: str,
+    *,
     raise_error: bool = True,
     print_log: bool = True,
     write_file: bool = True,
