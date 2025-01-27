@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import re
-from typing import cast, overload
+from typing import Any, cast, overload
 
 from pyspark.sql import Column, DataFrame, Row
 from pyspark.sql.functions import col, lit
@@ -96,6 +96,22 @@ def to_col(
         "Argument `column_name` must be of type "
         "`str`, `float`, `Column`, or `None`, but got: {type(column_name)}",
     )
+
+
+def sanitize_column_name(input_string: Any) -> Any | Column:
+    """
+    Convert a column name to backticks format.
+
+    :param input_string: (str), a column name
+    :returns: (str) a column name in backticks format
+    """
+    if (
+        isinstance(input_string, str)
+        and input_string.startswith("`")
+        and input_string.endswith("`")
+    ):
+        return to_col(input_string.strip("`"), is_col=True)
+    return input_string
 
 
 def to_name(column: str | Column | bool | float | None) -> str:
@@ -293,3 +309,14 @@ def eval_empty_dataframe(target: DataFrame) -> bool:  # pragma: no cover
     if spark_version >= "3.3":
         return target.isEmpty()
     return target.rdd.isEmpty()
+
+
+def _format_column_name(input_string: str) -> str:
+    """
+    This function formats a column name inside double backticks.
+
+    :param input_string: (str), a column name
+    :returns: (str), a column name in backticks format
+    """
+    # Regex to match text inside double backticks and format it
+    return re.sub(r"``(.*?)``", r"column `\1`", input_string)

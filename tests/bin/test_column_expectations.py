@@ -26,6 +26,7 @@ def df_test(spark_session):
     schema = StructType(
         [
             StructField("name"       , StringType() , True),
+            StructField("name_bis"   , StringType() , True),
             StructField("country"    , StringType() , True),
             StructField("crypto"     , StringType() , True),
             StructField("hobby"      , StringType() , True),
@@ -42,10 +43,10 @@ def df_test(spark_session):
         ],
     )
     data = [
-    #   (name     , country, crypto, hobby     , age, height, is_student, pattern_ok , pattern_nok, only_AU, only_FR, only_DE, only_TN, only_NULL),  # noqa
-        ("Alice"  , "AU"   , None  , "swimming", 25 , 1.60  , True      , r"[A-Z]{2}", r"[A-Z]{2}", "AU"   , "FR"   , "DE"   , "TN"   , None     ),
-        ("Bob"    , "FR"   , None  , None      , 30 , 1.75  , True      , r"[A-Z]{2}", r"[A-Z]{1}", "AU"   , "FR"   , "DE"   , "TN"   , None     ),
-        ("Charlie", "DE"   , None  , "running" , 35 , 1.80  , True      , r"[A-Z]{2}", r"[A-Z]{3}", "AU"   , "FR"   , "DE"   , "TN"   , None     ),
+    #   (name     , name_bis , country, crypto, hobby     , age, height, is_student, pattern_ok , pattern_nok, only_AU, only_FR, only_DE, only_TN, only_NULL),  # noqa
+        ("Alice"  , "Alice"  , "AU"   , None  , "swimming", 25 , 1.60  , True      , r"[A-Z]{2}", r"[A-Z]{2}", "AU"   , "FR"   , "DE"   , "TN"   , None     ),
+        ("Bob"    , "Bob"    , "FR"   , None  , None      , 30 , 1.75  , True      , r"[A-Z]{2}", r"[A-Z]{1}", "AU"   , "FR"   , "DE"   , "TN"   , None     ),
+        ("Charlie", "Charlie", "DE"   , None  , "running" , 35 , 1.80  , True      , r"[A-Z]{2}", r"[A-Z]{3}", "AU"   , "FR"   , "DE"   , "TN"   , None     ),
     ]
 
     return spark_session.createDataFrame(data, schema)
@@ -477,7 +478,7 @@ class TestColRegexLikeCheck(BaseClassColumnTest):
                     "message": "ColRegexLikeCheck: custom message",
                 },
             ),
-            ("country", "pattern_ok", None,
+            ("country", "`pattern_ok`", None,
                 {
                     "example": {},
                     "got": 0,
@@ -485,7 +486,7 @@ class TestColRegexLikeCheck(BaseClassColumnTest):
                     "message": r"ColRegexLikeCheck: The column `country` did respect the pattern `pattern_ok`",
                 },
             ),
-            ("country", "pattern_nok", None,
+            ("country", "`pattern_nok`", None,
                 {
                     "example": {"country": "DE"},
                     "got": 1,
@@ -597,36 +598,36 @@ class TestColIsInCheck(BaseClassColumnTest):
                     "message": "ColIsInCheck: custom message",
                 },
             ),
-            ("country", ["only_AU", "only_DE", "only_FR"], None,
+            ("country", ["`only_AU`", "`only_DE`", "`only_FR`"], None,
                 {
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": "ColIsInCheck: The column `country` is in `[only_AU, only_DE, only_FR]`",
+                    "message": "ColIsInCheck: The column `country` is in `[`only_AU`, `only_DE`, `only_FR`]`",
                 },
             ),
-            ("country", ["only_AU", "only_DE", "only_FR", "only_TN"], None,
+            ("country", ["`only_AU`", "`only_DE`", "`only_FR`", "`only_TN`"], None,
                 {
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": "ColIsInCheck: The column `country` is in `[only_AU, only_DE, only_FR, only_TN]`",
+                    "message": "ColIsInCheck: The column `country` is in `[`only_AU`, `only_DE`, `only_FR`, `only_TN`]`",
                 },
             ),
-            ("country", ["only_AU", "only_DE", "FR"], None,
+            ("country", ["`only_AU`", "`only_DE`", "FR"], None,
                 {
                     "example": {},
                     "got": 0,
                     "has_failed": False,
-                    "message": "ColIsInCheck: The column `country` is in `[FR, only_AU, only_DE]`",
+                    "message": "ColIsInCheck: The column `country` is in `[FR, `only_AU`, `only_DE`]`",
                 },
             ),
-            ("country", ["only_AU", "only_DE", "only_TN"], None,
+            ("country", ["`only_AU`", "`only_DE`", "`only_TN`"], None,
                 {
                     "example": {"country": "FR"},
                     "got": 1,
                     "has_failed": True,
-                    "message": "ColIsInCheck: The column `country` is not in `[only_AU, only_DE, only_TN]`",
+                    "message": "ColIsInCheck: The column `country` is not in `[`only_AU`, `only_DE`, `only_TN`]`",
                 },
             ),
             ("country", ["AU", "DE"], "custom message",
@@ -814,6 +815,30 @@ class TestColCompareCheck(BaseClassColumnTest):
                     "got": 3,
                     "has_failed": True,
                     "message": r"ColCompareCheck: The column `is_student` is not different to `True`",
+                },
+            ),
+            ("name", "`name_bis`", "equal", None,
+                {
+                    "example": {},
+                    "got": 0,
+                    "has_failed": False,
+                    "message": r"ColCompareCheck: The column `name` is equal to column `name_bis`",
+                },
+            ),
+            ("name", "name_bis", "equal", None,
+                {
+                    "example": {"name": "Alice"},
+                    "got": 3,
+                    "has_failed": True,
+                    "message": r"ColCompareCheck: The column `name` is not equal to `name_bis`",
+                },
+            ),
+            ("name", "`name_bis`", "different", None,
+                {
+                    "example": {"name": "Alice"},
+                    "got": 3,
+                    "has_failed": True,
+                    "message": r"ColCompareCheck: The column `name` is not different to column `name_bis`",
                 },
             ),
         ],

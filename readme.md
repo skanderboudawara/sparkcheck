@@ -172,6 +172,10 @@ The following data types are supported for schema validation:
 
 Column predicates are always defined under the `checks` field, which can be stacked. These checks are performed specifically on columns, and an error will be raised if a specified column does not exist.
 
+**Very important:**
+> In case you want to test the columns against another column, the second column should be wrapped in backticks as follow
+> ```"`column_name`"```
+
 Below are examples of predicates you can use for validating the columns of Spark DataFrames:
 
 #### 1. Is Null
@@ -196,6 +200,14 @@ checks:
           than: <value>
 ```
 
+or
+
+```yaml
+checks:
+  - <column_name>:
+      - higher:         # Can also use operators like lower, equal, different, etc.
+          than: "`<other_column_name>`"
+```
 #### 3. Regex Pattern
 
 Check if the column value matches a regular expression pattern. You can test patterns using sites like [https://regex101.com](https://regex101.com). The parser will automatically escape the regex.
@@ -204,7 +216,16 @@ Check if the column value matches a regular expression pattern. You can test pat
 checks:
   - <column_name>:
       - pattern:
-          value: r"<your_pattern>"  # Ensure the pattern is in raw string format (r"").
+          value: "<your_pattern>"  # Ensure the pattern is in raw string format (r"").
+```
+
+or
+
+```yaml
+checks:
+  - <column_name>:
+      - pattern:
+          value: "`<column_name_containing_patterns>`"
 ```
 
 #### 4. Is In an array
@@ -216,6 +237,15 @@ checks:
   - <column_name>:
       - in:
           values: [<value1>, <value2>, <value3>, ...]  # List of allowed values.
+```
+
+or
+
+```yaml
+checks:
+  - <column_name>:
+      - in:
+          values: ["`<column_name1`>", "`<column_name2>`", <value3>, ...]  # List of allowed values.
 ```
 
 **Note**:

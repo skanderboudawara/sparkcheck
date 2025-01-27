@@ -68,3 +68,10 @@ checks:
         value: "Boeing|Airbus"
         strategy: "fail"
         message: "The aircraft type should be an Airbus or a Boeing"
+  - passengers_country:
+    - equals:
+        to: "`passengers_country_bis`"
+    - equals:
+        to: "passengers_country_bis"
+    - equals:
+        to: "`passengers_name`"

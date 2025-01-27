@@ -8,10 +8,12 @@ from pyspark.sql.types import DecimalType, IntegerType, StructField, StructType
 
 from sparkchecker.constants import OPERATOR_MAP
 from sparkchecker.ext._utils import (
+    _format_column_name,
     _op_check,
     _resolve_msg,
     _substitute,
     eval_first_fail,
+    sanitize_column_name,
     split_base_file,
     to_col,
     to_decimal,
@@ -342,3 +344,29 @@ class TestEvalFirstFail:
             eval_first_fail(None, "col", col("col") > 0)
         with pytest.raises(TypeError, match=re.escape("Argument `expectation` must be of type Column but got: ', <class 'str'>")):
             eval_first_fail("not_a_dataframe", "col", "not_a_column")
+
+
+class TestFormatColumnName:
+
+    @pytest.mark.parametrize(("input_col", "expected"), [
+        ("test_column", "test_column"),
+        ("`test_column`", "`test_column`"),
+        ("``test_column``", "column `test_column`"),
+        ("Hello ``test_column``", "Hello column `test_column`"),
+    ])
+    def test__format_column_name(self, input_col, expected) -> None:
+        result = _format_column_name(input_col)
+        assert result == expected
+
+
+class TestSanitizeColumn:
+
+    @pytest.mark.parametrize(("input_col", "instance_expected"), [
+        ("`hello`", Column),
+        ("hello", str),
+        ("hel`lo`", str),
+        ("`hel`lo", str),
+        (1, int),
+    ])
+    def test_sanitize_column_name(self, spark_session, input_col, instance_expected) -> None:
+        isinstance(sanitize_column_name(input_col), instance_expected)
