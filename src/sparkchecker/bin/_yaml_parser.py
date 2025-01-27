@@ -205,7 +205,13 @@ class ExpectationsYamlParser:
             self.set_constraint(count)
             self._verify_constructor_parsing()
             self._verify_threshold_parsing()
-            self.append("count", self.constraint_obj, self.constraint)
+            rule = ("count", self.constraint, self.constraint_obj["value"])  # type: ignore
+            self.append(
+                "count",
+                self.constraint_obj,
+                self.constraint,
+                rule=rule,
+            )
 
     def _check_partitions(self) -> None:
         """
@@ -219,7 +225,17 @@ class ExpectationsYamlParser:
             self.set_constraint(partitions)
             self._verify_constructor_parsing()
             self._verify_threshold_parsing()
-            self.append("partitions", self.constraint_obj, self.constraint)
+            rule = (
+                "partitions",
+                self.constraint,
+                self.constraint_obj["value"],  # type: ignore
+            )
+            self.append(
+                "partitions",
+                self.constraint_obj,
+                self.constraint,
+                rule=rule,
+            )
 
     def _check_is_empty(self) -> None:
         """
@@ -232,7 +248,8 @@ class ExpectationsYamlParser:
         if is_empty:
             self.set_constraint({"is_empty": is_empty})
             self._verify_constructor_parsing()
-            self.append("is_empty", self.constraint_obj)
+            rule = ("dataframe", "is_empty", self.constraint_obj["value"])  # type: ignore
+            self.append("is_empty", self.constraint_obj, rule=rule)
 
     def _check_has_columns(self) -> None:
         """
@@ -272,7 +289,12 @@ class ExpectationsYamlParser:
                 }
             else:
                 constraint = {"column": self.constraint}
-            self.append("has_columns", constraint)
+            rule = (
+                "has_columns",
+                self.constraint,
+                self.constraint_obj if self.constraint_obj else "exists",
+            )
+            self.append("has_columns", constraint, rule=rule)
 
     def _column_checks(self) -> None:
         """
@@ -295,7 +317,17 @@ class ExpectationsYamlParser:
                 ):
                     raise ValueError("Constraint object must be a dict")
                 self.constraint_obj.update({"column": column_name})
-                self.append("column", self.constraint_obj, self.constraint)
+                rule = (
+                    column_name,
+                    self.constraint,
+                    self.constraint_obj["value"],  # type: ignore
+                )
+                self.append(
+                    "column",
+                    self.constraint_obj,
+                    self.constraint,
+                    rule=rule,
+                )
 
     def parse(self) -> None:  # pragma: no cover
         """
@@ -315,6 +347,8 @@ class ExpectationsYamlParser:
         chk: str | None,
         constraint: dict | str | None,
         operator: str | None = None,
+        *,
+        rule: tuple,
     ) -> None:
         """
         This method appends the constraint.
@@ -322,6 +356,7 @@ class ExpectationsYamlParser:
         :param chk: (str), the check to append
         :param constraint: (dict), the constraint to append
         :param operator: (str), the operator to append
+        :param rule: (tuple), the rule to append
         :return: None
         :raises: (ValueError), if the check is None
         :raises: (ValueError), if the constraint is None
@@ -336,7 +371,12 @@ class ExpectationsYamlParser:
             raise ValueError("Check must be a string")
         if not isinstance(constraint, dict):
             raise ValueError("Constraint must be a dictionary")
+        if not isinstance(rule, tuple):
+            raise ValueError("Rule must be a tuple")
+        if not len(rule) == 3:  # noqa: PLR2004
+            raise ValueError("Rule must have 3 items")
         constraint["check"] = chk
+        constraint["rule"] = rule
         if operator:
             constraint["operator"] = operator
         self.stack.append(constraint)
