@@ -9,4 +9,10 @@ from sparkchecker import sparkChecker  # noqa: F401
 
 spark = SparkSession.builder.getOrCreate()
 df = spark.read.csv("examples/airline.csv", header=True, inferSchema=True)
-df.sparkChecker("examples/expectations_airline.yaml")
+
+df.sparkChecker(
+    path="examples/expectations_airline.yaml",
+    raise_error=True,
+    print_log=True,
+    write_file=True,
+)

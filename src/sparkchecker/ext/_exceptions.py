@@ -29,6 +29,7 @@ class SparkCheckerError(Exception):
     ILLEGAL_CONSTRAINT = "IllegalConstraint"
     ILLEGAL_COLUMN_TYPE = "IllegalColumnType"
     ILLEGAL_COLUMN_CONSTRAINT = "IllegalColumnConstraint"
+    PREDICATE_FAILED = "PredicateFailed"
 
     def __init__(
         self,
@@ -120,5 +121,7 @@ class SparkCheckerError(Exception):
                     f"\n{', '.join(authorized_values)}"
                     f"\nGot: {exception}"
                 )
+            case SparkCheckerError.PREDICATE_FAILED:
+                return str(constraint)
             case _:
                 return "An unknown error occurred."

@@ -8,6 +8,7 @@ This is the main file that contains the main function that is
 from pyspark.sql import DataFrame
 
 from ..bin._expectations_factory import ExpectationsFactory
+from ..bin._report import ReportGenerator
 from ..bin._yaml_parser import (
     ExpectationsYamlParser,
     read_yaml_file,
@@ -20,7 +21,12 @@ from ..ext._utils import split_base_file
 
 def sparkChecker(  # noqa: N802
     self: DataFrame,
+    *,
     path: str,
+    raise_error: bool = True,
+    print_log: bool = True,
+    write_file: bool = True,
+    file_path: str | None = None,
 ) -> None:
     """
     This function checks a DataFrame against a stack of checks.
@@ -41,11 +47,22 @@ def sparkChecker(  # noqa: N802
 
     compile_stack.compile()
 
-    name, path = split_base_file(path)
+    if file_path:
+        name, path = split_base_file(file_path)
 
-    setup_logger(name, path)
+    else:
+        name, path = split_base_file(path)
 
-    print(compile_stack.compiled)  # noqa: T201
+    logger = setup_logger(
+        name,
+        path,
+        log_format=2,
+        force_create=True,
+        print_log=print_log,
+        write_file=write_file,
+    )
+
+    ReportGenerator(logger, compile_stack.compiled, raise_error)
 
 
 DataFrame.sparkChecker = sparkChecker  # type: ignore
