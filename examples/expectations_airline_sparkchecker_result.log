@@ -1,0 +1,114 @@
+
+Total Number of Checks: 26
+Total Number of Passes: 19
+Total Number of Warns: 2
+Total Number of Failures: 5
+============================================================
+
+✅ PASSED - Check count has succeeded
+
+✅ PASSED - Check partitions has succeeded
+
+✅ PASSED - Check is_empty has succeeded
+
+✅ PASSED - Check has_columns has succeeded
+
+✅ PASSED - Check has_columns has succeeded
+
+✅ PASSED - Check has_columns has succeeded
+
+✅ PASSED - Check has_columns has succeeded
+
+✅ PASSED - Check has_columns has succeeded
+
+✅ PASSED - Check has_columns has succeeded
+
+✅ PASSED - Check has_columns has succeeded
+
+✅ PASSED - Check has_columns has succeeded
+
+✅ PASSED - Check has_columns has succeeded
+
+✅ PASSED - Check has_columns has succeeded
+
+✅ PASSED - Check column has succeeded
+
+✅ PASSED - Check column has succeeded
+
+⚠️ WARN - Check column has failed
+ColCompareCheck: The passenger country should be different from the arrival country in this dataset
+Number of rows failed: 20480
+Example:
++======================+
+| passengers_country  |
++----------------------+
+| USA                 |
++======================+
+
+❌ FAILED - Check column has failed
+ColIsInCheck: The column `passengers_country` is not in `[CN, DE, ES, FR, IT, JP, RU, UK, USA]`
+Number of rows failed: 51200
+Example:
++======================+
+| passengers_country  |
++----------------------+
+| AU                  |
++======================+
+
+✅ PASSED - Check column has succeeded
+
+❌ FAILED - Check column has failed
+ColIsInCheck: The column `departure_country` is not in `[CN, DE, ES, FR, IT, JP, RU, UK, USA]`
+Number of rows failed: 51200
+Example:
++=====================+
+| departure_country  |
++---------------------+
+| AU                 |
++=====================+
+
+✅ PASSED - Check column has succeeded
+
+❌ FAILED - Check column has failed
+ColIsInCheck: The column `arrival_country` is not in `[CN, DE, ES, FR, IT, JP, RU, UK, USA]`
+Number of rows failed: 51200
+Example:
++===================+
+| arrival_country  |
++-------------------+
+| AU               |
++===================+
+
+✅ PASSED - Check column has succeeded
+
+⚠️ WARN - Check column has failed
+ColCompareCheck: The column `departure_time` is not higher than `2023-10-01 10:00`
+Number of rows failed: 20480
+Example:
++=======================+
+| departure_time       |
++-----------------------+
+| 2023-10-01 08:00:00  |
++=======================+
+
+✅ PASSED - Check column has succeeded
+
+❌ FAILED - Check column has failed
+ColCompareCheck: The gate number should be higher than 2
+Number of rows failed: 10240
+Example:
++========+
+| gate  |
++--------+
+| 2     |
++========+
+
+❌ FAILED - Check column has failed
+ColRegexLikeCheck: The aircraft type should be an Airbus or a Boeing
+Number of rows failed: 10240
+Example:
++=================+
+| aircraft_type  |
++-----------------+
+| Falcon 9       |
++=================+
