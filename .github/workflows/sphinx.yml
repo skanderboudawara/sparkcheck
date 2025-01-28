@@ -33,16 +33,22 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
 
-          # Add and commit changes
+          # Stage changes
           git add -A
-          git diff-index --quiet HEAD || git commit -m "Update documentation" --allow-empty
 
-          # Determine the branch to push changes to
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            TARGET_BRANCH=${{ github.head_ref }}
+          # Commit only if there are changes
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "Update documentation"
+
+            # Determine the target branch
+            if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+              TARGET_BRANCH=${{ github.head_ref }}
+            else
+              TARGET_BRANCH=${{ github.ref_name }}
+            fi
+
+            # Push changes
+            git push origin HEAD:$TARGET_BRANCH
           else
-            TARGET_BRANCH=${{ github.ref_name }}
+            echo "No changes to commit."
           fi
-
-          # Push changes to the appropriate branch
-          git push origin HEAD:$TARGET_BRANCH
