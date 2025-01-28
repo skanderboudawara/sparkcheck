@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
@@ -23,14 +25,30 @@ jobs:
           sphinx-apidoc -P -o docs src/sparkchecker
           make -C docs clean
           make -C docs html
-      - name: commit files
+      - name: Commit and push changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Configure Git
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+
+          # Stage changes
           git add -A
-          git diff-index --quiet HEAD || (git commit -a -m "create documentations" --allow-empty)
-      - name: push changes
-        uses: ad-m/github-push-action@v0.8.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref_name }}
+
+          # Commit only if there are changes
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "Update documentation"
+
+            # Determine the target branch
+            if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+              TARGET_BRANCH=${{ github.head_ref }}
+            else
+              TARGET_BRANCH=${{ github.ref_name }}
+            fi
+
+            # Push changes
+            git push origin HEAD:$TARGET_BRANCH
+          else
+            echo "No changes to commit."
+          fi
