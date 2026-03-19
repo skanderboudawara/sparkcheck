@@ -10,7 +10,7 @@ jobs:
       matrix:
         pyspark-version: ["pyspark>=3.3.0,<3.4.0", "pyspark>=3.4.0,<3.5.0", "pyspark>=3.5.0"]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Set up Python 3.10
       uses: actions/setup-python@v6
       with:
