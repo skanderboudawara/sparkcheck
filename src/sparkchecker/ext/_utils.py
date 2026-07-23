@@ -127,7 +127,7 @@ def to_name(column: str | Column | bool | float | None) -> str:
     if isinstance(column, str | bool | float | int):
         return str(column)
     if isinstance(column, Column):
-        return column._jc.toString()  # noqa: SLF001
+        return column._jc.toString()  # type: ignore[operator]  # noqa: SLF001
     raise TypeError(
         "Argument `column` must be of type str | Column but got: ",
         type(column),
