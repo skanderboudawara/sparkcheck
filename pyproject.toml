@@ -201,7 +201,7 @@ known-local-folder = ["src"]
 
 [tool.mypy]
 mypy_path = "src"
-strict = false
+strict = true
 files = "src"
 exclude = [
     "(^|/)(test.*)$",

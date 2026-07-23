@@ -16,10 +16,17 @@ df = df.withColumn(
     col("passengers_country"),
 )
 
-# Check the dataframe
-df.sparkChecker(
-    path="examples/expectations_airline.yaml",
-    raise_error=True,
-    print_log=True,
-    write_file=True,
-)
+import cProfile
+import pstats
+
+with cProfile.Profile() as pr:
+    df.sparkChecker(
+        path="examples/expectations_airline.yaml",
+        raise_error=False,
+        print_log=True,
+        write_file=True,
+    )
+
+stats = pstats.Stats(pr)
+stats.sort_stats(pstats.SortKey.TIME)
+stats.dump_stats(filename="examples/profile_stats.prof")
